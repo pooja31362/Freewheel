@@ -1,0 +1,15 @@
+.stats {
+      display: flex;
+      justify-content: space-between;
+      max-width: 70rem;
+      margin: .5rem 0 0 4rem;
+    }
+    .stat-box {
+      background: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+      min-width: .1rem;
+      width: 16rem;
+    }

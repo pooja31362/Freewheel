@@ -8,12 +8,14 @@
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
 
 
 
 
     <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
     <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
 </head>
 <body>
     <nav>
@@ -55,25 +57,29 @@
 
 
     <div class="stats">
-      <div class="stat-box">Open Ticket<br><b>15</b></div>
-      <div class="stat-box">Pending Tickets<br><b>20</b></div>
-      <div class="stat-box">On-hold Tickets<br><b>23</b></div>
-      <div class="stat-box">New Tickets<br><b>4</b></div>
+      <div class="stat-box" id="open-ticket-btn">Open Ticket<br><b>{{open_tickets.count }}</b></div>
+      <div class="stat-box" id="pending-ticket-btn">Pending Tickets<br><b>{{pending_tickets.count}}</b></div>
+      <div class="stat-box" id="onhold-ticket-btn">On-hold Tickets<br><b>{{hold_tickets.count}}</b></div>
+      <div class="stat-box" id="new-ticket-btn">New Tickets<br><b>{{new_tickets.count}}</b></div>
     </div>
 
+   
 
-
-    <div class="user-container">
+    <div class="user-container" id="user-container">
       <div class="user"> <!-- add user -->
         <!-- Repeat this ticket-card div for each user -->
-         {% for i in range %}
-        <div class="user-card">
+         {% for user in users %}
+        <div class="user-card"
+            data-open="{{ user.open_ticket_count }}"
+            data-pending="{{ user.pending_ticket_count }}"
+            data-onhold="{{ user.hold_ticket_count }}"
+            data-new="{{ user.new_ticket_count }}">
             <div class="top-section">
                 <div class="user-info">
                     <div class="user-img">
                         <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
                     </div>
-                    <div>User Name,<br>Status</div>
+                    <div>{{ user.assignee_name }}<br>{{ user.status }}</div>
                 </div>
 
                 <div class="user-stats">
@@ -128,5 +134,7 @@
         <!-- Duplicate above for each entry -->
       </div>
     </div>
+
+    {%include 'Freewheel_Portal/ticket-open.html'%}
 </body>
 </html>

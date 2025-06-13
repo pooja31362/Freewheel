@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tickets</title>
+</head>
+<body>
+    <h1>All Tickets (sorted by Ticket ID)</h1>
+    <table border="1">
+        <tr>
+            <th>Ticket ID</th>
+            <th>Priority</th>
+            <th>Subject</th>
+            <th>Assignee</th>
+            <th>Status</th>
+            <th>Created</th>
+            <!-- Add more columns if needed -->
+        </tr>
+        {% for ticket in tickets %}
+        <tr>
+            <td>{{ ticket.ticket_id }}</td>
+            <td>{{ ticket.priority }}</td>
+            <td>{{ ticket.subject }}</td>
+            <td>{{ ticket.assignee_name }}</td>
+            <td>{{ ticket.status }}</td>
+            <td>{{ ticket.created_timestamp }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

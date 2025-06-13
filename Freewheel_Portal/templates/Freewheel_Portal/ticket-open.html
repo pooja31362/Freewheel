@@ -1,0 +1,93 @@
+<div id="ticket-container" class="ticket-container" style="display:none">
+    <table class="ticket-table">
+      <thead>
+        <tr>
+          <th>Ticket ID</th>
+          <th>Ticket Subject</th>
+          <th>Priority</th>
+          <th>SLA</th>
+          <th>Assignee</th>
+          <th style="text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in tickets %}
+        {% if ticket.status == 'Open' %}
+        <tr>
+          <td>{{ ticket.ticket_id }}</td>
+          <td>{{ ticket.subject }}</td>
+          <td>{{ ticket.priority }}</td>
+          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
+          <td>{{ ticket.assignee_name }}</td>
+          <td>{{ ticket.status }}</td>
+          <td style="text-align: center;"><button>Comment</button></td>
+        </tr>
+        {% endif %}
+        {% if ticket.status == 'Pending' %}
+        <tr>
+          <td>{{ ticket.ticket_id }}</td>
+          <td>{{ ticket.subject }}</td>
+          <td>{{ ticket.priority }}</td>
+          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
+          <td>{{ ticket.assignee_name }}</td>
+          <td>{{ ticket.status }}</td>
+          <td style="text-align: center;"><button>Comment</button></td>
+        </tr>
+        {% endif %}
+        {% if ticket.status == 'Hold' %}
+        <tr>
+          <td>{{ ticket.ticket_id }}</td>
+          <td>{{ ticket.subject }}</td>
+          <td>{{ ticket.priority }}</td>
+          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
+          <td>{{ ticket.assignee_name }}</td>
+          <td>{{ ticket.status }}</td>
+          <td style="text-align: center; position: relative;">
+            <!-- 3-dot menu button -->
+            <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+              &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+            </button>
+         
+            <!-- Dropdown menu -->
+            <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+              <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+              <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+            </div>
+         
+            <!-- Hidden comment form -->
+            <div class="comment-form hidden" style="margin-top: 10px;">
+              <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+              <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+            </div>
+         
+            <!-- Hidden assign form -->
+            <div class="assign-form hidden" style="margin-top: 10px;">
+              <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+              <select class="assignee-dropdown" style="width: 100%;">
+                <option value="John Doe">John Doe</option>
+                <option value="Jane Smith">Jane Smith</option>
+                <option value="Michael Scott">Michael Scott</option>
+                <!-- Add more options dynamically from Django -->
+              </select>
+              <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+            </div>
+          </td>
+         
+         
+        </tr>
+        {% endif %}
+        {% if ticket.status == 'New' %}
+        <tr>
+          <td>{{ ticket.ticket_id }}</td>
+          <td>{{ ticket.subject }}</td>
+          <td>{{ ticket.priority }}</td>
+          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
+          <td>{{ ticket.assignee_name }}</td>
+          <td>{{ ticket.status }}</td>
+          <td style="text-align: center;"><button>Comment</button></td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+            </tbody>
+    </table>
+  </div>

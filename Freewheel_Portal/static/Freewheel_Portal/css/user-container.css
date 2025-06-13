@@ -190,7 +190,7 @@
   color: white;
 }
 
-.ticket-table {
+.user-container .ticket-table {
     font-size: 12px;
   display: flex;
   flex-direction: column;

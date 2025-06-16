@@ -9,7 +9,8 @@
     padding: .3rem .3rem .3rem .8rem;
     max-width: 70rem;
     overflow: hidden;
-    max-height: 81.5vh;
+    height: 79vh;
+    width: 100%;
     }
 .user {
     padding-left: .5rem;

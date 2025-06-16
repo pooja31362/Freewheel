@@ -1,0 +1,8 @@
+.whole-page.active {
+    filter: blur(0.4rem);
+    pointer-events: none;
+}
+
+.whole-page {
+    transition: .3s ease-in-out;
+}

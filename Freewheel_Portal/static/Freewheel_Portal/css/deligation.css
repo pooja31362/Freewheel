@@ -1,0 +1,74 @@
+    .deligation {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1.4rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .del {
+        z-index: 100;
+        position: fixed;
+        top: 8%;
+        left: 4.4%;
+        background: #3b0a75;
+        padding: 2rem;
+        box-shadow: 0 0 12px;
+        border-radius: 10px;
+        transition: .4s ease-in-out;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .del.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 0 1rem rgba(255, 255, 255, 1);
+      min-width: 18rem;
+      max-width: 22rem;
+      width: 90%;
+    }
+
+    .card h3 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .time-label {
+      font-weight: bold;
+      font-size: 0.9rem;
+      width: 6rem;
+    }
+
+    .deligation select {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #aaa;
+      background: #eee;
+    }
+
+    .del .submit-button {
+      margin-top: 1rem;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      background-color: #ccc;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+    }

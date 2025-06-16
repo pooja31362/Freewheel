@@ -2,6 +2,7 @@
       flex: 1;
       margin:.5rem ;
       max-width: 18rem;
+      height: 79vh;
     }
     .filters .section {
       background: white;
@@ -10,22 +11,106 @@
       border-radius: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .filters select, .filters button {
-      width: 100%;
-      margin-bottom: 5px;
-      padding: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+    .filters select{
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    font-size: .8rem;
+    border: 0.125rem solid #4a90e2;
+    border-radius: 0.5rem;
+    background-color: #fff;
+    color: #333;
+    appearance: none !important;
+    margin-bottom: .3rem;
     }
+
+    .filters select:focus{
+      outline: none;
+    }
+
     .filters .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
+      display: grid;
+      gap: 0.5rem;
+      grid-template-columns: repeat(3, 1fr);
     }
+.clear-filter {
+    margin-left: 11.6rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background-color: #312063;
+    width: 5.2rem;
+    padding: .2rem 0;
+    border-radius: 5px;
+    text-align: center;
+    margin-top: 0.3rem;
+}
+
+.view-more {
+    margin-left: 11.5rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background-color: #312063;
+    width: 5.2rem;
+    padding: .2rem 0;
+    border-radius: 5px;
+    text-align: center;
+    margin-top: 0.4rem;
+}
+
+.clear-filter p{
+      margin: 0.3rem 0;
+    color: white;
+    font-size: 12px;
+}
+
+.view-more p{
+      margin: 0.3rem 0;
+    color: white;
+    font-size: 12px;
+}
+
     .filters .button-group button {
       flex: 1;
       border: none;
       background: #ddd;
-      padding: 5px;
+      padding: .5rem;
       border-radius: 5px;
+    }
+
+    .check1 {
+      display: flex;
+    }
+
+    .filter {
+      height: 39vh;
+    }
+
+.filter h4 {
+      margin: 0 0 0.4rem;
+    text-align: center;
+    color: white;
+    background: #3b0a75;
+    border-radius: 10px;
+    padding: 0.5rem 0;
+    font-size: 14px;
+}
+
+.notice h4 {
+      margin: 0 0 0.6rem;
+    text-align: center;
+    color: white;
+    background: #3b0a75;
+    border-radius: 10px;
+    padding: 0.5rem 0;
+    font-size: 14px;
+}
+
+        .notice {
+      height: 39vh;
+      overflow-y: auto;
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 0 !important;
     }

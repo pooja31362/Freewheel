@@ -4,6 +4,8 @@ const onholdBtn = document.getElementById('onhold-ticket-btn');
 const newBtn = document.getElementById('new-ticket-btn');
 const ticketContainer = document.getElementById('ticket-container');
 const userContainer = document.getElementById('user-container');
+const userFilter = document.getElementById('user-filter')
+const ticketFilter = document.getElementById('ticket-filter')
  
 let currentActive = null;
  
@@ -27,12 +29,16 @@ function toggleSection(button) {
     // Toggle off
     ticketContainer.style.display = 'none';
     userContainer.style.display = 'block';
+    ticketFilter.style.display = 'none';
+    userFilter.style.display = 'block';
     resetButtons();
     currentActive = null;
   } else {
     // Toggle on
     ticketContainer.style.display = 'block';
     userContainer.style.display = 'none';
+    ticketFilter.style.display = 'block';
+    userFilter.style.display = 'none';
     resetButtons();
     button.classList.add('active');
     currentActive = button;

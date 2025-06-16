@@ -1,0 +1,70 @@
+
+    <div class="user-container" id="user-container" style="display: block;">
+      <div class="user"> <!-- add user -->
+        <!-- Repeat this ticket-card div for each user -->
+         {% for user in users %}
+        <div class="user-card"
+            data-open="{{ user.open_ticket_count }}"
+            data-pending="{{ user.pending_ticket_count }}"
+            data-onhold="{{ user.hold_ticket_count }}"
+            data-new="{{ user.new_ticket_count }}">
+            <div class="top-section">
+                <div class="user-info">
+                    <div class="user-img">
+                        <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                    </div>
+                    <div>{{ user.assignee_name }}<br>{{ user.status }}</div>
+                </div>
+
+                <div class="user-stats">
+                    <div>3</div>
+                    <div>5</div>
+                </div>
+
+                <div class="user-actions">
+                    <button class="ticketsList">Tickets</button>
+                    <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                    <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
+                </div>
+            </div>
+            <div class="ticket" >
+            <div class="ticket-tabs">
+                <button class="tab active">Open Tickets</button>
+                <button class="tab">Pending Tickets</button>
+                <button class="tab">On-Hold Ticket</button>
+                <button class="tab">Solved Ticket</button>
+            </div>
+
+            <div class="ticket-table">
+                <div class="ticket-row">
+                    <div>212474</div>
+                    <div>MRM | MPP -Sold Order</div>
+                    <div>Normal</div>
+                    <div>11Hrs</div>
+                    <div>Abcdefg Hijklmn</div>
+                    <div><button class="comment-btn">Comment</button></div>
+                </div>
+                <div class="ticket-row">
+                    <div>212474</div>
+                    <div>MRM | MPP -Sold Order</div>
+                    <div>Normal</div>
+                    <div>11Hrs</div>
+                    <div>Abcdefg Hijklmn</div>
+                    <div><button class="comment-btn">Comment</button></div>
+                </div>
+                    <div class="ticket-row">
+                    <div>212474</div>
+                    <div>MRM | MPP -Sold Order</div>
+                    <div>Normal</div>
+                    <div>11Hrs</div>
+                    <div>Abcdefg Hijklmn</div>
+                    <div><button class="comment-btn">Comment</button></div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        {% endfor %}
+        <!-- Duplicate above for each entry -->
+      </div>
+    </div>

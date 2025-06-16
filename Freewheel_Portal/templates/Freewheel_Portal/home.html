@@ -9,53 +9,21 @@
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
 
 
-
-
+    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
     <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
     <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
     <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
 </head>
 <body>
-    <nav>
-        <div class="sidebar">
-            <i class="fa-solid fa-bars"></i>
-            <i class="fa-solid fa-house"></i>
-            <i class="fa-solid fa-people-group"></i>
-            <i class="fa-solid fa-envelope"></i>
-            <i class="fa-solid fa-upload"></i>
-            <i class="fa-solid fa-right-from-bracket"></i>
-        </div>
-
-<div class="check">
-        <div class="topbar">
-            <input type="text" placeholder="Search">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="circle" style="background:brown;width:20px;height:20px;border-radius:50%;"></div>
-                <i class="fa-solid fa-bell"></i>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Nuvola_apps_kcmsystem.png/600px-Nuvola_apps_kcmsystem.png" style="width: 30px; height: 30px;">
-                <span>Hello, <b>User Name</b></span>
-            </div>
-        </div>
-
-
-        <div class="status">
-            <div class="status-box">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Active</span>
-            </div>
-            <div class="status-box">
-                <i class="fa-solid fa-circle-xmark"></i>
-                <span>Inactive</span>
-            </div>
-        </div>
-</div>
-        
-    </nav>
-
-
-
+    {%include 'Freewheel_Portal/navbar.html' %}
+    {%include 'Freewheel_Portal/deligation.html' %}
+  <div id="click">
+<div class="whole-page" id="wholePage">
     <div class="stats">
       <div class="stat-box" id="open-ticket-btn">Open Ticket<br><b>{{open_tickets.count }}</b></div>
       <div class="stat-box" id="pending-ticket-btn">Pending Tickets<br><b>{{pending_tickets.count}}</b></div>
@@ -63,78 +31,14 @@
       <div class="stat-box" id="new-ticket-btn">New Tickets<br><b>{{new_tickets.count}}</b></div>
     </div>
 
-   
-
-    <div class="user-container" id="user-container">
-      <div class="user"> <!-- add user -->
-        <!-- Repeat this ticket-card div for each user -->
-         {% for user in users %}
-        <div class="user-card"
-            data-open="{{ user.open_ticket_count }}"
-            data-pending="{{ user.pending_ticket_count }}"
-            data-onhold="{{ user.hold_ticket_count }}"
-            data-new="{{ user.new_ticket_count }}">
-            <div class="top-section">
-                <div class="user-info">
-                    <div class="user-img">
-                        <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
-                    </div>
-                    <div>{{ user.assignee_name }}<br>{{ user.status }}</div>
-                </div>
-
-                <div class="user-stats">
-                    <div>3</div>
-                    <div>5</div>
-                </div>
-
-                <div class="user-actions">
-                    <button class="ticketsList">Tickets</button>
-                    <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
-                    <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
-                </div>
-            </div>
-            <div class="ticket" >
-            <div class="ticket-tabs">
-                <button class="tab active">Open Tickets</button>
-                <button class="tab">Pending Tickets</button>
-                <button class="tab">On-Hold Ticket</button>
-                <button class="tab">Solved Ticket</button>
-            </div>
-
-            <div class="ticket-table">
-                <div class="ticket-row">
-                    <div>212474</div>
-                    <div>MRM | MPP -Sold Order</div>
-                    <div>Normal</div>
-                    <div>11Hrs</div>
-                    <div>Abcdefg Hijklmn</div>
-                    <div><button class="comment-btn">Comment</button></div>
-                </div>
-                <div class="ticket-row">
-                    <div>212474</div>
-                    <div>MRM | MPP -Sold Order</div>
-                    <div>Normal</div>
-                    <div>11Hrs</div>
-                    <div>Abcdefg Hijklmn</div>
-                    <div><button class="comment-btn">Comment</button></div>
-                </div>
-                    <div class="ticket-row">
-                    <div>212474</div>
-                    <div>MRM | MPP -Sold Order</div>
-                    <div>Normal</div>
-                    <div>11Hrs</div>
-                    <div>Abcdefg Hijklmn</div>
-                    <div><button class="comment-btn">Comment</button></div>
-                </div>
-            </div>
-            </div>
-        </div>
-
-        {% endfor %}
-        <!-- Duplicate above for each entry -->
-      </div>
-    </div>
+   <div class="check1">
+    {%include 'Freewheel_Portal/user-container.html' %}
 
     {%include 'Freewheel_Portal/ticket-open.html'%}
+
+    {%include 'Freewheel_Portal/filter.html' %}
+    </div>
+    </div>
+</div>
 </body>
 </html>

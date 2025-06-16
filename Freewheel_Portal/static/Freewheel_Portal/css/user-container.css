@@ -100,6 +100,7 @@
   color: white;
   background: #312063;
   cursor: pointer;
+  margin: 0.2rem 0;
 }
 
 .user-actions img {

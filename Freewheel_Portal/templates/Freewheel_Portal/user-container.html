@@ -4,21 +4,36 @@
         <!-- Repeat this ticket-card div for each user -->
          {% for user in users %}
         <div class="user-card"
-            data-open="{{ user.open_ticket_count }}"
-            data-pending="{{ user.pending_ticket_count }}"
-            data-onhold="{{ user.hold_ticket_count }}"
-            data-new="{{ user.new_ticket_count }}">
+            data-agent="{{ user.assignee_name }}"
+            data-shift="{{ user.shift }}"
+            data-manager="{{ user.repor_manager }}"
+            data-role="{{ user.level }}">
             <div class="top-section">
                 <div class="user-info">
                     <div class="user-img">
                         <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
                     </div>
-                    <div>{{ user.assignee_name }}<br>{{ user.status }}</div>
+                    <div>
+                        <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
+                        <div style="font-size: 12px;">
+                            {% if user.status == 'Available' %}
+                            <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                            {% elif user.status == 'Away' %}
+                            <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                            {% elif user.status == 'In-Meeting' %}
+                            <i class="fa-solid fa-clock" style="color: #F44336;"></i>
+                            {% elif user.status == 'Offline' %}
+                            <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                            {% endif %}
+                            
+                            
+                            {{ user.status }}</div>
+                    </div>
                 </div>
 
                 <div class="user-stats">
-                    <div>3</div>
-                    <div>5</div>
+                    <div>{{user.shift}}</div>
+                    <div>{{ user.repor_manager }}</div>
                 </div>
 
                 <div class="user-actions">

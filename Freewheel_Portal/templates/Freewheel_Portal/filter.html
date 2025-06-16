@@ -1,9 +1,34 @@
       <div class="filters">
         <div class="section filter" id="user-filter">
           <h4>Agent Filter</h4>
-          <select><option>Agent Name Dropdown</option></select>
-          <select><option>Shift Based Drop Down</option></select>
-          <select><option>Manager Based Drop Down</option></select>
+
+          <select id="agent-filter">
+            <option value="All">Agents Filter</option>
+            {% for user in users %}
+            <option value="{{user.assignee_name}}">{{user.assignee_name}}</option>
+            {% endfor %}
+          </select>
+
+          <select id="shift-filter">
+            <option value="All">Shift Filter</option>
+            <option value="S1">Shift 1</option>
+            <option value="S2">Shift 2</option>
+            <option value="S3">Shift 3</option>
+            <option value="S4">Shift 4</option>
+            <option value="S5">Shift 5</option>
+            <option value="S6">Shift 6</option>
+          </select>
+
+          <select id="manager-filter">
+            <option value="All">Manager Filter</option>
+            <option value="Ravi Shankar"> Ravi</option>
+            {% for user in users %}
+            {% if user.assignee_name == Manager %}
+            <option value="{{user.assignee_name}}">{{user.assignee_name}}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+
           <div class="button-group">
             <button>E1</button><button>E2</button><button>E3</button><button>E4</button>
             <button>M</button><button>TC</button>
@@ -16,8 +41,12 @@
           <select><option>Shift Based Drop Down</option></select>
           <select><option>Manager Based Drop Down</option></select>
           <div class="button-group">
-            <button>E1</button><button>E2</button><button>E3</button><button>E4</button>
-            <button>M</button><button>TC</button>
+            <button data-role="E1">E1</button>
+            <button data-role="E2">E2</button>
+            <button data-role="E3">E3</button>
+            <button data-role="E4">E4</button>
+            <button data-role="M">M</button>
+            <button data-role="TC">TC</button>
           </div>
           <div class="clear-filter"><p>Clear Filter</p></div>
         </div>
@@ -28,3 +57,5 @@
           <div class="view-more"><p>-- view More</p></div>
         </div>
       </div>
+
+<script src="../../static/Freewheel_Portal/js/filters.js"></script>

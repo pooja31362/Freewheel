@@ -58,9 +58,8 @@ class User(models.Model):
  
     STATUS_CHOICES = [
         ('Available', 'Available'),
-        ('BRB', 'Be Right Back'),
-        ('Meeting', 'Meeting'),
-        ('Back', 'Back'),
+        ('Away', 'Away'),
+        ('In-Meeting', 'In-Meeting'),
         ('Offline', 'Offline'),
     ]
  

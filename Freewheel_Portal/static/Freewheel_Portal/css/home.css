@@ -6,3 +6,11 @@
 .whole-page {
     transition: .3s ease-in-out;
 }
+
+.click{
+    display: auto;
+}
+
+.click.active {
+    display: none;
+}

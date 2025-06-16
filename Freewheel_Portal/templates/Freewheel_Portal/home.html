@@ -12,8 +12,6 @@
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/profile.css">
-
 
 
     <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
@@ -25,7 +23,7 @@
     {%include 'Freewheel_Portal/navbar.html' %}
     {%include 'Freewheel_Portal/deligation.html' %}
 
-  <div id="click" style="display: none;">
+  <div id="click" class="click">
     <div class="whole-page" id="wholePage">
       <div class="stats">
         <div class="stat-box" id="open-ticket-btn">Open Ticket<br><b>{{open_tickets.count }}</b></div>
@@ -44,6 +42,5 @@
     </div>
   </div>
 
-  {%include 'Freewheel_Portal/profile.html' %}
 </body>
 </html>

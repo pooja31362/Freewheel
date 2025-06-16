@@ -14,7 +14,7 @@
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div class="circle" style="background:brown;width:20px;height:20px;border-radius:50%;"></div>
                 <i class="fa-solid fa-bell"></i>
-                <img src="{{ current_user.profile_image.url }}" style="width: 30px; height: 30px;">
+                <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 30px; height: 30px;">
                 
                 <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
             </div>

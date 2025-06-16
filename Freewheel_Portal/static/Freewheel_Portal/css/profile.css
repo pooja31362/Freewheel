@@ -1,5 +1,12 @@
 
+    .prof {
+        display: none;
+    }
 
+    .prof.active{
+        display: auto;
+    }
+    
     .profile {
       margin: 1rem 0.5rem 0 4rem;
       display: grid;

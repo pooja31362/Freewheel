@@ -14,22 +14,29 @@
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div class="circle" style="background:brown;width:20px;height:20px;border-radius:50%;"></div>
                 <i class="fa-solid fa-bell"></i>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Nuvola_apps_kcmsystem.png/600px-Nuvola_apps_kcmsystem.png" style="width: 30px; height: 30px;">
-                <span>Hello, <b>User Name</b></span>
+                <img src="{{ current_user.profile_image.url }}" style="width: 30px; height: 30px;">
+                <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
             </div>
         </div>
 
 
-        <div class="status">
-            <div class="status-box">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Active</span>
+<div class="status">
+            <div class="status-box dark" title="Available" data-color="green">
+              <i class="fa-solid fa-right-to-bracket"></i>
             </div>
-            <div class="status-box">
-                <i class="fa-solid fa-circle-xmark"></i>
-                <span>Inactive</span>
+            <div class="status-box dark" title="BRB" data-color="rgb(214, 164, 55)">
+              <img src="../../static/Freewheel_Portal/images/brb.png" alt="BRB" />
             </div>
-        </div>
+            <div class="status-box dark" title="Back" data-color="green">
+                <i class="fa-solid fa-arrow-left"></i>
+            </div>
+            <div class="status-box dark" title="Meeting" data-color="red">
+                <i class="fa-solid fa-phone"></i>
+            </div>
+            <div class="status-box dark" title="Offline" data-color="gray">
+                <i class="fa-solid fa-xmark"></i>
+            </div>
+          </div>
 </div>
         
     </nav>

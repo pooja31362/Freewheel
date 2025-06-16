@@ -1,9 +1,18 @@
 from django.shortcuts import render
 from .models import Ticket, User  # import your models
+from django.views.decorators.cache import never_cache
+
  
+@never_cache # type: ignore
+def login_view(request):
+    return render(request, 'Freewheel_Portal/login.html')
+
+
+
 def home(request):
     context = {
-        'users': User.objects.all(),
+        'users': User.objects.all().values,
+        'current_user' : User.objects.filter(emp_id=request.session['emp_id']).values().first(),
         'tickets': Ticket.objects.all().values(),
         'open_tickets': Ticket.objects.filter(status='Open'),
         'pending_tickets': Ticket.objects.filter(status='Pending'),
@@ -11,9 +20,82 @@ def home(request):
         'new_tickets': Ticket.objects.filter(status='New'),
     }
 
-    ticket1 = context['hold_tickets']
+    ticket1 = context['current_user']
     print('hiiiiiiiii',ticket1)
     return render(request, 'Freewheel_Portal/home.html', context)
+
+
+
+
+from .models import User  # Make sure Employee is imported
+from .models import User
+from django.contrib import messages
+from django.shortcuts import redirect
+
+def do_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        try:
+            user = User.objects.get(user_name=username)
+            if user.password == password:
+                request.session.flush()  # Clear previous session
+
+                access = [a.lower().strip() for a in user.access]
+                request.session['emp_id'] = user.emp_id
+                request.session['access'] = access
+
+                return redirect('home')
+            else:
+                messages.error(request, "Invalid password.")
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+
+    return redirect('login')
+
+
+
+
+from django.http import HttpResponse
+from django.utils.crypto import get_random_string
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.urls import reverse
+ 
+def forgot_password(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        print(username)
+ 
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return HttpResponse("user_not_found")
+ 
+        # Optionally: You can check access here if you want to restrict certain users
+        # For example:
+        # if user.access not in ['admin', 'staff', 'guest']:
+        #     return HttpResponse("user_not_found")
+ 
+        token = get_random_string(length=48)
+        user.reset_token = token
+        user.token_created_at = timezone.now()
+        user.save()
+ 
+        reset_url = request.build_absolute_uri(
+            reverse('reset_password', args=[token])
+        )
+ 
+        send_mail(
+            subject='Reset Your Password',
+            message=f'Click the link to reset your password: {reset_url}',
+            from_email='noreply@example.com',
+            recipient_list=[user.email],
+        )
+        return HttpResponse("success")
+
+
  
 import pandas as pd
 from django.shortcuts import render
@@ -104,30 +186,12 @@ def upload_excel(request):
     return render(request, 'Freewheel_Portal/upload.html')
  
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
 from django.shortcuts import render
 from .models import Ticket
  
 def ticket_list(request):
     tickets = Ticket.objects.all().order_by('ticket_id')  # ascending order
     return render(request, 'Freewheel_Portal/ticket_list.html', {'tickets': tickets})
- 
- 
- 
- 
  
  
 from django.shortcuts import render, redirect

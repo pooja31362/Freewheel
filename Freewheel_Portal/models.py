@@ -78,7 +78,7 @@ class User(models.Model):
     slack_id = models.CharField(max_length=50)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Offline')
     shift = models.CharField(max_length=20)
- 
+    profile_image = models.ImageField(upload_to='profile_images/', default='profile_images/image.png', blank=True, null=True)
     access = models.JSONField(default=list)
  
     def __str__(self):

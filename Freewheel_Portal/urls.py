@@ -13,6 +13,7 @@ urlpatterns = [
     path('', views.login_view, name='login'),
     path('do-login/', views.do_login, name='do_login'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('update-status/', views.update_status, name='status_update'),
 
 ]
 

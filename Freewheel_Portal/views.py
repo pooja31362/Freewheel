@@ -10,9 +10,21 @@ def login_view(request):
 
 
 def home(request):
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
     context = {
-        'users': User.objects.all().values,
-        'current_user' : User.objects.filter(emp_id=request.session['emp_id']).values().first(),
+        'users': User.objects.exclude(emp_id=current_user.emp_id),
+        'current_user': current_user,
+        'tickets': Ticket.objects.all(),
+        'open_tickets': Ticket.objects.filter(status='Open'),
+        'pending_tickets': Ticket.objects.filter(status='Pending'),
+        'hold_tickets': Ticket.objects.filter(status='Hold'),
+        'new_tickets': Ticket.objects.filter(status='New'),
+    }
+    return render(request, 'Freewheel_Portal/home.html', context)
+
+    context = {
+        'users': User.objects.all().values(),
+        'current_user': User.objects.get(emp_id=request.session['emp_id']),
         'tickets': Ticket.objects.all().values(),
         'open_tickets': Ticket.objects.filter(status='Open'),
         'pending_tickets': Ticket.objects.filter(status='Pending'),
@@ -20,11 +32,7 @@ def home(request):
         'new_tickets': Ticket.objects.filter(status='New'),
     }
 
-    ticket1 = context['current_user']
-    print('hiiiiiiiii',ticket1)
     return render(request, 'Freewheel_Portal/home.html', context)
-
-
 
 
 from .models import User  # Make sure Employee is imported
@@ -56,6 +64,21 @@ def do_login(request):
 
 
 
+from django.http import JsonResponse
+
+def update_status(request):
+    if request.method == 'POST':
+        status = request.POST.get('status')
+        user = User.objects.get(emp_id=request.session['emp_id'])
+
+        if status in dict(User.STATUS_CHOICES):
+            user.status = status
+            user.save()
+            return JsonResponse({'success': True, 'status': status})
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid status'})
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
 
 from django.http import HttpResponse
 from django.utils.crypto import get_random_string
@@ -66,7 +89,6 @@ from django.urls import reverse
 def forgot_password(request):
     if request.method == 'POST':
         username = request.POST.get('username')
-        print(username)
  
         try:
             user = User.objects.get(username=username)
@@ -111,7 +133,6 @@ def upload_excel(request):
         # Clean DataFrame
         df = df.where(pd.notnull(df), None)
  
-        print("📊 Excel Columns:", df.columns.tolist(), flush=True)
  
         column_field_map = {
             'Ticket ID': 'ticket_id',
@@ -149,7 +170,6 @@ def upload_excel(request):
         for _, row in df.iterrows():
             raw_id = row.get('Ticket ID')
             if raw_id is None:
-                print("⚠️ Skipping row: No Ticket ID", flush=True)
                 continue
  
             ticket_id = str(raw_id).strip()
@@ -168,7 +188,6 @@ def upload_excel(request):
                 defaults=data
             )
  
-            print(f"{'✅ Created' if created else '♻️ Updated'} Ticket ID: {ticket_id}", flush=True)
  
         # 🔥 Delete tickets that are not in Excel
         db_ticket_ids = set(Ticket.objects.values_list('ticket_id', flat=True))
@@ -176,9 +195,7 @@ def upload_excel(request):
  
         if to_delete:
             Ticket.objects.filter(ticket_id__in=to_delete).delete()
-            print(f"🗑️ Deleted Ticket IDs not in Excel: {to_delete}", flush=True)
  
-        print("📋 Current Ticket IDs in DB:")
         for tid in Ticket.objects.values_list('ticket_id', flat=True):
             print(f"• {tid}", flush=True)
         return HttpResponse("✔️ Tickets uploaded and synced with database.")

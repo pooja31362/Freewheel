@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/profile.css">
+
 
 
     <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
@@ -22,23 +24,26 @@
 <body>
     {%include 'Freewheel_Portal/navbar.html' %}
     {%include 'Freewheel_Portal/deligation.html' %}
-  <div id="click">
-<div class="whole-page" id="wholePage">
-    <div class="stats">
-      <div class="stat-box" id="open-ticket-btn">Open Ticket<br><b>{{open_tickets.count }}</b></div>
-      <div class="stat-box" id="pending-ticket-btn">Pending Tickets<br><b>{{pending_tickets.count}}</b></div>
-      <div class="stat-box" id="onhold-ticket-btn">On-hold Tickets<br><b>{{hold_tickets.count}}</b></div>
-      <div class="stat-box" id="new-ticket-btn">New Tickets<br><b>{{new_tickets.count}}</b></div>
-    </div>
 
-   <div class="check1">
-    {%include 'Freewheel_Portal/user-container.html' %}
+  <div id="click" style="display: none;">
+    <div class="whole-page" id="wholePage">
+      <div class="stats">
+        <div class="stat-box" id="open-ticket-btn">Open Ticket<br><b>{{open_tickets.count }}</b></div>
+        <div class="stat-box" id="pending-ticket-btn">Pending Tickets<br><b>{{pending_tickets.count}}</b></div>
+        <div class="stat-box" id="onhold-ticket-btn">On-hold Tickets<br><b>{{hold_tickets.count}}</b></div>
+        <div class="stat-box" id="new-ticket-btn">New Tickets<br><b>{{new_tickets.count}}</b></div>
+      </div>
 
-    {%include 'Freewheel_Portal/ticket-open.html'%}
+      <div class="check1">
+        {%include 'Freewheel_Portal/user-container.html' %}
 
-    {%include 'Freewheel_Portal/filter.html' %}
+        {%include 'Freewheel_Portal/ticket-open.html'%}
+
+        {%include 'Freewheel_Portal/filter.html' %}
+      </div>
     </div>
-    </div>
-</div>
+  </div>
+
+  {%include 'Freewheel_Portal/profile.html' %}
 </body>
 </html>

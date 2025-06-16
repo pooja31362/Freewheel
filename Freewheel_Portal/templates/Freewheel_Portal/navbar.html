@@ -1,42 +1,115 @@
-    <nav>
-        <div class="sidebar">
-            <i class="fa-solid fa-bars"></i>
-            <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i></a>
-            <i class="fa-solid fa-people-group" id="delBtn"></i>
-            <i class="fa-solid fa-envelope"></i>
-            <i class="fa-solid fa-upload"></i>
-            <i class="fa-solid fa-right-from-bracket"></i>
-        </div>
+<nav>
+    <div class="sidebar">
+        <i class="fa-solid fa-bars"></i>
+        <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i></a>
+        <i class="fa-solid fa-people-group" id="delBtn"></i>
+        <i class="fa-solid fa-envelope"></i>
+        <i class="fa-solid fa-upload"></i>
+        <i class="fa-solid fa-right-from-bracket"></i>
+    </div>
 
-<div class="check">
+    <div class="check">
         <div class="topbar">
             <input type="text" placeholder="Search">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div class="circle" style="background:brown;width:20px;height:20px;border-radius:50%;"></div>
                 <i class="fa-solid fa-bell"></i>
                 <img src="{{ current_user.profile_image.url }}" style="width: 30px; height: 30px;">
+                
                 <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
             </div>
         </div>
 
+        <div id="status-section" data-update-url="{% url 'status_update' %}" data-csrf="{{ csrf_token }}">
+            <div class="status">
+                <div class="status-box" title="Available" data-color="green"><i class="fa-solid fa-circle-check" style="color: #000000;font-size: x-large;"></i></div>
+                <div class="status-box" title="Back" data-color="green"><i class="fa-solid fa-clock" style="color: #000000;font-size: x-large;"></i></div>
+                <div class="status-box" title="Meeting" data-color="red"><i class="fa-solid fa-phone" style="color: #000000; font-size: x-large;"></i></div>
+                <div class="status-box" title="Offline" data-color="gray"><i class="fa-solid fa-circle-xmark" style="color: #000000;font-size: x-large;"></i></div>
+            </div>
+        </div>
 
-<div class="status">
-            <div class="status-box dark" title="Available" data-color="green">
-              <i class="fa-solid fa-right-to-bracket"></i>
-            </div>
-            <div class="status-box dark" title="BRB" data-color="rgb(214, 164, 55)">
-              <img src="../../static/Freewheel_Portal/images/brb.png" alt="BRB" />
-            </div>
-            <div class="status-box dark" title="Back" data-color="green">
-                <i class="fa-solid fa-arrow-left"></i>
-            </div>
-            <div class="status-box dark" title="Meeting" data-color="red">
-                <i class="fa-solid fa-phone"></i>
-            </div>
-            <div class="status-box dark" title="Offline" data-color="gray">
-                <i class="fa-solid fa-xmark"></i>
-            </div>
-          </div>
-</div>
+    </div>
         
-    </nav>
+</nav>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const statusBoxes = document.querySelectorAll('.status-box');
+    const currentStatus = "{{ current_user.status }}";
+
+    // On load: highlight the current status
+    statusBoxes.forEach(box => {
+      const status = box.getAttribute('title');
+      const color = box.getAttribute('data-color');
+
+      if (status === currentStatus) {
+        box.classList.add('active');
+        box.style.backgroundColor = color;
+        box.style.color = 'white';
+      }
+
+      // On click: update status and color
+      box.addEventListener('click', () => {
+        const selectedStatus = box.getAttribute('title');
+
+        // Reset all boxes
+        statusBoxes.forEach(b => {
+          b.classList.remove('active');
+          b.style.backgroundColor = 'white';
+          b.style.color = 'black';
+        });
+
+        // Highlight clicked
+        box.classList.add('active');
+        box.style.backgroundColor = color;
+        box.style.color = 'white';
+
+        // Send AJAX to update backend
+        fetch("{% url 'status_update' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}',
+          },
+          body: new URLSearchParams({
+            status: selectedStatus
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log("Status updated to", selectedStatus);
+          } else {
+            console.error("Update failed:", data.error);
+          }
+        })
+        .catch(err => console.error("Network error:", err));
+      });
+    });
+  });
+</script>
+

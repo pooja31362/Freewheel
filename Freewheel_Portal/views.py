@@ -375,3 +375,46 @@ def assign_ticket(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+from .utils import populate_summary_data
+from .models import ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket
+ # or wherever you defined it
+ 
+def shift_end_summary(request):
+    populate_summary_data()  # ⚠️ Remove this after testing
+ 
+    # Now pull from stored data
+    status_summary = ShiftEndTicketDetails.objects.all()
+    sla_breaches = SLABreachedTicket.objects.all()
+    shiftend_details = ShiftEndTable.objects.all()
+ 
+    return render(request, 'portal_app/shift_end_summary.html', {
+        'status_summary': status_summary,
+        'sla_breaches': sla_breaches,
+        'shiftend_details': shiftend_details,
+    })
+ 
+
+def new_tickets_view(request):
+    if request.method == 'POST':
+        ticket_id = request.POST.get('ticket_id')
+        assignee_emp_id = request.POST.get('assignee_emp_id')
+
+        try:
+            ticket = Ticket.objects.get(id=ticket_id)
+            user = User.objects.get(emp_id=assignee_emp_id)
+
+            ticket.assignee_name = user.assignee_name
+            ticket.assigned_timestamp = timezone.now()
+            ticket.save()
+        except Ticket.DoesNotExist:
+            print(f"Ticket with ID {ticket_id} not found.")
+        except User.DoesNotExist:
+            print(f"User with emp_id {assignee_emp_id} not found.")
+
+        return redirect('new_tickets')
+
+    # Only show unassigned tickets with status 'New'
+    tickets = Ticket.objects.filter(assignee_name__isnull=True, status='New')
+    users = User.objects.all()
+    return render(request, 'portal_app/new_tickets.html', {'tickets': tickets, 'users': users})

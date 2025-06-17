@@ -1,47 +1,100 @@
-.shift-mail-form {
-    background: white;
-    border: 2px solid #3b0a75;
-    box-shadow: rgba(49, 32, 99, 1) -.5rem 0rem 0rem;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
-    height: 79vh;
-    overflow-y: auto;
-    box-sizing: border-box;
-  }
-  
-  .shift-mail-form h2 {
-    font-size: 18px;
-    margin-bottom: 1rem;
-    color: #3b0a75;
-  }
-  
-  .shift-mail-form textarea {
-    width: 100%;
-    resize: none;
-    padding: 0.5rem;
-    font-size: 14px;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-family: inherit;
-  }
-  
-  .shift-mail-form button[type="submit"] {
-    padding: 0.5rem 1.2rem;
-    background: #3b0a75;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  .shift-mail-form button[type="submit"]:hover {
-    background: #2b095a;
-  }
+body {
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  background-color: #f5f7fa;
+  color: #333;
+}
 
-  .hidden {
-    display:none;
+.shift-mail-form {
+  background: white;
+  border: 2px solid #3b0a75;
+  box-shadow: rgba(49, 32, 99, 1) -.5rem 0rem 0rem;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: .5rem 0 0 4.6rem;
+  height: 83vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  width: 94.5%;
+}
+
+.shift-mail-form h2 {
+  font-size: 18px;
+  margin-bottom: 1rem;
+  color: #3b0a75;
+}
+
+.shift-mail-form button[type="submit"] {
+  padding: 0.5rem 1.2rem;
+  background: #3b0a75;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.shift-mail-form button[type="submit"]:hover {
+  background: #2b095a;
+}
+
+.shift-mail-form table {
+  border-collapse: collapse;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  font-size: 10px;
+  table-layout: fixed;
+}
+
+.shift-mail-form th, .shift-mail-form td {
+  border: 1px solid #ccc;
+  padding: 2px 4px;
+  text-align: left;
+  word-wrap: break-word;
+}
+
+.shift-mail-form th {
+  background-color: #f1f1f1;
+  font-weight: bold;
+}
+
+.shift-mail-form tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.shift-mail-form td {
+  white-space: pre-wrap;
+}
+
+.small-col { width: 60px; }
+.medium-col { width: 80px; }
+.large-col { width: 130px; }
+
+.shift-mail-form h3 {
+  font-size: 13px;
+  color: #444;
+  margin-top: 0.5rem;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+.shift-mail-form #copyButton {
+  margin: 15px 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.shift-mail-form #copyButton:hover {
+  background-color: #0056b3;
+}
+
+@media print {
+  #copyButton {
+      display: none;
   }
-  
+}

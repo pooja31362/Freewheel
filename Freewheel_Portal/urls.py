@@ -17,6 +17,7 @@ urlpatterns = [
     path('shift-end-mail/', views.shift_end_mail, name='shift_end_mail'),
     path('submit-comment/', views.submit_comment, name='submit_comment'),
     path('assign-ticket/', views.assign_ticket, name='assign_ticket'),
+    path('new-tickets/', views.new_tickets_view, name='new_tickets'),
 
 ]
 

@@ -34,17 +34,21 @@
         <div class="stat-box" id="onhold-ticket-btn">On-hold Tickets<br><b>{{hold_tickets.count}}</b></div>
         <div class="stat-box" id="new-ticket-btn">New Tickets<br><b>{{new_tickets.count}}</b></div>
       </div>
-
-      <div class="check1">
+      <div class="wow">
+      <div class="check1" id="check" style="display: flex;">
         {%include 'Freewheel_Portal/user-container.html' %}
 
         {%include 'Freewheel_Portal/ticket-open.html'%}
 
         {%include 'Freewheel_Portal/filter.html' %}
 
-        {%include 'Freewheel_Portal/shift-end-mail.html' %}
+
 
       </div>
+
+      {%include 'Freewheel_Portal/shift-end-mail.html' %}
+    </div>
+
     </div>
   </div>
 

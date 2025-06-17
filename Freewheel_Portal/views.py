@@ -215,6 +215,9 @@ from .models import Ticket
 def ticket_list(request):
     tickets = Ticket.objects.all().order_by('ticket_id')  # ascending order
     return render(request, 'Freewheel_Portal/ticket_list.html', {'tickets': tickets})
+
+def test(request):
+    return render(request,'Freewheel_Portal/test.html')
  
  
 from django.shortcuts import render, redirect
@@ -339,11 +342,6 @@ def submit_comment(request):
             return JsonResponse({'success': False, 'error': str(e)})
 
     return JsonResponse({'success': False, 'error': 'Invalid method'})
-
-
-
-
-
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse

@@ -55,7 +55,7 @@ display: none;
 .user-card.active {
   max-height: 1000px; /* Adjust to expected full height */
 }
-
+  
 .user-info {
     display: flex;
     align-items: center;

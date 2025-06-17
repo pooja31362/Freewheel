@@ -18,6 +18,7 @@ urlpatterns = [
     path('submit-comment/', views.submit_comment, name='submit_comment'),
     path('assign-ticket/', views.assign_ticket, name='assign_ticket'),
     path('new-tickets/', views.new_tickets_view, name='new_tickets'),
+    path('test/', views.test, name='test'),
 
 ]
 

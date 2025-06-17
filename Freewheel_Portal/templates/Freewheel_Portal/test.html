@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .hidden { display: none; }
+    .ticket-row { border: 1px solid #ccc; padding: 10px; margin: 10px; }
+    .dropdown-section, .comment-box, .assign-box { margin-top: 10px; border: 1px dashed gray; padding: 5px; }
+  </style>
+</head>
+<body>
+
+<div class="ticket-row" data-ticket-id="123">
+  <div>Ticket #123</div>
+  <div class="menu-wrapper">
+    <button type="button" class="menu-btn">&#8942;</button>
+    <div class="dropdown-section hidden">
+      <button class="comment-option">Comment</button>
+      <button class="assign-option">Assign</button>
+    </div>
+  </div>
+  <div class="comment-box hidden">
+    <textarea placeholder="Enter comment..." rows="2"></textarea>
+    <button class="submit-comment">Submit Comment</button>
+  </div>
+  <div class="assign-box hidden">
+    <input type="text" placeholder="Search..." class="assignee-filter">
+    <select class="assignee-dropdown">
+      <option value="">-- Select Assignee --</option>
+      <option value="1">John</option>
+      <option value="2">Jane</option>
+    </select>
+    <button class="submit-assign">Assign Ticket</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".menu-btn").forEach(btn => {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      const section = btn.closest(".menu-wrapper").querySelector(".dropdown-section");
+      document.querySelectorAll(".dropdown-section").forEach(el => {
+        if (el !== section) el.classList.add("hidden");
+      });
+      section.classList.toggle("hidden");
+    });
+  });
+
+  document.querySelectorAll(".comment-option").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const row = btn.closest(".ticket-row");
+      row.querySelector(".comment-box").classList.toggle("hidden");
+      row.querySelector(".assign-box").classList.add("hidden");
+      row.querySelector(".dropdown-section").classList.add("hidden");
+    });
+  });
+
+  document.querySelectorAll(".assign-option").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const row = btn.closest(".ticket-row");
+      row.querySelector(".assign-box").classList.toggle("hidden");
+      row.querySelector(".comment-box").classList.add("hidden");
+      row.querySelector(".dropdown-section").classList.add("hidden");
+    });
+  });
+
+  // Extra: Close everything on outside click
+  document.addEventListener("click", function () {
+    document.querySelectorAll(".dropdown-section, .comment-box, .assign-box").forEach(el => el.classList.add("hidden"));
+  });
+
+  // Don't close on inner click
+  document.querySelectorAll('.dropdown-section, .comment-box, .assign-box').forEach(el => {
+    el.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+  });
+});
+</script>
+
+</body>
+</html>

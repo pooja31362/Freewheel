@@ -1,0 +1,17 @@
+<div class="shift-mail-form" id="shift-end-mail" style="display:none">
+    <h2>Shift End Mail</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <label>Summary of Work:</label>
+      <textarea name="summary" rows="4" placeholder="Your work summary..."></textarea>
+  
+      <label>Issues Faced:</label>
+      <textarea name="issues" rows="3" placeholder="Any blockers or issues..."></textarea>
+  
+      <label>Plan for Tomorrow:</label>
+      <textarea name="plans" rows="3" placeholder="Tasks planned for tomorrow..."></textarea>
+  
+      <button type="submit">Send Mail</button>
+    </form>
+  </div>
+  

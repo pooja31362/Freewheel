@@ -1,6 +1,76 @@
 
     <div class="user-container" id="user-container" style="display: block;">
+
+      <div id="toast" class="toast hidden"></div>
+
       <div class="user"> <!-- add user -->
+        <div class="user-card">
+            <div class="top-section">
+                <div class="user-info">
+                    <div class="user-img">
+                        <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                    </div>
+                    <div style="width: 40vh;">
+                        <div style="font-size: 14px; font-weight: bold;">You</div>
+                        <div id="user-status-display" style="font-size: 12px;">
+                            {% if current_user.status == 'Available' %}
+                            <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                            {% elif current_user.status == 'Away' %}
+                            <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                            {% elif current_user.status == 'In-Meeting' %}
+                            <i class="fa-solid fa-clock" style="color: #F44336;"></i>
+                            {% elif current_user.status == 'Offline' %}
+                            <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                            {% endif %}
+                           
+                           
+                            {{ current_user.status }}</div>
+                    </div>
+                </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                        <div style="font-size: 12px;">{{ current_user.shift }}</div>
+                    </div>
+                                        <div class="title">
+                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                        <div style="font-size: 12px;">{{ current_user.job_title }}</div>
+                    </div>
+ 
+                    <div class="manager">
+                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 12px;">{{ current_user.repor_manager }}</div>
+                    </div>
+ 
+                <div class="user-actions">
+                    <button class="ticketsList">Tickets</button>
+                    <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                    <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
+                </div>
+            </div>
+            <div class="ticket" >
+            <div class="ticket-tabs">
+                <button class="tab active">Open Tickets</button>
+                <button class="tab">Pending Tickets</button>
+                <button class="tab">On-Hold Ticket</button>
+                <button class="tab">Solved Ticket</button>
+            </div>
+ 
+            <div class="ticket-table">
+ 
+                {% for ticket in tickets %}
+                {% if ticket.assignee_name == current_user.assignee_name%}
+                <div class="ticket-row">
+                    <div>{{ ticket.ticket_id }}</div>
+                    <div>{{ ticket.subject }}</div>
+                    <div>{{ ticket.priority }}</div>
+                    <div>{{ ticket.status }}</div>
+                    <div><button class="comment-btn">Comment</button></div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            </div>
+        </div>
         <!-- Repeat this ticket-card div for each user -->
          {% for user in users %}
         <div class="user-card"
@@ -13,7 +83,7 @@
                     <div class="user-img">
                         <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
                     </div>
-                    <div>
+                    <div style="width: 40vh;">
                         <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
                         <div style="font-size: 12px;">
                             {% if user.status == 'Available' %}
@@ -25,16 +95,25 @@
                             {% elif user.status == 'Offline' %}
                             <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
                             {% endif %}
-                            
-                            
                             {{ user.status }}</div>
                     </div>
                 </div>
 
-                <div class="user-stats">
-                    <div>{{user.shift}}</div>
-                    <div>{{ user.repor_manager }}</div>
+                <div class="shift">
+                    <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                    <div style="font-size: 12px;">{{ user.shift }}</div>
                 </div>
+
+                <div class="title">
+                    <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                    <div style="font-size: 12px;">{{ user.job_title }}</div>
+                </div>
+
+                <div class="manager">
+                    <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                    <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                </div>
+
 
                 <div class="user-actions">
                     <button class="ticketsList">Tickets</button>
@@ -50,32 +129,346 @@
                 <button class="tab">Solved Ticket</button>
             </div>
 
-            <div class="ticket-table">
-                <div class="ticket-row">
-                    <div>212474</div>
-                    <div>MRM | MPP -Sold Order</div>
-                    <div>Normal</div>
-                    <div>11Hrs</div>
-                    <div>Abcdefg Hijklmn</div>
-                    <div><button class="comment-btn">Comment</button></div>
-                </div>
-                <div class="ticket-row">
-                    <div>212474</div>
-                    <div>MRM | MPP -Sold Order</div>
-                    <div>Normal</div>
-                    <div>11Hrs</div>
-                    <div>Abcdefg Hijklmn</div>
-                    <div><button class="comment-btn">Comment</button></div>
-                </div>
+            <div class="ticket-content">
+                <style>
+                    .menu-wrapper {
+                      position: relative;
+                      display: inline-block;
+                    }
+                    .dropdown-section {
+                      position: absolute;
+                      top: 25px;
+                      right: 0;
+                      background: white;
+                      border: 1px solid #ccc;
+                      padding: 10px;
+                      z-index: 10;
+                      width: 200px;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    }
+                    .hidden { display: none; }
+                    .ticket-row {
+                      position: relative;
+                      margin-bottom: 10px;
+                      padding: 10px;
+                      background: #f7f7f7;
+                      border: 1px solid #ddd;
+                    }
+                  </style>
+                  
+                  <div class="ticket-table open-tab">
+                    {% for ticket in tickets %}
+                      {% if ticket.assignee_name == user.assignee_name and ticket.status == "Open" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}">
+                          <div>{{ ticket.ticket_id }}</div>
+                          <div>{{ ticket.subject|default:"N/A" }}</div>
+                          <div>{{ ticket.priority|default:"Normal" }}</div>
+                          <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                          
+                          <div style="text-align: center;">
+                            <div class="menu-wrapper">
+                              <button type="button" class="menu-btn">&#8942;</button>
+                              
+                              <div class="dropdown-section hidden">
+                                <button class="comment-option">Comment</button>
+                                <button class="assign-option">Assign</button>
+                              </div>
+                            </div>
+                          </div>
+                  
+                          <div class="comment-box hidden">
+                            <textarea placeholder="Enter comment..." rows="2" style="width:100%"></textarea>
+                            <button class="submit-comment">Submit Comment</button>
+                          </div>
+                  
+                          <div class="assign-box hidden">
+                            <input type="text" placeholder="Search..." class="assignee-filter" style="width: 100%; margin-bottom: 5px;">
+                          
+                            <select class="assignee-dropdown" style="width: 100%;">
+                                <option value="">-- Select New Assignee --</option>
+                                {% for user in users %}
+                                    {% if user.assignee_name != ticket.assignee_name %}
+                                        <option value="{{ user.emp_id }}">{{ user.assignee_name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                          
+                            <button class="submit-assign">Assign Ticket</button>
+                          </div>
+                          
+                          
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                  
+                  <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                  
+                      // Toggle three-dot menu
+                      document.querySelectorAll(".menu-btn").forEach(btn => {
+                        btn.addEventListener("click", function (e) {
+                          e.stopPropagation(); // Prevent closing when clicking the button
+                          const section = btn.closest(".menu-wrapper").querySelector(".dropdown-section");
+                  
+                          // Close all other dropdowns
+                          document.querySelectorAll(".dropdown-section").forEach(el => {
+                            if (el !== section) el.classList.add("hidden");
+                          });
+                  
+                          section.classList.toggle("hidden");
+                        });
+                      });
+                  
+                      // Comment button
+                      document.querySelectorAll(".comment-option").forEach(btn => {
+                        btn.addEventListener("click", function () {
+                          const row = btn.closest(".ticket-row");
+                          row.querySelector(".comment-box").classList.toggle("hidden");
+                          row.querySelector(".assign-box").classList.add("hidden");
+                          row.querySelector(".dropdown-section").classList.add("hidden");
+                        });
+                      });
+                  
+                      // Assign button
+                      document.querySelectorAll(".assign-option").forEach(btn => {
+                        btn.addEventListener("click", function () {
+                          const row = btn.closest(".ticket-row");
+                          row.querySelector(".assign-box").classList.toggle("hidden");
+                          row.querySelector(".comment-box").classList.add("hidden");
+                          row.querySelector(".dropdown-section").classList.add("hidden");
+                        });
+                      });
+                  
+                      // Submit comment
+                      document.querySelectorAll(".submit-comment").forEach(btn => {
+                        btn.addEventListener("click", function () {
+                          const row = btn.closest(".ticket-row");
+                          const ticketId = row.dataset.ticketId;
+                          const comment = row.querySelector("textarea").value.trim();
+                  
+                          if (!comment) return showToast("Comment cannot be empty.");
+                  
+                          fetch("{% url 'submit_comment' %}", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: JSON.stringify({ ticket_id: ticketId, comment: comment })
+                          })
+                          .then(res => res.json())
+                          .then(data => {
+                            if (data.success) {
+                              showToast("Comment submitted!");
+                              row.querySelector(".comment-box").classList.add("hidden");
+                            } else {
+                              showToast("Failed to submit comment.");
+                            }
+                          });
+                        });
+                      });
+                  
+                      // Submit assign
+                      document.querySelectorAll(".submit-assign").forEach(btn => {
+                        btn.addEventListener("click", function () {
+                          const row = btn.closest(".ticket-row");
+                          const ticketId = row.dataset.ticketId;
+                          const assignee = row.querySelector(".assignee-dropdown").value;
+                  
+                          fetch("{% url 'assign_ticket' %}", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              "X-CSRFToken": "{{ csrf_token }}"
+                            },
+                            body: JSON.stringify({ ticket_id: ticketId, assignee_name: assignee })
+                          })
+                          .then(res => res.json())
+                          .then(data => {
+                            if (data.success) {
+                              showToast("Ticket assigned!");
+                              row.querySelector(".assign-box").classList.add("hidden");
+                              setTimeout(() => location.reload(), 1000);
+                            } else {
+                              showToast("Failed to assign.");
+                            }
+                          });
+                        });
+                      });
+                  
+                      // Filter assignees
+                      document.querySelectorAll(".assignee-filter").forEach(input => {
+                        input.addEventListener("input", function () {
+                          const filter = this.value.toLowerCase();
+                          const select = this.nextElementSibling;
+                          Array.from(select.options).forEach(option => {
+                            option.style.display = option.text.toLowerCase().includes(filter) ? "block" : "none";
+                          });
+                        });
+                      });
+                  
+                      // Prevent closing when clicking inside interactive areas
+                      document.querySelectorAll('.dropdown-section, .comment-box, .assign-box').forEach(el => {
+                        el.addEventListener('click', function (e) {
+                          e.stopPropagation();
+                        });
+                      });
+                  
+                      // Click outside to close all
+                      document.addEventListener('click', function () {
+                        document.querySelectorAll('.dropdown-section').forEach(el => el.classList.add('hidden'));
+                        document.querySelectorAll('.comment-box').forEach(el => el.classList.add('hidden'));
+                        document.querySelectorAll('.assign-box').forEach(el => el.classList.add('hidden'));
+                      });
+                  
+                    });
+                  
+                    // Toast Message
+                    function showToast(message, duration = 3000) {
+                      let toast = document.getElementById("toast");
+                      if (!toast) {
+                        toast = document.createElement("div");
+                        toast.id = "toast";
+                        toast.style.position = "fixed";
+                        toast.style.bottom = "20px";
+                        toast.style.left = "50%";
+                        toast.style.transform = "translateX(-50%)";
+                        toast.style.backgroundColor = "#333";
+                        toast.style.color = "#fff";
+                        toast.style.padding = "10px 20px";
+                        toast.style.borderRadius = "5px";
+                        toast.style.zIndex = 9999;
+                        toast.style.transition = "opacity 0.3s";
+                        toast.classList.add("hidden");
+                        document.body.appendChild(toast);
+                      }
+                  
+                      toast.textContent = message;
+                      toast.classList.remove("hidden");
+                      toast.style.opacity = "1";
+                  
+                      setTimeout(() => {
+                        toast.style.opacity = "0";
+                        setTimeout(() => {
+                          toast.classList.add("hidden");
+                        }, 300); // match transition
+                      }, duration);
+                    }
+                  </script>
+                  
+                  
+                  
+                  
+              
+                <div class="ticket-table pending-tab" style="display: none;">
+                  {% for ticket in tickets %}
+                    {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
                     <div class="ticket-row">
-                    <div>212474</div>
-                    <div>MRM | MPP -Sold Order</div>
-                    <div>Normal</div>
-                    <div>11Hrs</div>
-                    <div>Abcdefg Hijklmn</div>
-                    <div><button class="comment-btn">Comment</button></div>
+                        <div>{{ ticket.ticket_id }}</div>
+                        <div>{{ ticket.subject|default:"N/A" }}</div>
+                        <div>{{ ticket.priority|default:"Normal" }}</div>
+                        <div>
+                            {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                    {{ remaining }}
+                                {% endwith %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                        <div>
+                            <form method="POST" action="{% url 'submit_comment' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                <input type="text" name="comment" placeholder="Add comment" required>
+                                <button type="submit">💬</button>
+                            </form>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              
+                <div class="ticket-table hold-tab" style="display: none;">
+                  {% for ticket in tickets %}
+                    {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
+                    <div class="ticket-row">
+                        <div>{{ ticket.ticket_id }}</div>
+                        <div>{{ ticket.subject|default:"N/A" }}</div>
+                        <div>{{ ticket.priority|default:"Normal" }}</div>
+                        <div>
+                            {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                    {{ remaining }}
+                                {% endwith %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                        <div style="text-align: center; position: relative;">
+                            
+                            <form method="POST" action="{% url 'submit_comment' %}">
+                                {% csrf_token %}
+                                <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+                                    &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+                                  </button>
+                                  <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+                                    <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+                                    <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+                                  </div>
+                               
+                                  <!-- Hidden comment form -->
+                                  <div class="comment-form hidden" style="margin-top: 10px;">
+                                    <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+                                    <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+                                  </div>
+                               
+                                  <!-- Hidden assign form -->
+                                  <div class="assign-form hidden" style="margin-top: 10px;">
+                                    <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+                                    <select class="assignee-dropdown" style="width: 100%;">
+                                      <option value="John Doe">John Doe</option>
+                                      <option value="Jane Smith">Jane Smith</option>
+                                      <option value="Michael Scott">Michael Scott</option>
+                                      <!-- Add more options dynamically from Django -->
+                                    </select>
+                                    <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+                                  </div>
+                            </form>
+                        </div>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              
+                <div class="ticket-table solved-tab" style="display: none;">
+                  {% for ticket in tickets %}
+                    {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
+                    <div class="ticket-row">
+                        <div>{{ ticket.ticket_id }}</div>
+                        <div>{{ ticket.subject|default:"N/A" }}</div>
+                        <div>{{ ticket.priority|default:"Normal" }}</div>
+                        <div>
+                            {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                    {{ remaining }}
+                                {% endwith %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                        <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+
+                      </div>
+                    {% endif %}
+                  {% endfor %}
                 </div>
             </div>
+              
+              
             </div>
         </div>
 
@@ -83,3 +476,5 @@
         <!-- Duplicate above for each entry -->
       </div>
     </div>
+
+    

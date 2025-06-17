@@ -11,8 +11,24 @@ def login_view(request):
 
 def home(request):
     current_user = User.objects.get(emp_id=request.session['emp_id'])
+
+    # Define priority of statuses
+    status_priority = {
+        'Available': 0,
+        'Meeting': 1,
+        'Back': 2,
+        'BRB': 2,
+        'Offline': 3
+    }
+
+    # Get all other users excluding current user
+    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+
+    # Sort users based on status priority
+    users.sort(key=lambda user: status_priority.get(user.status, 99))
+
     context = {
-        'users': User.objects.exclude(emp_id=current_user.emp_id),
+        'users': users,
         'current_user': current_user,
         'tickets': Ticket.objects.all(),
         'open_tickets': Ticket.objects.filter(status='Open'),
@@ -20,19 +36,9 @@ def home(request):
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
     }
-    return render(request, 'Freewheel_Portal/home.html', context)
-
-    context = {
-        'users': User.objects.all().values(),
-        'current_user': User.objects.get(emp_id=request.session['emp_id']),
-        'tickets': Ticket.objects.all().values(),
-        'open_tickets': Ticket.objects.filter(status='Open'),
-        'pending_tickets': Ticket.objects.filter(status='Pending'),
-        'hold_tickets': Ticket.objects.filter(status='Hold'),
-        'new_tickets': Ticket.objects.filter(status='New'),
-    }
 
     return render(request, 'Freewheel_Portal/home.html', context)
+
 
 
 from .models import User  # Make sure Employee is imported
@@ -241,3 +247,131 @@ def create_user(request):
  
     return render(request, 'Freewheel_Portal/create_user.html', {'form': form})
  
+from django.core.mail import send_mail
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def shift_end_mail(request):
+    if request.method == 'POST':
+        summary = request.POST.get('summary')
+        issues = request.POST.get('issues')
+        plans = request.POST.get('plans')
+
+        user = User.objects.get(emp_id=request.session['emp_id'])
+
+        message_body = f"""
+Shift End Mail from {user.name} ({user.emp_id})
+
+📝 Summary of Work:
+{summary or 'N/A'}
+
+⚠️ Issues Faced:
+{issues or 'None'}
+
+📅 Plan for Tomorrow:
+{plans or 'N/A'}
+        """
+
+        send_mail(
+            subject=f"[Shift End] Update from {user.name}",
+            message=message_body,
+            from_email='noreply@yourdomain.com',
+            recipient_list=['teamlead@example.com'],  # <-- change to your recipient
+        )
+
+        return HttpResponse("Mail sent successfully.")
+    
+    return render(request, 'Freewheel_Portal/shift_end_mail.html')
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.utils import timezone
+from .models import Ticket, ShiftEndTable
+
+@csrf_exempt
+def submit_comment(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ticket_id = data.get('ticket_id')
+            comment = data.get('comment')
+
+            ticket = Ticket.objects.get(ticket_id=ticket_id)
+            ticket.comment = comment
+            ticket.updated_timestamp = timezone.now()
+            ticket.save()
+
+            # Try to find existing entry manually
+            shift_entry = ShiftEndTable.objects.filter(ticket_id=ticket).first()
+
+            if shift_entry:
+                shift_entry.comment = comment
+                shift_entry.last_comment_time = timezone.now()
+                shift_entry.save()
+            else:
+                ShiftEndTable.objects.create(
+                    ticket_id=ticket,
+                    start_date=timezone.now(),
+                    ticket_subject=ticket.subject,
+                    priority=ticket.priority,
+                    ticket_status=ticket.status,
+                    customer_organisation=ticket.requester_organization,
+                    asignee_name=ticket.assignee_name,
+                    product=ticket.product_category,
+                    ticket_type=ticket.ticket_type,
+                    JIRA_id=ticket.jira_issue_id,
+                    sla='',
+                    last_comment_time=timezone.now(),
+                    next_comment=timezone.now(),
+                    time_left='',
+                    comment=comment,
+                )
+
+            return JsonResponse({'success': True})
+
+        except Ticket.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Ticket not found'})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+
+
+
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+from django.utils import timezone
+from .models import Ticket, User
+
+@csrf_exempt
+def assign_ticket(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ticket_id = data.get('ticket_id')
+            emp_id = data.get('assignee_name')
+
+            ticket = Ticket.objects.get(ticket_id=ticket_id)
+            user = User.objects.get(emp_id=emp_id)
+
+            ticket.assignee_name = user.assignee_name
+            ticket.assigned_timestamp = timezone.now()
+            ticket.save()
+
+            return JsonResponse({'success': True})
+        except Ticket.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Ticket not found'})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid method'})

@@ -1,14 +1,12 @@
 /* Without Ticket View */
-
-
-
 .user-container {
     margin: .5rem 0 0 4rem;
     box-shadow: rgba(0,0,0,0.5) 0px 2px 5px;
     border-radius: 10px;
     padding: .3rem .3rem .3rem .8rem;
     max-width: 70rem;
-    overflow: hidden;
+    overflow-y: auto;
+    scroll-behavior: smooth;
     height: 79vh;
     width: 100%;
     }
@@ -26,24 +24,18 @@
     transition: max-height 0.5s ease-in-out;
     max-height: 0;
     width: 100%;
+    margin-top: .4rem;
+
 }
 
 .ticket.active {
     max-height: 80vh;
 }
 
-.user::-webkit-scrollbar {
-    width: 8px;
+.user-container::-webkit-scrollbar {
+display: none;
 }
 
-.user::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.user::-webkit-scrollbar-thumb {
-    background: transparent ;
-    border-radius: 10px;
-}
 
 .user-card {
     background: white;
@@ -58,7 +50,7 @@
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
-    transition: all 0.3s ease-in-out;
+    transition: 0.3s ease-in-out;
 }
 .user-card.active {
   max-height: 1000px; /* Adjust to expected full height */
@@ -118,7 +110,17 @@
 
 
 
+.title {
+  width: 20vh;
+}
 
+.manager {
+  width: 27vh;
+}
+
+.shift {
+  width: 10vh;
+}
 
 
 

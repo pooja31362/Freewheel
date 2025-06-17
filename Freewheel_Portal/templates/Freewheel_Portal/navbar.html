@@ -3,7 +3,7 @@
         <i class="fa-solid fa-bars"></i>
         <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i></a>
         <i class="fa-solid fa-people-group" id="delBtn"></i>
-        <i class="fa-solid fa-envelope"></i>
+        <i class="fa-solid fa-envelope" id="shiftMailBtn" style="cursor: pointer;"></i>
         <i class="fa-solid fa-upload"></i>
         <i class="fa-solid fa-right-from-bracket"></i>
     </div>
@@ -101,12 +101,29 @@
         })
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            console.log("Status updated to", selectedStatus);
-          } else {
-            console.error("Update failed:", data.error);
-          }
-        })
+  if (data.success) {
+    console.log("Status updated to", selectedStatus);
+ 
+    const statusDisplay = document.getElementById('user-status-display');
+    let iconHTML = '';
+ 
+    if (selectedStatus === 'Available') {
+      iconHTML = `<i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>`;
+    } else if (selectedStatus === 'Away') {
+      iconHTML = `<i class="fa-solid fa-clock" style="color: #FFC107;"></i>`;
+    } else if (selectedStatus === 'In-Meeting') {
+      iconHTML = `<i class="fa-solid fa-clock" style="color: #F44336;"></i>`;
+    } else if (selectedStatus === 'Offline') {
+      iconHTML = `<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>`;
+    }
+ 
+    // Update icon + text instantly
+    statusDisplay.innerHTML = `${iconHTML} ${selectedStatus}`;
+  } else {
+    console.error("Update failed:", data.error);
+  }
+})
+
         .catch(err => console.error("Network error:", err));
       });
     });

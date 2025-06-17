@@ -1,0 +1,48 @@
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #323232;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 9999;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  .toast.hidden {
+    display: none;
+  }
+
+
+                    .menu-wrapper {
+                      position: relative;
+                      display: inline-block;
+                    }
+                    .dropdown-section {
+                      position: absolute;
+                      top: 25px;
+                      right: 0;
+                      background: white;
+                      border: 1px solid #ccc;
+                      padding: 10px;
+                      z-index: 10;
+                      width: 200px;
+                      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                    }
+                    .hidden { display: none; }
+                    .ticket-row {
+                      position: relative;
+                      margin-bottom: 10px;
+                      padding: 10px;
+                      background: #f7f7f7;
+                      border: 1px solid #ddd;
+                    }
+                 

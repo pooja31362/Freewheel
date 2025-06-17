@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const managerFilter = document.getElementById('manager-filter');
   const clearBtn = document.querySelector('.clear-filter p');
   const userCards = document.querySelectorAll('.user-card');
-  const roleButtons = document.querySelectorAll('.button-group button');
+  const roleButtons = document.querySelectorAll('#user-filter .button-group button');
 
   let selectedRoles = [];
 

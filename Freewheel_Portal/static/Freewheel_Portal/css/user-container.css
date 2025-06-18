@@ -200,17 +200,6 @@ display: none;
   gap: .2rem;
 }
 
-.ticket-row {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr 1fr 2fr auto;
-  gap: 10px;
-  align-items: center;
-  background: #f9f9f9;
-  padding: .3rem;
-  border-radius: 10px;
-  font-weight: bold;
-}
-
 .comment-btn {
   border: none;
   background: #dcdcdc;

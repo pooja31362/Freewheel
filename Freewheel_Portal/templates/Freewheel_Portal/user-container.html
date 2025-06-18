@@ -135,6 +135,7 @@
                     {% for ticket in tickets %}
                       {% if ticket.assignee_name == user.assignee_name%}
                         <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}">
+                          <div class="ticket-info">
                           <div>{{ ticket.ticket_id }}</div>
                           <div>{{ ticket.subject|default:"N/A" }}</div>
                           <div>{{ ticket.priority|default:"Normal" }}</div>
@@ -144,22 +145,21 @@
                             <div class="menu-wrapper">
                               <button type="button" class="menu-btn">&#8942;</button>
                               
-                              <div class="dropdown-section">
-                                <button class="comment-option">Comment</button>
-                                <button class="assign-option">Assign</button>
+                              <div class="dropdown-section hidden">
+                                <button class="comment-option"><i class="fa-solid fa-comments" style="color: black;"></i></button>
+                                <button class="assign-option"><i class="fa-solid fa-id-badge" style="color: black;"></i></button>
                               </div>
                             </div>
                           </div>
+                        </div>
 
                   
                           <div class="comment-box hidden">
-                            <textarea placeholder="Enter comment..." rows="2" style="width:100%"></textarea>
-                            <button class="submit-comment">Submit Comment</button>
+                            <input type="text" placeholder="Enter comment..." style="width:100%"></input>
+                            <button class="submit-comment">Comment</button>
                           </div>
                   
-                          <div class="assign-box hidden">
-                            <input type="text" placeholder="Search..." class="assignee-filter" style="width: 100%; margin-bottom: 5px;">
-                          
+                          <div class="assign-box hidden">                          
                             <select class="assignee-dropdown" style="width: 100%;">
                                 <option value="">-- Select New Assignee --</option>
                                 {% for usr in users %}
@@ -338,7 +338,7 @@
         btn.addEventListener("click", function () {
           const row = btn.closest(".ticket-row");
           const ticketId = row.dataset.ticketId;
-          const comment = row.querySelector("textarea").value.trim();
+          const comment = row.querySelector("input[type='text']").value.trim();
   
           if (!comment) return showToast("Comment cannot be empty.");
   

@@ -35,7 +35,13 @@ def home(request):
         'pending_tickets': Ticket.objects.filter(status='Pending'),
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
+        'status_summary' : ShiftEndTicketDetails.objects.all(),
+        'sla_breaches' : SLABreachedTicket.objects.all(),
+        'shiftend_details' : ShiftEndTable.objects.all()
     }
+    print("hiiiiiiiii",context['status_summary'].count(), context['sla_breaches'].count(), context['shiftend_details'].count())
+
+
 
     return render(request, 'Freewheel_Portal/home.html', context)
 
@@ -250,42 +256,6 @@ def create_user(request):
  
     return render(request, 'Freewheel_Portal/create_user.html', {'form': form})
  
-from django.core.mail import send_mail
-from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
-def shift_end_mail(request):
-    if request.method == 'POST':
-        summary = request.POST.get('summary')
-        issues = request.POST.get('issues')
-        plans = request.POST.get('plans')
-
-        user = User.objects.get(emp_id=request.session['emp_id'])
-
-        message_body = f"""
-Shift End Mail from {user.name} ({user.emp_id})
-
-📝 Summary of Work:
-{summary or 'N/A'}
-
-⚠️ Issues Faced:
-{issues or 'None'}
-
-📅 Plan for Tomorrow:
-{plans or 'N/A'}
-        """
-
-        send_mail(
-            subject=f"[Shift End] Update from {user.name}",
-            message=message_body,
-            from_email='noreply@yourdomain.com',
-            recipient_list=['teamlead@example.com'],  # <-- change to your recipient
-        )
-
-        return HttpResponse("Mail sent successfully.")
-    
-    return render(request, 'Freewheel_Portal/shift_end_mail.html')
-
 
 
 from django.http import JsonResponse

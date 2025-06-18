@@ -61,6 +61,7 @@ class User(models.Model):
         ('Away', 'Away'),
         ('In-Meeting', 'In-Meeting'),
         ('Offline', 'Offline'),
+        ('Out Of Office', 'Out Of Office'),
     ]
  
     emp_id = models.CharField(max_length=20, primary_key=True)

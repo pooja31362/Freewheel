@@ -22,9 +22,9 @@ function toggleSection(button) {
     [onholdBtn?.id]: 'hold',
     [newBtn?.id]: 'new'
   };
- 
+
   const selectedStatus = statusMap[button.id];
- 
+
   if (currentActive === button) {
     // Toggle off
     ticketContainer.style.display = 'none';
@@ -42,12 +42,11 @@ function toggleSection(button) {
     resetButtons();
     button.classList.add('active');
     currentActive = button;
- 
-    // Filter ticket rows
-    const allRows = document.querySelectorAll('.ticket-table tbody tr');
-    allRows.forEach(row => {
-      const statusCell = row.cells[5]; // Assuming status is in the 6th column
-      if (statusCell && statusCell.textContent.trim().toLowerCase() === selectedStatus) {
+
+    // ✅ Filter by .status-field
+    document.querySelectorAll('.ticket-row2').forEach(row => {
+      const statusText = row.querySelector('.status-field')?.textContent.trim().toLowerCase();
+      if (statusText === selectedStatus) {
         row.style.display = '';
       } else {
         row.style.display = 'none';

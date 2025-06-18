@@ -1,70 +1,110 @@
-<div class="shift-mail-form" id="shift-end-mail" style="display: none;">
-  <h2>Shift End Mail</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
 
-  <!-- ✅ Copy button OUTSIDE content to be copied -->
-  <button id="copyButton" onclick="copyTables()">📋 Copy All Tables</button>
 
-  <!-- ✅ Copyable content starts here -->
-  <div id="copyArea">
-      <form method="POST">
-          {% csrf_token %}
+    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
+</head>
+<body>
+    {%include 'Freewheel_Portal/navbar.html' %}
+    {%include 'Freewheel_Portal/deligation.html' %}
 
-          <label><strong>Summary of Work:</strong></label>
-          <h3>Status Breakdown</h3>
-          <table>
-              <tr><th class="small-col">Status</th><th class="small-col">Count</th></tr>
-              {% for entry in status_summary %}
-                  <tr>
-                      <td>{{ entry.status }}</td>
-                      <td>{{ entry.total }}</td>
-                  </tr>
-              {% empty %}
-                  <tr><td colspan="2">No data</td></tr>
-              {% endfor %}
-          </table>
+  <div id="click" class="click">
+    <div class="whole-page" id="wholePage">
+      <div class="wow">
+      <div class="check1" id="check" style="display: flex;">     </div>
 
-          <label><strong>Issues Faced:</strong></label>
-          <h3>SLA Breached Tickets</h3>
-          <table>
-              <tr>
-                  <th class="small-col">Ticket ID</th>
-                  <th class="large-col">Subject</th>
-                  <th class="medium-col">Time Left</th>
-                  <th class="medium-col">SLA</th>
-              </tr>
-              {% for ticket in sla_breaches %}
-                  <tr>
-                      <td>{{ ticket.ticket_id.ticket_id }}</td>
-                      <td>{{ ticket.subject }}</td>
-                      <td>{{ ticket.duration }}</td>
-                      <td>{{ ticket.reason_for_the_breach }}</td>
-                  </tr>
-              {% empty %}
-                  <tr><td colspan="4">No SLA breaches</td></tr>
-              {% endfor %}
-          </table>
+      <div class="shift-mail-form" id="shift-end-mail">
+        <h2>Shift End Mail</h2>
+      
+        <!-- ✅ Copy button OUTSIDE content to be copied -->
+        <button id="copyButton" onclick="copyTables()">📋 Copy All Tables</button>
+      
+        <!-- ✅ Copyable content starts here -->
+        <div id="copyArea">
+            <form method="POST">
+                {% csrf_token %}
+      
+                <label><strong>Summary of Work:</strong></label>
+                <h3>Status Breakdown</h3>
+                <table>
+                    <tr><th class="small-col">Status</th><th class="small-col">Count</th></tr>
+                    {% for entry in status_summary %}
+                        <tr>
+                            <td>{{ entry.status }}</td>
+                            <td>{{ entry.total }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2">No data</td></tr>
+                    {% endfor %}
+                </table>
+      
+                <label><strong>Issues Faced:</strong></label>
+                <h3>SLA Breached Tickets</h3>
+                <table>
+                    <tr>
+                        <th class="small-col">Ticket ID</th>
+                        <th class="large-col">Subject</th>
+                        <th class="medium-col">Time Left</th>
+                        <th class="medium-col">SLA</th>
+                    </tr>
+                    {% for ticket in sla_breaches %}
+                        <tr>
+                            <td>{{ ticket.ticket_id.ticket_id }}</td>
+                            <td>{{ ticket.subject }}</td>
+                            <td>{{ ticket.duration }}</td>
+                            <td>{{ ticket.reason_for_the_breach }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4">No SLA breaches</td></tr>
+                    {% endfor %}
+                </table>
+      
+                <label><strong>Plan for Tomorrow:</strong></label>
+                <h3>All Shift End Comments</h3>
+                <table>
+                    <tr>
+                        <th class="small-col">Ticket ID</th>
+                        <th class="medium-col">Assignee</th>
+                        <th class="medium-col">Status</th>
+                        <th class="large-col">Comment</th>
+                    </tr>
+                    {% for entry in shiftend_details %}
+                        <tr>
+                            <td>{{ entry.ticket_id.ticket_id }}</td>
+                            <td>{{ entry.asignee_name }}</td>
+                            <td>{{ entry.ticket_status }}</td>
+                            <td>{{ entry.comment }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4">No comments</td></tr>
+                    {% endfor %}
+                </table>
+      
+            </form>
+        </div>
+      </div>
+    </div>
 
-          <label><strong>Plan for Tomorrow:</strong></label>
-          <h3>All Shift End Comments</h3>
-          <table>
-              <tr>
-                  <th class="small-col">Ticket ID</th>
-                  <th class="medium-col">Assignee</th>
-                  <th class="medium-col">Status</th>
-                  <th class="large-col">Comment</th>
-              </tr>
-              {% for entry in shiftend_details %}
-                  <tr>
-                      <td>{{ entry.ticket_id.ticket_id }}</td>
-                      <td>{{ entry.asignee_name }}</td>
-                      <td>{{ entry.ticket_status }}</td>
-                      <td>{{ entry.comment }}</td>
-                  </tr>
-              {% empty %}
-                  <tr><td colspan="4">No comments</td></tr>
-              {% endfor %}
-          </table>
-
-      </form>
+    </div>
   </div>
-</div>
+
+</body>
+</html>

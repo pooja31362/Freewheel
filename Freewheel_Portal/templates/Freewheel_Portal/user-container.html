@@ -21,6 +21,8 @@
                             <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
                             {% elif current_user.status == 'Offline' %}
                             <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                            {% elif current_user.status == 'Out Of Office' %}
+                            <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
                             {% endif %}
                            
                            
@@ -59,13 +61,26 @@
  
                 {% for ticket in tickets %}
                 {% if ticket.assignee_name == current_user.assignee_name%}
-                <div class="ticket-row">
+                <div class="ticket-row1" data-ticket-id="{{ ticket.ticket_id }}">
+                  <div class="ticket-info1">
                     <div>{{ ticket.ticket_id }}</div>
-                    <div>{{ ticket.subject }}</div>
-                    <div>{{ ticket.priority }}</div>
-                    <div>{{ ticket.status }}</div>
-                    <div><button class="comment-btn">Comment</button></div>
+                    <div>{{ ticket.subject|default:"N/A" }}</div>
+                    <div>{{ ticket.priority|default:"Normal" }}</div>
+                    <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                
+                    <div style="text-align: center;">
+                      <div class="menu-wrapper1">
+                        <button type="button" class="menu-btn-cmt"><i class="fa-solid fa-comments" style="color: black;"></i></button>
+                      </div>
+                    </div>
+                  </div>
+                
+                  <div class="comment-box1 hidden">
+                    <input type="text" placeholder="Enter comment..." style="width:100%">
+                    <button class="submit-comment1">Comment</button>
+                  </div>
                 </div>
+                
                 {% endif %}
                 {% endfor %}
             </div>
@@ -94,6 +109,8 @@
                             <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
                             {% elif user.status == 'Offline' %}
                             <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                            {% elif current_user.status == 'Out Of Office' %}
+                            <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
                             {% endif %}
                             {{ user.status }}</div>
                     </div>
@@ -296,6 +313,7 @@
       </div>
     </div>
     <script>
+      
                    
                   
       // Toggle three-dot menu
@@ -449,4 +467,52 @@
       }, duration);
     }
   </script>
+    
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".ticket-row1").forEach(row => {
+        const toggleBtn1 = row.querySelector(".menu-btn-cmt");
+        const commentBox1 = row.querySelector(".comment-box1");
+        const submitBtn1 = row.querySelector(".submit-comment1");
+        const inputField = commentBox1?.querySelector("input[type='text']");
+    
+        if (toggleBtn1 && commentBox1 && submitBtn1 && inputField) {
+          // Toggle comment box
+          toggleBtn1.addEventListener("click", function () {
+            commentBox1.classList.toggle("hidden");
+          });
+    
+          // Submit comment
+          submitBtn1.addEventListener("click", function () {
+            const ticketId = row.dataset.ticketId;
+            const comment = inputField.value.trim();
+    
+            if (!comment) return showToast("Comment cannot be empty.");
+    
+            fetch("/submit-comment/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "MUyw4Gc6AM9Ga4jMDkKaabS29rBiSaivIBfCTAHs73cXu73eihdP16FUg0ecPA2c"
+              },
+              body: JSON.stringify({ ticket_id: ticketId, comment: comment })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                showToast("Comment submitted!");
+                commentBox1.classList.add("hidden");
+                inputField.value = ""; // Clear after submit
+              } else {
+                showToast("Failed to submit comment.");
+              }
+            });
+          });
+        } else {
+          console.warn("Missing required elements in .ticket-row", row);
+        }
+      });
+    });
+    </script>
+    
     

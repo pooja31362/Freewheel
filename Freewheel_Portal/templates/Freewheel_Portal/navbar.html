@@ -3,7 +3,7 @@
         <i class="fa-solid fa-bars"></i>
         <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i></a>
         <i class="fa-solid fa-people-group" id="delBtn"></i>
-        <i class="fa-solid fa-envelope" id="shiftMailBtn" style="cursor: pointer;"></i>
+        <a href="{% url 'shift_end_summary' %}"><i class="fa-solid fa-envelope" id="shiftMailBtn" style="cursor: pointer;"></i></a>
         <i class="fa-solid fa-upload"></i>
         <i class="fa-solid fa-right-from-bracket"></i>
     </div>
@@ -24,9 +24,11 @@
             <div class="status">
                 <div class="status-box" title="Available" data-color="#4CAF50"><i class="fa-solid fa-circle-check" style="color: #000000;font-size: x-large;"></i></div>
                 <div class="status-box" title="Away" data-color="#FFC107"><i class="fa-solid fa-clock" style="color: #000000;font-size: x-large;"></i></div>
-                <div class="status-box" title="In-Meeting" data-color="#F44336"><i class="fa-solid fa-square-phone" style="color: #000000; font-size: x-large;"></i></div>
+                <div class="status-box" title="In-Meeting" data-color="#F44336"><i class="fa-solid fa-phone" style="color: #000000; font-size: x-large;"></i></div>
                 <div class="status-box" title="Offline" data-color="#9E9E9E"><i class="fa-solid fa-circle-xmark" style="color: #000000;font-size: x-large;"></i></div>
-            </div>
+                <div class="status-box" title="Out Of Office" data-color="#c235e0 "><i class="fa-solid fa-circle-arrow-right" style="color: #000000; font-size: x-large;"></i></div>
+
+              </div>
         </div>
 
     </div>
@@ -115,6 +117,8 @@
       iconHTML = `<i class="fa-solid fa-clock" style="color: #F44336;"></i>`;
     } else if (selectedStatus === 'Offline') {
       iconHTML = `<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>`;
+    }else if (selectedStatus === 'Out Of Office') {
+      iconHTML = `<i class="fa-solid fa-circle-arrow-right" style="color: #c235e0;"></i>`;
     }
  
     // Update icon + text instantly

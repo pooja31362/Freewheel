@@ -15,6 +15,7 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('update-status/', views.update_status, name='status_update'),
     path('submit-comment/', views.submit_comment, name='submit_comment'),
+    path('shift-end-summary/', views.shift_end_summary, name='shift_end_summary'),
     path('assign-ticket/', views.assign_ticket, name='assign_ticket'),
     path('new-tickets/', views.new_tickets_view, name='new_tickets'),
     path('test/', views.test, name='test'),

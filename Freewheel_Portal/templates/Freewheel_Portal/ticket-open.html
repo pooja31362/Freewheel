@@ -1,93 +1,214 @@
-<div id="ticket-container" class="ticket-container" style="display:none">
-    <table class="ticket-table">
-      <thead>
-        <tr>
-          <th>Ticket ID</th>
-          <th>Ticket Subject</th>
-          <th>Priority</th>
-          <th>SLA</th>
-          <th>Assignee</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for ticket in tickets %}
-        {% if ticket.status == 'Open' %}
-        <tr>
-          <td>{{ ticket.ticket_id }}</td>
-          <td>{{ ticket.subject }}</td>
-          <td>{{ ticket.priority }}</td>
-          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
-          <td>{{ ticket.assignee_name }}</td>
-          <td>{{ ticket.status }}</td>
-          <td style="text-align: center;"><button>Comment</button></td>
-        </tr>
-        {% endif %}
-        {% if ticket.status == 'Pending' %}
-        <tr>
-          <td>{{ ticket.ticket_id }}</td>
-          <td>{{ ticket.subject }}</td>
-          <td>{{ ticket.priority }}</td>
-          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
-          <td>{{ ticket.assignee_name }}</td>
-          <td>{{ ticket.status }}</td>
-          <td style="text-align: center;"><button>Comment</button></td>
-        </tr>
-        {% endif %}
-        {% if ticket.status == 'Hold' %}
-        <tr>
-          <td>{{ ticket.ticket_id }}</td>
-          <td>{{ ticket.subject }}</td>
-          <td>{{ ticket.priority }}</td>
-          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
-          <td>{{ ticket.assignee_name }}</td>
-          <td>{{ ticket.status }}</td>
-          <td style="text-align: center; position: relative;">
-            <!-- 3-dot menu button -->
-            <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
-              &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
-            </button>
-         
-            <!-- Dropdown menu -->
-            <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
-              <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
-              <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
-            </div>
-         
-            <!-- Hidden comment form -->
-            <div class="comment-form hidden" style="margin-top: 10px;">
-              <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
-              <button class="submit-comment" style="margin-top: 5px;">Submit</button>
-            </div>
-         
-            <!-- Hidden assign form -->
-            <div class="assign-form hidden" style="margin-top: 10px;">
-              <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
-              <select class="assignee-dropdown" style="width: 100%;">
-                <option value="John Doe">John Doe</option>
-                <option value="Jane Smith">Jane Smith</option>
-                <option value="Michael Scott">Michael Scott</option>
-                <!-- Add more options dynamically from Django -->
-              </select>
-              <button class="submit-assign" style="margin-top: 5px;">Assign</button>
-            </div>
-          </td>
-         
-         
-        </tr>
-        {% endif %}
-        {% if ticket.status == 'New' %}
-        <tr>
-          <td>{{ ticket.ticket_id }}</td>
-          <td>{{ ticket.subject }}</td>
-          <td>{{ ticket.priority }}</td>
-          <td>{{ ticket.due_timestamp|timesince:ticket.created_timestamp }}</td>
-          <td>{{ ticket.assignee_name }}</td>
-          <td>{{ ticket.status }}</td>
-          <td style="text-align: center;"><button>Comment</button></td>
-        </tr>
-        {% endif %}
-        {% endfor %}
-            </tbody>
-    </table>
+<div id="ticket-container" class="ticket-container" style="display: none;">
+
+  <!-- Header Row -->
+  <div class="ticket-header">
+    <div style="flex: 1;">Ticket ID</div>
+    <div style="flex: 4;">Subject</div>
+    <div style="flex: 1;">Priority</div>
+    <div style="flex: 2;">Assignee</div>
+    <div style="flex: 2;">Organization</div>
+    <div style="flex: 1;">Status</div>
+    <div style="flex: 1; text-align: center;">Actions</div>
   </div>
+
+  <!-- Ticket Rows -->
+  <div class="ticket-table">
+    {% for ticket in tickets %}
+        <div class="ticket-row2" data-ticket-id="{{ ticket.ticket_id }}" >
+          <div class="info">
+          <div style="flex: 1;">{{ ticket.ticket_id }}</div>
+          <div style="flex: 4;">{{ ticket.subject|default:"N/A" }}</div>
+          <div style="flex: 1;">{{ ticket.priority|default:"Normal" }}</div>
+          <div style="flex: 2;">{{ ticket.assignee_name }}</div>
+          <div style="flex: 2;">{{ ticket.requester_organization|default:"Unknown" }}</div>
+          <div class="status-field" style="flex: 1;">{{ ticket.status }}</div>
+
+          <div style="flex: 1; text-align: center;">
+            <div class="menu-wrapper2">
+              <button type="button" class="menu-btn-cmt2">&#8942;</button>
+
+              <div class="dropdown-section2 hidden" >
+                <button class="comment-option2"><i class="fa-solid fa-comments" style="color: black;"></i></button>
+                <button class="assign-option2"><i class="fa-solid fa-id-badge" style="color: black;"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+          <!-- Comment Box -->
+        <div class="comment-box2 hidden">
+          <input type="text" placeholder="Enter comment..." />
+          <button class="submit-comment">Comment</button>
+        </div>
+
+        <!-- Assign Box -->
+        <div class="assign-box2 hidden">
+          <select class="assignee-dropdown" >
+            <option value="">-- Select New Assignee --</option>
+            {% for usr in users %}
+              {% if usr.assignee_name != ticket.assignee_name %}
+                <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <button class="submit-assign">Assign Ticket</button>
+        </div>
+      </div>
+
+    {% endfor %}
+  </div>
+</div>
+
+
+
+
+
+
+
+
+          <script>
+      
+                   
+                  
+            // Toggle three-dot menu
+            document.querySelectorAll(".menu-btn-cmt2").forEach(btn => {
+              btn.addEventListener("click", function (e) {
+                e.stopPropagation(); // Prevent closing when clicking the button
+                const section = btn.closest(".menu-wrapper2").querySelector(".dropdown-section2");
+        
+                // Close all other dropdowns
+                document.querySelectorAll(".dropdown-section2").forEach(el => {
+                  if (el !== section) el.classList.add("hidden");
+                });
+        
+                section.classList.toggle("hidden");
+              });
+            });
+        
+            // Comment button
+            document.querySelectorAll(".comment-option2").forEach(btn => {
+              btn.addEventListener("click", function () {
+                const row = btn.closest(".ticket-row2");
+                row.querySelector(".comment-box2").classList.toggle("hidden");
+                row.querySelector(".assign-box2").classList.add("hidden");
+                row.querySelector(".dropdown-section2").classList.add("hidden");
+              });
+            });
+        
+            // Assign button
+            document.querySelectorAll(".assign-option2").forEach(btn => {
+              btn.addEventListener("click", function () {
+                const row = btn.closest(".ticket-row2");
+                row.querySelector(".assign-box2").classList.toggle("hidden");
+                row.querySelector(".comment-box2").classList.add("hidden");
+                row.querySelector(".dropdown-section2").classList.add("hidden");
+              });
+            });
+        
+            // Submit comment
+            document.querySelectorAll(".submit-comment").forEach(btn => {
+              btn.addEventListener("click", function () {
+                const row = btn.closest(".ticket-row2");
+                const ticketId = row.dataset.ticketId;
+                const comment = row.querySelector("input[type='text']").value.trim();
+        
+                if (!comment) return showToast("Comment cannot be empty.");
+        
+                fetch("{% url 'submit_comment' %}", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                  },
+                  body: JSON.stringify({ ticket_id: ticketId, comment: comment })
+                })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    showToast("Comment submitted!");
+                    row.querySelector(".comment-box2").classList.add("hidden");
+                  } else {
+                    showToast("Failed to submit comment.");
+                  }
+                });
+              });
+            });
+        
+            // Submit assign
+            document.querySelectorAll(".submit-assign").forEach(btn => {
+              btn.addEventListener("click", function () {
+                const row = btn.closest(".ticket-row2");
+                const ticketId = row.dataset.ticketId;
+                const assignee = row.querySelector(".assignee-dropdown").value;
+        
+                fetch("{% url 'assign_ticket' %}", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                  },
+                  body: JSON.stringify({ ticket_id: ticketId, assignee_name: assignee })
+                })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    showToast("Ticket assigned!");
+                    row.querySelector(".assign-box2").classList.add("hidden");
+                    setTimeout(() => location.reload(), 1000);
+                  } else {
+                    showToast("Failed to assign.");
+                  }
+                });
+              });
+            });
+        
+            // Prevent closing when clicking inside interactive areas
+            document.querySelectorAll('.dropdown-section2, .comment-box2, .assign-box2').forEach(el => {
+              el.addEventListener('click', function (e) {
+                e.stopPropagation();
+              });
+            });
+        
+            // Click outside to close all
+            document.addEventListener('click', function () {
+              document.querySelectorAll('.dropdown-section2').forEach(el => el.classList.add('hidden'));
+              document.querySelectorAll('.comment-box2').forEach(el => el.classList.add('hidden'));
+              document.querySelectorAll('.assign-box2').forEach(el => el.classList.add('hidden'));
+            });
+        
+          
+        
+          // Toast Message
+          function showToast(message, duration = 3000) {
+            let toast = document.getElementById("toast");
+            if (!toast) {
+              toast = document.createElement("div");
+              toast.id = "toast";
+              toast.style.position = "fixed";
+              toast.style.bottom = "20px";
+              toast.style.left = "50%";
+              toast.style.transform = "translateX(-50%)";
+              toast.style.backgroundColor = "#333";
+              toast.style.color = "#fff";
+              toast.style.padding = "10px 20px";
+              toast.style.borderRadius = "5px";
+              toast.style.zIndex = 9999;
+              toast.style.transition = "opacity 0.3s";
+              toast.classList.add("hidden");
+              document.body.appendChild(toast);
+            }
+        
+            toast.textContent = message;
+            toast.classList.remove("hidden");
+            toast.style.opacity = "1";
+        
+            setTimeout(() => {
+              toast.style.opacity = "0";
+              setTimeout(() => {
+                toast.classList.add("hidden");
+              }, 300); // match transition
+            }, duration);
+          }
+        </script>

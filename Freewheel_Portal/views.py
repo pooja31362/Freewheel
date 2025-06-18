@@ -16,9 +16,9 @@ def home(request):
     status_priority = {
         'Available': 0,
         'Meeting': 1,
-        'Back': 2,
-        'BRB': 2,
-        'Offline': 3
+        'Away': 2,
+        'Offline': 3,
+        'Out Of Office': 4 
     }
 
     # Get all other users excluding current user
@@ -26,6 +26,7 @@ def home(request):
 
     # Sort users based on status priority
     users.sort(key=lambda user: status_priority.get(user.status, 99))
+    
 
     context = {
         'users': users,
@@ -35,13 +36,7 @@ def home(request):
         'pending_tickets': Ticket.objects.filter(status='Pending'),
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
-        'status_summary' : ShiftEndTicketDetails.objects.all(),
-        'sla_breaches' : SLABreachedTicket.objects.all(),
-        'shiftend_details' : ShiftEndTable.objects.all()
     }
-    print("hiiiiiiiii",context['status_summary'].count(), context['sla_breaches'].count(), context['shiftend_details'].count())
-
-
 
     return render(request, 'Freewheel_Portal/home.html', context)
 
@@ -331,6 +326,8 @@ def assign_ticket(request):
             user = User.objects.get(emp_id=emp_id)
 
             ticket.assignee_name = user.assignee_name
+            if ticket.status == 'New':
+                ticket.status = 'Open'
             ticket.assigned_timestamp = timezone.now()
             ticket.save()
 
@@ -356,7 +353,7 @@ def shift_end_summary(request):
     sla_breaches = SLABreachedTicket.objects.all()
     shiftend_details = ShiftEndTable.objects.all()
  
-    return render(request, 'portal_app/shift_end_summary.html', {
+    return render(request, 'Freewheel_Portal/shift-end-mail.html', {
         'status_summary': status_summary,
         'sla_breaches': sla_breaches,
         'shiftend_details': shiftend_details,

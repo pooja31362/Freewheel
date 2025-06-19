@@ -18,7 +18,7 @@ class PortalAppConfig(AppConfig):
             print(f"ShiftEndTable truncated at {timezone.now()}")
  
         scheduler = BackgroundScheduler(timezone='Asia/Kolkata')
-        scheduler.add_job(truncate_shift_end, 'cron', hour=14, minute=28)
+        scheduler.add_job(truncate_shift_end, 'cron', hour=4, minute=15)
         scheduler.add_job(truncate_shift_end, 'cron', hour=11, minute=17)
         scheduler.add_job(truncate_shift_end, 'cron', hour=11, minute=17)
         scheduler.start()

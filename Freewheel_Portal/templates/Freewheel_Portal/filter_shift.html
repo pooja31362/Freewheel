@@ -1,0 +1,44 @@
+<h2>Filter Employees by Shift</h2>
+ 
+<form method="get" action="{% url 'filter_by_shift' %}">
+    <label for="shift">Choose Shift:</label>
+    <select name="shift" id="shift">
+        <option value="">--Select Shift--</option>
+        <option value="S1">S1</option>
+        <option value="S2">S2</option>
+        <option value="S3">S3</option>
+        <option value="S4">S4</option>
+        <option value="S6">S6</option>
+        <option value="G">G</option>
+        <option value="CO">CO</option>
+        <option value="WO">WO</option>
+    </select>
+    <button type="submit">Filter</button>
+</form>
+ 
+<hr>
+ 
+<h3>Upload New Shift Excel File</h3>
+<form method="post" enctype="multipart/form-data" action="{% url 'upload_shift_excel' %}">
+    {% csrf_token %}
+    <input type="file" name="excel_file" accept=".xlsx,.xls" required>
+    <button type="submit">Upload</button>
+</form>
+ 
+{% if employees %}
+    <h4>Employees in {{ selected_shift }} shift today:</h4>
+    <ul>
+        {% for emp in employees %}
+            <li>{{ emp }}</li>
+        {% endfor %}
+    </ul>
+{% elif selected_shift %}
+    <p>No employees found in shift {{ selected_shift }} today.</p>
+{% endif %}
+ 
+{% if success %}
+    <p style="color:green">{{ success }}</p>
+{% elif error %}
+    <p style="color:red">{{ error }}</p>
+{% endif %}
+ 

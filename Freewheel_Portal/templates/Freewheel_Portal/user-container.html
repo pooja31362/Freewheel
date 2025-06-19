@@ -51,17 +51,17 @@
             </div>
             <div class="ticket" >
             <div class="ticket-tabs">
-                <button class="tab ">Open Tickets</button>
-                <button class="tab">Pending Tickets</button>
-                <button class="tab">On-Hold Ticket</button>
-                <button class="tab">Solved Ticket</button>
+                <button class="tab" data-status="open">Open Tickets</button>
+                <button class="tab" data-status="pending">Pending Tickets</button>
+                <button class="tab" data-status="hold">On-Hold Ticket</button>
+                <button class="tab" data-status="solved">Solved Ticket</button>
             </div>
  
             <div class="ticket-table">
  
                 {% for ticket in tickets %}
                 {% if ticket.assignee_name == current_user.assignee_name%}
-                <div class="ticket-row1" data-ticket-id="{{ ticket.ticket_id }}">
+                <div class="ticket-row1" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
                   <div class="ticket-info1">
                     <div>{{ ticket.ticket_id }}</div>
                     <div>{{ ticket.subject|default:"N/A" }}</div>
@@ -109,7 +109,7 @@
                             <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
                             {% elif user.status == 'Offline' %}
                             <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
-                            {% elif current_user.status == 'Out Of Office' %}
+                            {% elif user.status == 'Out Of Office' %}
                             <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
                             {% endif %}
                             {{ user.status }}</div>
@@ -140,10 +140,10 @@
             </div>
             <div class="ticket" >
             <div class="ticket-tabs">
-                <button class="tab ">Open Tickets</button>
-                <button class="tab">Pending Tickets</button>
-                <button class="tab">On-Hold Ticket</button>
-                <button class="tab">Solved Ticket</button>
+                <button class="tab" data-status="open">Open Tickets</button>
+                <button class="tab" data-status="pending">Pending Tickets</button>
+                <button class="tab" data-status="hold">On-Hold Ticket</button>
+                <button class="tab" data-status="solved">Solved Ticket</button>
             </div>
 
             <div class="ticket-content">
@@ -151,7 +151,7 @@
                   <div class="ticket-table open-tab">
                     {% for ticket in tickets %}
                       {% if ticket.assignee_name == user.assignee_name%}
-                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}">
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
                           <div class="ticket-info">
                           <div>{{ ticket.ticket_id }}</div>
                           <div>{{ ticket.subject|default:"N/A" }}</div>
@@ -200,7 +200,7 @@
                 <div class="ticket-table pending-tab" style="display: none;">
                   {% for ticket in tickets %}
                     {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
-                    <div class="ticket-row">
+                    <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
                         <div>{{ ticket.ticket_id }}</div>
                         <div>{{ ticket.subject|default:"N/A" }}</div>
                         <div>{{ ticket.priority|default:"Normal" }}</div>
@@ -230,7 +230,7 @@
                 <div class="ticket-table hold-tab" style="display: none;">
                   {% for ticket in tickets %}
                     {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
-                    <div class="ticket-row">
+                    <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
                         <div>{{ ticket.ticket_id }}</div>
                         <div>{{ ticket.subject|default:"N/A" }}</div>
                         <div>{{ ticket.priority|default:"Normal" }}</div>
@@ -283,7 +283,7 @@
                 <div class="ticket-table solved-tab" style="display: none;">
                   {% for ticket in tickets %}
                     {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
-                    <div class="ticket-row">
+                    <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
                         <div>{{ ticket.ticket_id }}</div>
                         <div>{{ ticket.subject|default:"N/A" }}</div>
                         <div>{{ ticket.priority|default:"Normal" }}</div>
@@ -314,6 +314,50 @@
     </div>
     <script>
       
+      document.querySelectorAll(".user-card").forEach(userCard => {
+    const tabs = userCard.querySelectorAll(".ticket-tabs .tab");
+    const ticketRows = userCard.querySelectorAll(".ticket-row, .ticket-row1");
+ 
+    let activeTab = null;
+ 
+    // Show all ticket rows
+    const showAllTickets = () => {
+        ticketRows.forEach(row => row.style.display = "flex");
+    };
+ 
+    // Filter ticket rows by status
+    const filterTicketsByStatus = (status) => {
+        ticketRows.forEach(row => {
+            const ticketStatus = row.dataset.status?.toLowerCase();
+            row.style.display = (ticketStatus === status) ? "flex" : "none";
+        });
+    };
+ 
+    // Tab click logic
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            const selectedStatus = tab.dataset.status;
+ 
+            if (activeTab === tab) {
+                tab.classList.remove("active");
+                activeTab = null;
+                showAllTickets();
+            } else {
+                tabs.forEach(t => t.classList.remove("active"));
+                tab.classList.add("active");
+                activeTab = tab;
+                filterTicketsByStatus(selectedStatus);
+            }
+        });
+ 
+        // Optional: hover effect
+        tab.addEventListener("mouseenter", () => tab.classList.add("hover"));
+        tab.addEventListener("mouseleave", () => tab.classList.remove("hover"));
+    });
+ 
+    // Initial load
+    showAllTickets();
+});
                    
                   
       // Toggle three-dot menu

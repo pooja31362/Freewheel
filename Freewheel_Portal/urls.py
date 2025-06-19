@@ -19,6 +19,8 @@ urlpatterns = [
     path('assign-ticket/', views.assign_ticket, name='assign_ticket'),
     path('new-tickets/', views.new_tickets_view, name='new_tickets'),
     path('test/', views.test, name='test'),
+    path('filter-shift/', views.filter_by_shift, name='filter_by_shift'),
+    path('upload-shift-excel/', views.upload_shift_excel, name='upload_shift_excel'),
 
 ]
 

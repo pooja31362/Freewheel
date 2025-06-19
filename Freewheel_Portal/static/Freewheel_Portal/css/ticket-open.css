@@ -62,6 +62,12 @@
     margin: .2rem .1rem;
 }
 
+.stat-box.active {
+  background-color: #9e9d9d; /* ✅ Customize the highlight color */
+  color: white;
+  border: 1px solid #575757;
+}
+
 
 .ticket-row2 .comment-box2 {
   display: flex;

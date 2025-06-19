@@ -127,3 +127,32 @@ class ShiftEndTable(models.Model):
  
     def __str__(self):
         return f"ShiftEnd for Ticket {self.ticket_id.ticket_id}"
+    
+
+
+
+    
+class Notice(models.Model):
+    message = models.TextField()
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    posted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.posted_by.username} - {self.posted_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+# Daily shift schedule
+class Schedule(models.Model):
+    date = models.DateField(unique=True)
+
+    shift1_status = models.JSONField(default=dict, blank=True)
+    shift3_status = models.JSONField(default=dict, blank=True)
+    shift6_status = models.JSONField(default=dict, blank=True)
+
+    shift1_end_email = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='shift1_end_user')
+    shift3_end_email = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='shift3_end_user')
+    shift6_end_email = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='shift6_end_user')  # ✅ NEW
+
+
+    def __str__(self):
+        return f"Schedule for {self.date}"

@@ -28,7 +28,6 @@ def home(request):
         return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
-    print('current_user   ',current_user )
     current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
     dynamic_shift = None
     users = list(User.objects.exclude(emp_id=current_user.emp_id))
@@ -36,10 +35,9 @@ def home(request):
     for u in users:
         dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
         u.shift = dynamic_shift
-        if u.shift == 'WO':
+        if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
         u.save(update_fields=['shift', 'status'])
-        print(u.assignee_name, u.shift)
 
     # ✅ Handle JSON delegation submission
     if request.method == 'POST' and request.content_type == 'application/json':
@@ -261,7 +259,6 @@ def home(request):
 
 
 
-from .models import User  # Make sure Employee is imported
 from .models import User
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -423,8 +420,7 @@ def upload_excel(request):
             Ticket.objects.filter(ticket_id__in=to_delete).delete()
  
         for tid in Ticket.objects.values_list('ticket_id', flat=True):
-            print(f"• {tid}", flush=True)
-        return HttpResponse("✔️ Tickets uploaded and synced with database.")
+            return HttpResponse("✔️ Tickets uploaded and synced with database.")
    
     return render(request, 'Freewheel_Portal/upload.html')
  
@@ -565,8 +561,24 @@ from .models import ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket
  # or wherever you defined it
  
 def shift_end_summary(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
+    
     current_user = User.objects.get(emp_id=request.session['emp_id'])
- 
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    dynamic_shift = None
+    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+
+    for u in users:
+        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        u.shift = dynamic_shift
+        if u.shift in ['WO', 'CO', 'UL', 'PL']:
+            u.status = 'Out Of Office'
+        else:
+            u.status = 'Offline'
+        u.save(update_fields=['shift', 'status'])
+
     # ✅ Handle JSON delegation submission
     if request.method == 'POST' and request.content_type == 'application/json':
         try:
@@ -574,16 +586,16 @@ def shift_end_summary(request):
             shift1_status = data.get('shift1_status', {})
             shift3_status = data.get('shift3_status', {})
             shift6_status = data.get('shift6_status', {})  # ✅ NEW
- 
+
             shift1_end_email = data.get('shift1_end_email', "")
             shift3_end_email = data.get('shift3_end_email', "")
             shift6_end_email = data.get("shift6_end_email", "")
- 
+
             shift1_end_user = User.objects.filter(emp_id=shift1_end_email).first()
             shift3_end_user = User.objects.filter(emp_id=shift3_end_email).first()
             shift6_end_user = User.objects.filter(emp_id=shift6_end_email).first()
-           
- 
+            
+
             Schedule.objects.update_or_create(
                 date=now().date(),
                 defaults={
@@ -598,7 +610,7 @@ def shift_end_summary(request):
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
- 
+
     # ✅ Handle Notice POST Actions
     if request.method == 'POST':
         if 'post_notice' in request.POST:
@@ -606,7 +618,7 @@ def shift_end_summary(request):
             if message:
                 Notice.objects.create(message=message, posted_by=current_user, posted_at=timezone.now())
             return redirect('home')
- 
+
         elif 'edit_notice' in request.POST:
             notice_id = request.POST.get('notice_id')
             new_message = request.POST.get('message', '').strip()
@@ -618,7 +630,7 @@ def shift_end_summary(request):
                 except Notice.DoesNotExist:
                     pass
             return redirect('home')
- 
+
         elif 'delete_notice' in request.POST:
             notice_id = request.POST.get('notice_id')
             if notice_id:
@@ -628,24 +640,24 @@ def shift_end_summary(request):
                 except Notice.DoesNotExist:
                     pass
             return redirect('home')
- 
 
- 
+
+
     # ✅ Get today's schedule
     schedule = Schedule.objects.filter(date=now().date()).first()
     shift1_status = schedule.shift1_status if schedule else {}
     shift3_status = schedule.shift3_status if schedule else {}
     shift6_status = schedule.shift6_status if schedule and hasattr(schedule, 'shift6_status') else {}  # ✅
- 
+
     shift1_end_email_id = schedule.shift1_end_email_id if schedule else ""
     shift3_end_email_id = schedule.shift3_end_email_id if schedule else ""
     shift6_end_email_id = schedule.shift6_end_email_id if schedule else ""
- 
+
     # ✅ Notices
     shift_notices = []
     today_str = localdate().strftime('%d-%b-%Y')
     shift_notices.append(f"📌 Bihourly Allocation for {today_str}")
- 
+
     def add_shift_details(shift_name, shift_data):
         for time, emp_id in shift_data.items():
             try:
@@ -653,11 +665,11 @@ def shift_end_summary(request):
                 shift_notices.append(f"{shift_name} — {time}: {user.assignee_name}")
             except User.DoesNotExist:
                 shift_notices.append(f"{shift_name} — {time}: Not Assigned")
- 
+
     add_shift_details("Shift 1", shift1_status)
     add_shift_details("Shift 3", shift3_status)
     add_shift_details("Shift 6", shift6_status)  # ✅
- 
+
     shift_notices.append("📬 Shift-end Email Allocation")
     if shift1_end_email_id:
         try:
@@ -667,7 +679,7 @@ def shift_end_summary(request):
             shift_notices.append(f"Shift 1 End Mail: [Unknown ID: {shift1_end_email_id}]")
     else:
         shift_notices.append("Shift 1 End Mail: Not Assigned")
- 
+
     if shift3_end_email_id:
         try:
             user = User.objects.get(emp_id=shift3_end_email_id)
@@ -676,7 +688,7 @@ def shift_end_summary(request):
             shift_notices.append(f"Shift 3 End Mail: [Unknown ID: {shift3_end_email_id}]")
     else:
         shift_notices.append("Shift 3 End Mail: Not Assigned")
- 
+
     if shift6_end_email_id:
         try:
             user = User.objects.get(emp_id=shift6_end_email_id)
@@ -685,8 +697,8 @@ def shift_end_summary(request):
             shift_notices.append(f"Shift 6 End Mail: [Unknown ID: {shift6_end_email_id}]")
     else:
         shift_notices.append("Shift 6 End Mail: Not Assigned")
- 
- 
+
+
     # ✅ Combine notices
     combined_notices = []
     for msg in shift_notices:
@@ -695,7 +707,7 @@ def shift_end_summary(request):
             "posted_by": None,
             "posted_at": localtime(timezone.now()),
         })
- 
+
     for note in Notice.objects.order_by('-posted_at'):
         combined_notices.append({
             "id": note.id,
@@ -703,25 +715,25 @@ def shift_end_summary(request):
             "posted_by": note.posted_by,
             "posted_at": localtime(note.posted_at),
         })
- 
+
     is_allowed = current_user.assignee_name in ALLOWED_USERS
- 
+
     delegated_to_user = any(
         emp_id == current_user.emp_id
         for emp_id in list(shift1_status.values()) + list(shift3_status.values()) + list(shift6_status.values())  # ✅
     )
- 
+
     # ✅ Split shift-specific users
     shift1_users = [user for user in users if user.shift == 'S1']
-    shift3_users = [user for user in users if user.shift == 'S3']
-    shift6_users = [user for user in users if user.shift == 'S6']  # ✅
- 
- 
- 
- 
- 
+    shift3_users = [user for user in users if user.shift in ['S2','S3']]
+    shift6_users = [user for user in users if user.shift in ['S5','S6']]  # ✅
+
+
+
+
+
     assigned_tasks = []  # Collect messages like: "Shift 1 – 9:00 AM", or "Shift 3 – End Mail"
- 
+
     if schedule:
         for time, emp_id in schedule.shift1_status.items():
             if emp_id == current_user.emp_id:
@@ -732,21 +744,19 @@ def shift_end_summary(request):
         for time, emp_id in schedule.shift6_status.items():
             if emp_id == current_user.emp_id:
                 assigned_tasks.append(f"Shift 6 – {time}")
- 
+
         if schedule.shift1_end_email_id == current_user.emp_id:
             assigned_tasks.append("Shift 1 – End Mail")
         if schedule.shift3_end_email_id == current_user.emp_id:
             assigned_tasks.append("Shift 3 – End Mail")
         if schedule.shift6_end_email_id == current_user.emp_id:
             assigned_tasks.append("Shift 6 – End Mail")
- 
+
 # Pass it to the template
     delegated_to_user = bool(assigned_tasks)
- 
- 
-        # ✅ Sort users by status
+
+    # ✅ Sort users by status
     status_priority = {'Available': 0, 'In-Meeting': 1, 'Away': 2, 'Offline': 3, 'Out Of Office': 4}
-    users = list(User.objects.exclude(emp_id=current_user.emp_id))
     users.sort(key=lambda user: status_priority.get(user.status, 99))
 
     context = {
@@ -757,52 +767,80 @@ def shift_end_summary(request):
         'pending_tickets': Ticket.objects.filter(status='Pending'),
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
-        'status_summary' : ShiftEndTicketDetails.objects.all(),
-        'sla_breaches' : SLABreachedTicket.objects.all(),
-        'shiftend_details' : ShiftEndTable.objects.all(),
- 
+
         'shift1_times': SHIFT1_TIMINGS,
         'shift3_times': SHIFT3_TIMINGS,
         'shift6_times': SHIFT6_TIMINGS,  # ✅
- 
+
         'shift1_status': shift1_status,
         'shift3_status': shift3_status,
         'shift6_status': shift6_status,  # ✅
- 
+
         'shift1_end_email_id': shift1_end_email_id,
         'shift3_end_email_id': shift3_end_email_id,
         'shift6_end_email_id': shift6_end_email_id,
+
 
         'notices': combined_notices,
         'is_allowed': is_allowed,
         'delegated_to_user': delegated_to_user,
         'schedule': schedule,
- 
+
         'shift1_users': shift1_users,
         'shift3_users': shift3_users,
         'shift6_users': shift6_users,  # ✅
         "delegated_to_user": delegated_to_user,
         "user_assignments": assigned_tasks,
+
+        "today" : datetime.date.today,
+
+        'status_summary' : ShiftEndTicketDetails.objects.all(),
+        'sla_breaches' : SLABreachedTicket.objects.all(),
+        'shiftend_details' : ShiftEndTable.objects.all(),
     }
- 
+
     return render(request, 'Freewheel_Portal/shift-end-mail.html', context)
+
+
+from django.shortcuts import redirect, render
+from django.utils import timezone
+from dateutil import parser
+
+def submit_leave(request):
+    if request.method == "POST":
+        leave_until_str = request.POST.get('leave_until')
+
+        if leave_until_str:
+            leave_until = parser.parse(leave_until_str)
+
+            user = User.objects.get(emp_id=request.session['emp_id'])
+            user.status = "Out Of Office"
+            user.leave_until = leave_until
+            user.save()
+
+            return redirect('home')  # ✅ Success: redirect to homepage or dashboard
+
+        # Optional: handle missing or invalid date input
+        return render(request, 'error.html', {'message': 'Leave date required'})  # or redirect
+
+    # If GET request, maybe show the form or block it
+    return redirect('home')  # ✅ fallback for non-POST requests
+
+
 
 def new_tickets_view(request):
     if request.method == 'POST':
         ticket_id = request.POST.get('ticket_id')
         assignee_emp_id = request.POST.get('assignee_emp_id')
 
-        try:
-            ticket = Ticket.objects.get(id=ticket_id)
-            user = User.objects.get(emp_id=assignee_emp_id)
+        
+        ticket = Ticket.objects.get(id=ticket_id)
+        user = User.objects.get(emp_id=assignee_emp_id)
 
-            ticket.assignee_name = user.assignee_name
-            ticket.assigned_timestamp = timezone.now()
-            ticket.save()
-        except Ticket.DoesNotExist:
-            print(f"Ticket with ID {ticket_id} not found.")
-        except User.DoesNotExist:
-            print(f"User with emp_id {assignee_emp_id} not found.")
+        ticket.assignee_name = user.assignee_name
+        ticket.assigned_timestamp = timezone.now()
+        ticket.save()
+
 
         return redirect('new_tickets')
 
@@ -833,7 +871,6 @@ def filter_by_shift(request):
             today = today.lstrip("0")
  
         df['Name'] = df['Name'].astype(str).str.strip()
-        print('hihihihihih',df['Name'])
         df[today] = df[today].astype(str).str.strip()
  
         if selected_shift and today in df.columns:

@@ -26,7 +26,7 @@
     }
     .profile .user-profile:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 20px linear-gradient(white, #312063,0.15);
+      box-shadow: 0 8px 20px linear-gradient(white, #3b0a75,0.15);
     }
 
     .profile .user-profile img {

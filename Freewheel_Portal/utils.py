@@ -63,10 +63,8 @@ def get_today_shift_for_user(name):
  
         if not match.empty:
             shift_val = match.iloc[0][shift_col]
-            print(f"[DEBUG] Found shift for {name}: {shift_val}")
             return shift_val
  
-        print(f"[WARN] No shift match found for name: {name}")
         return None
     except Exception as e:
         print(f"[ERROR] Failed to get shift from Excel for {name}: {e}")

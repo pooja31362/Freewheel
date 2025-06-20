@@ -26,7 +26,47 @@
                 <div class="status-box" title="Away" data-color="#FFC107"><i class="fa-solid fa-clock" style="color: #000000;font-size: x-large;"></i></div>
                 <div class="status-box" title="In-Meeting" data-color="#F44336"><i class="fa-solid fa-phone" style="color: #000000; font-size: x-large;"></i></div>
                 <div class="status-box" title="Offline" data-color="#9E9E9E"><i class="fa-solid fa-circle-xmark" style="color: #000000;font-size: x-large;"></i></div>
-                <div class="status-box" title="Out Of Office" data-color="#c235e0 "><i class="fa-solid fa-circle-arrow-right" style="color: #000000; font-size: x-large;"></i></div>
+                
+                
+                
+                
+                <!-- Flatpickr Dark Theme -->
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
+                <form method="POST" action="/submit-leave/">
+                  <!-- Optional: include CSRF token if using Django -->
+                  {% csrf_token %}
+
+                  <div>
+                    <div id="out-office" class="status-box" title="Out Of Office" data-color="#c235e0 ">
+                      <i class="fa-solid fa-circle-arrow-right" style="color: #000000; font-size: x-large;"></i>
+                    </div>
+
+                    <div class="leave-period" id="leave-period" style="display: none;">
+                      <select id="quick-select" name="leave_period">
+                        <option value="">Select Period</option>
+                        <option value="today">Today</option>
+                        <option value="tomorrow">Tomorrow</option>
+                        <option value="this-week">This Week</option>
+                        <option value="custom">Custom Date</option>
+                      </select>
+
+                      <input id="datetime-picker" type="text" placeholder="Pick a custom date and time" name="leave_until" class="leave-input" style="display: none;">
+                                      <button type="submit" class="leave-btn">Submit</button>
+
+                    </div>
+                  </div>
+
+                </form>
+
+
+
+                <!-- Flatpickr JS -->
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+
+
 
               </div>
         </div>
@@ -53,6 +93,49 @@
 
 
 
+
+
+<script>
+  const outOfficeBtn = document.getElementById('out-office');
+  const leavePeriod = document.getElementById('leave-period');
+
+  outOfficeBtn.addEventListener('click', () => {
+    leavePeriod.style.display = 'block';
+  });
+</script>
+
+<script>
+  const datetimeInput = document.getElementById('datetime-picker');
+
+  const datetimePicker = flatpickr("#datetime-picker", {
+    enableTime: true,
+    dateFormat: "Y-m-d h:i K",
+  });
+
+  document.getElementById('quick-select').addEventListener('change', function () {
+    const now = new Date();
+    const value = this.value;
+
+    if (value === "custom") {
+      datetimeInput.style.display = "block";
+    } else {
+      datetimeInput.style.display = "none";
+
+      if (value === "today") {
+        datetimePicker.setDate(now);
+      } else if (value === "tomorrow") {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        datetimePicker.setDate(tomorrow);
+      } else if (value === "this-week") {
+        const endOfWeek = new Date(now);
+        const day = now.getDay(); // 0 = Sunday
+        endOfWeek.setDate(now.getDate() + (6 - day));
+        datetimePicker.setDate(endOfWeek);
+      }
+    }
+  });
+</script>
 
 
 

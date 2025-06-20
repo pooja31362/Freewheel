@@ -77,9 +77,12 @@ class User(models.Model):
     email = models.EmailField()
     slack_id = models.CharField(max_length=50)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Offline')
+
     shift = models.CharField(max_length=20)
     profile_image = models.ImageField(upload_to='profile_images/', default='profile_images/image.png', blank=True, null=True)
     access = models.JSONField(default=list)
+    leave_until = models.DateTimeField(null=True, blank=True)  # ✅ correct
+
  
     def __str__(self):
         return f"{self.emp_id} - {self.user_name}"

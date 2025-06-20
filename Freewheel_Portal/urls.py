@@ -21,6 +21,7 @@ urlpatterns = [
     path('test/', views.test, name='test'),
     path('filter-shift/', views.filter_by_shift, name='filter_by_shift'),
     path('upload-shift-excel/', views.upload_shift_excel, name='upload_shift_excel'),
+    path('submit-leave/', views.submit_leave, name='submit_leave'),
 
 ]
 

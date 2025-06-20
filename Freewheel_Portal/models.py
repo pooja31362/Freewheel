@@ -5,13 +5,16 @@ class Ticket(models.Model):
     priority = models.CharField(max_length=100, null=True, blank=True)
     subject = models.TextField(null=True, blank=True)
     requester_organization = models.CharField(max_length=255, null=True, blank=True)
+    requester = models.CharField(max_length=50, null=True, blank=True)
     product_category = models.CharField(max_length=255, null=True, blank=True)
     ticket_type = models.CharField(max_length=100, null=True, blank=True)
     jira_issue_id = models.CharField(max_length=100, null=True, blank=True)
     assignee_name = models.CharField(max_length=100, null=True, blank=True)
     status = models.CharField(max_length=100, null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
- 
+    group = models.CharField(max_length=20, null=True, blank=True)
+    form = models.CharField(max_length=50, null=True, blank=True)
+
     # 🕒 Timestamp fields
     created_timestamp = models.DateTimeField(null=True, blank=True)
     solved_timestamp = models.DateTimeField(null=True, blank=True)
@@ -99,6 +102,18 @@ class ShiftEndTicketDetails(models.Model):
     def __str__(self):
         return f"Details - Status: {self.status}, Total: {self.total}"
  
+
+class PreviousShiftEndTicketDetails(models.Model):
+    status = models.CharField(max_length=50)
+    open = models.PositiveIntegerField(default=0)
+    pending = models.PositiveIntegerField(default=0)
+    solved = models.PositiveIntegerField(default=0)
+    hold = models.PositiveIntegerField(default=0)
+    total = models.PositiveIntegerField(default=0)
+ 
+    def __str__(self):
+        return f"Details - Status: {self.status}, Total: {self.total}"
+
  
 class SLABreachedTicket(models.Model):
     ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id FK
@@ -111,7 +126,40 @@ class SLABreachedTicket(models.Model):
         return f"SLA Breach - Ticket {self.ticket_id.ticket_id}"
     
 
+
+class PreviousSLABreachedTicket(models.Model):
+    ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id FK
+    subject = models.CharField(max_length=200)
+    duration = models.CharField(max_length=50)
+    duration_of_the_breach = models.CharField(max_length=50)
+    reason_for_the_breach = models.TextField() 
+    def __str__(self):
+        return f"SLA Breach - Ticket {self.ticket_id.ticket_id}"
+   
+
+
 class ShiftEndTable(models.Model):
+    ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id as FK
+    start_date = models.DateTimeField()
+    ticket_subject = models.CharField(max_length=200,null=True, blank=True)
+    priority = models.CharField(max_length=20, null=True, blank=True)
+    ticket_status = models.CharField(max_length=50,null=True, blank=True)
+    customer_organisation = models.CharField(max_length=100, null=True, blank=True)
+    asignee_name = models.CharField(max_length=100, null=True, blank=True)
+    product = models.CharField(max_length=100,null=True, blank=True)
+    ticket_type = models.CharField(max_length=100,null=True, blank=True)
+    JIRA_id = models.CharField(max_length=50, null=True, blank=True)
+    sla = models.CharField(max_length=50,null=True, blank=True)
+    last_comment_time = models.DateTimeField()
+    next_comment = models.DateTimeField()
+    time_left = models.CharField(max_length=50)
+    comment = models.TextField()
+
+    def __str__(self):
+        return f"ShiftEnd for Ticket {self.ticket_id.ticket_id}"
+    
+
+class PreviousShiftEndTable(models.Model):
     ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id as FK
     start_date = models.DateTimeField()
     ticket_subject = models.CharField(max_length=200,null=True, blank=True)
@@ -131,8 +179,6 @@ class ShiftEndTable(models.Model):
     def __str__(self):
         return f"ShiftEnd for Ticket {self.ticket_id.ticket_id}"
     
-
-
 
     
 class Notice(models.Model):

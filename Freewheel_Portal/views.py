@@ -15,6 +15,7 @@ import json
 from django.http import JsonResponse
 import datetime
 from .utils import get_today_shift_for_user
+from django.db.models import Count
 
 
 ALLOWED_USERS = ['anibro', 'Nisha','Harikishore T', 'keerthana', 'kavya_akka']
@@ -38,6 +39,30 @@ def home(request):
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
         u.save(update_fields=['shift', 'status'])
+ 
+    for user in users:
+        user.open_ticket_count = Ticket.objects.filter(
+            assignee_name=user.assignee_name,
+            status__iexact='Open'
+        ).count()
+
+        user.pending_ticket_count = Ticket.objects.filter(
+            assignee_name=user.assignee_name,
+            status__iexact='Pending'
+        ).count()
+
+        current_user.open_ticket_count = Ticket.objects.filter(
+            assignee_name=current_user.assignee_name,
+            status__iexact='Open'
+        ).count()
+
+        current_user.pending_ticket_count = Ticket.objects.filter(
+            assignee_name=current_user.assignee_name,
+            status__iexact='Pending'
+        ).count()
+
+
+
 
     # ✅ Handle JSON delegation submission
     if request.method == 'POST' and request.content_type == 'application/json':
@@ -219,6 +244,32 @@ def home(request):
     status_priority = {'Available': 0, 'In-Meeting': 1, 'Away': 2, 'Offline': 3, 'Out Of Office': 4}
     users.sort(key=lambda user: status_priority.get(user.status, 99))
 
+    hold_product_counts = (
+        Ticket.objects.filter(status='Hold')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    new_product_counts = (
+        Ticket.objects.filter(status='New')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    pending_product_counts = (
+        Ticket.objects.filter(status='Pending')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+ 
+    open_product_counts = (
+        Ticket.objects.filter(status='Open')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
     context = {
         'users': users,
         'current_user': current_user,
@@ -227,6 +278,7 @@ def home(request):
         'pending_tickets': Ticket.objects.filter(status='Pending'),
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
+        'unassigned_tickets': Ticket.objects.filter(assignee_name="",).exclude(status="New"),
 
         'shift1_times': SHIFT1_TIMINGS,
         'shift3_times': SHIFT3_TIMINGS,
@@ -252,10 +304,41 @@ def home(request):
         "delegated_to_user": delegated_to_user,
         "user_assignments": assigned_tasks,
 
-        "today" : datetime.date.today
+        "today" : datetime.date.today,
+
+        'pending_product_counts': pending_product_counts,
+        'hold_product_counts': hold_product_counts,
+        'new_product_counts': new_product_counts,
+        'open_product_counts ': open_product_counts,
     }
 
     return render(request, 'Freewheel_Portal/home.html', context)
+
+
+
+# views.py
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import Ticket
+import json
+
+@csrf_exempt
+def reset_ticket_assignee(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        ticket_id = data.get("ticket_id")
+
+        try:
+            ticket = Ticket.objects.get(ticket_id=ticket_id)
+            ticket.assignee_name = ""
+            ticket.save()
+            return JsonResponse({"success": True})
+        except Ticket.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Ticket not found"})
+    
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+
 
 
 
@@ -362,7 +445,8 @@ def upload_excel(request):
             'Ticket created - Timestamp': 'created_timestamp',
             'Ticket priority': 'priority',
             'Ticket subject': 'subject',
-            'Requester organization name': 'requester_organization',
+            'Requester organization name' : 'requester_organization',
+            'Requester name': 'requester',
             'Product Category': 'product_category',
             'Ticket type': 'ticket_type',
             'JIRA Issue ID': 'jira_issue_id',
@@ -372,6 +456,8 @@ def upload_excel(request):
             'Ticket assigned - Timestamp': 'assigned_timestamp',
             'Ticket updated - Timestamp': 'updated_timestamp',
             'Ticket due - Timestamp': 'due_timestamp',
+            'Ticket group': 'group',
+            'Ticket form': 'form',
             'Comment': 'comment',
         }
  
@@ -472,7 +558,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils import timezone
-from .models import Ticket, ShiftEndTable
+from .models import Ticket, ShiftEndTable, User
 
 @csrf_exempt
 def submit_comment(request):
@@ -557,7 +643,9 @@ def assign_ticket(request):
     return JsonResponse({'success': False, 'error': 'Invalid method'})
 
 from .utils import populate_summary_data
+from .models import PreviousShiftEndTable, PreviousShiftEndTicketDetails, PreviousSLABreachedTicket
 from .models import ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket
+
  # or wherever you defined it
  
 def shift_end_summary(request):
@@ -759,6 +847,16 @@ def shift_end_summary(request):
     status_priority = {'Available': 0, 'In-Meeting': 1, 'Away': 2, 'Offline': 3, 'Out Of Office': 4}
     users.sort(key=lambda user: status_priority.get(user.status, 99))
 
+
+
+
+
+
+
+
+
+    populate_summary_data()
+
     context = {
         'users': users,
         'current_user': current_user,
@@ -794,9 +892,13 @@ def shift_end_summary(request):
 
         "today" : datetime.date.today,
 
-        'status_summary' : ShiftEndTicketDetails.objects.all(),
-        'sla_breaches' : SLABreachedTicket.objects.all(),
-        'shiftend_details' : ShiftEndTable.objects.all(),
+        'current_status_summary': ShiftEndTicketDetails.objects.all(),
+        'current_sla_breaches': SLABreachedTicket.objects.all(),
+        'current_shiftend_details': ShiftEndTable.objects.all(),
+
+        'previous_status_summary': PreviousShiftEndTicketDetails.objects.all(),
+        'previous_sla_breaches': PreviousSLABreachedTicket.objects.all(),
+        'previous_shiftend_details': PreviousShiftEndTable.objects.all(),
     }
 
     return render(request, 'Freewheel_Portal/shift-end-mail.html', context)
@@ -936,3 +1038,12 @@ def upload_shift_excel(request):
             messages.error(request, f"Error loading shift data: {str(e)}")
  
     return redirect('filter_by_shift')
+
+
+from django.http import JsonResponse
+from .utils import truncate_shift_end
+
+def manual_freeze_view(request):
+    if request.method == "POST":
+        success = truncate_shift_end()
+        return JsonResponse({'success': success})

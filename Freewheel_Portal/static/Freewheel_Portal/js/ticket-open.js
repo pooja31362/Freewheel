@@ -2,6 +2,7 @@ const openBtn = document.getElementById('open-ticket-btn');
 const pendingBtn = document.getElementById('pending-ticket-btn');
 const onholdBtn = document.getElementById('onhold-ticket-btn');
 const newBtn = document.getElementById('new-ticket-btn');
+const unassignedBtn = document.getElementById('unassigned-ticket-btn')
 const ticketContainer = document.getElementById('ticket-container');
 const userContainer = document.getElementById('user-container');
 const userFilter = document.getElementById('user-filter')
@@ -20,13 +21,13 @@ function toggleSection(button) {
     [openBtn?.id]: 'open',
     [pendingBtn?.id]: 'pending',
     [onholdBtn?.id]: 'hold',
-    [newBtn?.id]: 'new'
+    [newBtn?.id]: 'new',
+    [unassignedBtn?.id]: 'unassigned'  // this is our special case
   };
 
-  const selectedStatus = statusMap[button.id];
+  const selectedStatus = statusMap[button.id] || 'unassigned';
 
   if (currentActive === button) {
-    // Toggle off
     ticketContainer.style.display = 'none';
     userContainer.style.display = 'block';
     ticketFilter.style.display = 'none';
@@ -34,7 +35,6 @@ function toggleSection(button) {
     resetButtons();
     currentActive = null;
   } else {
-    // Toggle on
     ticketContainer.style.display = 'block';
     userContainer.style.display = 'none';
     ticketFilter.style.display = 'block';
@@ -43,18 +43,32 @@ function toggleSection(button) {
     button.classList.add('active');
     currentActive = button;
 
-    // ✅ Filter by .status-field
+    // 🔁 Filter logic
     document.querySelectorAll('.ticket-row2').forEach(row => {
-      const statusText = row.querySelector('.status-field')?.textContent.trim().toLowerCase();
-      if (statusText === selectedStatus) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
+      const status = row.querySelector('.status-field')?.textContent.trim().toLowerCase();
+      const assignee = row.querySelector('.assignee-field')?.textContent.trim().toLowerCase() || '';
+
+if (selectedStatus === 'unassigned') {
+  if ((assignee === '' || assignee === 'none') && status !== 'new') {
+    row.style.display = '';
+  } else {
+    row.style.display = 'none';
+  }
+} else {
+  if (status === selectedStatus) {
+    row.style.display = '';
+  } else {
+    row.style.display = 'none';
+  }
+}
+
     });
   }
 }
  
+
+unassignedBtn?.addEventListener('click', () => toggleSection(unassignedBtn));
+
 // Attach toggle listeners
 openBtn?.addEventListener('click', () => toggleSection(openBtn));
 pendingBtn?.addEventListener('click', () => toggleSection(pendingBtn));

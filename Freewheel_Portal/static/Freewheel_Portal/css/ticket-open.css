@@ -118,3 +118,16 @@
 }
 
 .ticket-container .hidden { display: none !important; }
+
+.comment-btn2 {
+  background: transparent;
+    border: none;
+    font-size: 23px;
+    font-weight: bolder;
+}
+.assign-btn2 {
+  background: transparent;
+    border: none;
+    font-size: 23px;
+    font-weight: bolder;
+}

@@ -22,6 +22,9 @@ urlpatterns = [
     path('filter-shift/', views.filter_by_shift, name='filter_by_shift'),
     path('upload-shift-excel/', views.upload_shift_excel, name='upload_shift_excel'),
     path('submit-leave/', views.submit_leave, name='submit_leave'),
+    path('manual-freeze/', views.manual_freeze_view, name='manual-freeze'),
+    path("reset-ticket-assignee/", views.reset_ticket_assignee, name="reset_ticket_assignee"),
+
 
 ]
 

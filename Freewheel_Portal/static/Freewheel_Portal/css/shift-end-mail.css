@@ -78,7 +78,7 @@ body {
   padding-bottom: 4px;
 }
 
-.shift-mail-form #copyButton {
+.shift-mail-form #copyButton, #freeze {
   margin: 15px 0;
   padding: 6px 10px;
   font-size: 12px;
@@ -89,7 +89,7 @@ body {
   cursor: pointer;
 }
 
-.shift-mail-form #copyButton:hover {
+.shift-mail-form #copyButton:hover, #freeze:hover {
   background-color: #0056b3;
 }
 

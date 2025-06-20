@@ -18,6 +18,7 @@
     transition: 0.3s;
     min-width: .1rem;
     width: 16rem;
+    max-width: 14rem;
   }
  
   .stat-box:hover {

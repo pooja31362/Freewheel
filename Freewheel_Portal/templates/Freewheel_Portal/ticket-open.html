@@ -5,10 +5,14 @@
     <div style="flex: 1;">Ticket ID</div>
     <div style="flex: 4;">Subject</div>
     <div style="flex: 1;">Priority</div>
-    <div style="flex: 2;">Assignee</div>
-    <div style="flex: 2;">Organization</div>
     <div style="flex: 1;">Status</div>
-    <div style="flex: 1; text-align: center;">Actions</div>
+    <div style="flex: 2;">Requester</div>
+    <div style="flex: 2;">Assignee</div>
+    <div style="flex: 1;">Type</div>
+    <div style="flex: 1;">Group</div>
+    <div style="flex: .5;"></div>
+    <div style="flex: .5;"></div>
+
   </div>
 
   <!-- Ticket Rows -->
@@ -19,20 +23,17 @@
           <div style="flex: 1;">{{ ticket.ticket_id }}</div>
           <div style="flex: 4;">{{ ticket.subject|default:"N/A" }}</div>
           <div style="flex: 1;">{{ ticket.priority|default:"Normal" }}</div>
-          <div style="flex: 2;">{{ ticket.assignee_name }}</div>
-          <div style="flex: 2;">{{ ticket.requester_organization|default:"Unknown" }}</div>
-          <div class="status-field" style="flex: 1;">{{ ticket.status }}</div>
+          <div style="flex: 1;" class="status-field">{{ ticket.status }}</div>
+          <div style="flex: 2;">{{ ticket.requester }}</div>
+          <div style="flex: 2;" class="assignee-field">{{ ticket.assignee_name }}</div>
+          <div style="flex: 1;">{{ ticket.ticket_type }}</div>
+          <div style="flex: 1;">{{ ticket.group }}</div>
 
-          <div style="flex: 1; text-align: center;">
-            <div class="menu-wrapper2">
-              <button type="button" class="menu-btn-cmt2">&#8942;</button>
+          <div style="flex: .5;"><button class="comment-btn2"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
 
-              <div class="dropdown-section2 hidden" >
-                <button class="comment-option2"><i class="fa-solid fa-comments" style="color: black;"></i></button>
-                <button class="assign-option2"><i class="fa-solid fa-id-badge" style="color: black;"></i></button>
-              </div>
-            </div>
-          </div>
+          {% if current_user.user_type == 'tc' %}
+          <div style="flex: .5;"><button class="assign-btn2"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+          {% endif %}
         </div>
 
 
@@ -70,42 +71,32 @@
 
           <script>
       
-                   
                   
-            // Toggle three-dot menu
-            document.querySelectorAll(".menu-btn-cmt2").forEach(btn => {
-              btn.addEventListener("click", function (e) {
-                e.stopPropagation(); // Prevent closing when clicking the button
-                const section = btn.closest(".menu-wrapper2").querySelector(".dropdown-section2");
-        
-                // Close all other dropdowns
-                document.querySelectorAll(".dropdown-section2").forEach(el => {
-                  if (el !== section) el.classList.add("hidden");
-                });
-        
-                section.classList.toggle("hidden");
-              });
-            });
-        
-            // Comment button
-            document.querySelectorAll(".comment-option2").forEach(btn => {
-              btn.addEventListener("click", function () {
-                const row = btn.closest(".ticket-row2");
-                row.querySelector(".comment-box2").classList.toggle("hidden");
-                row.querySelector(".assign-box2").classList.add("hidden");
-                row.querySelector(".dropdown-section2").classList.add("hidden");
-              });
-            });
-        
-            // Assign button
-            document.querySelectorAll(".assign-option2").forEach(btn => {
-              btn.addEventListener("click", function () {
-                const row = btn.closest(".ticket-row2");
-                row.querySelector(".assign-box2").classList.toggle("hidden");
-                row.querySelector(".comment-box2").classList.add("hidden");
-                row.querySelector(".dropdown-section2").classList.add("hidden");
-              });
-            });
+// Helper: Close all open comment and assign boxes
+function closeAllBoxes() {
+  document.querySelectorAll('.comment-box2').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.assign-box2').forEach(el => el.classList.add('hidden'));
+}
+
+// Comment button for agent tickets
+document.querySelectorAll(".comment-btn2").forEach(btn => {
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();  // prevent document click from closing it
+    const row = btn.closest(".ticket-row2");
+    closeAllBoxes();  // Close any open boxes
+    row.querySelector(".comment-box2").classList.toggle("hidden");
+  });
+});
+
+// Assign button for agent tickets
+document.querySelectorAll(".assign-btn2").forEach(btn => {
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    const row = btn.closest(".ticket-row2");
+    closeAllBoxes();
+    row.querySelector(".assign-box2").classList.toggle("hidden");
+  });
+});
         
             // Submit comment
             document.querySelectorAll(".submit-comment").forEach(btn => {

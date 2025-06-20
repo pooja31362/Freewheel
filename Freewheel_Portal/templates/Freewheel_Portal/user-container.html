@@ -29,11 +29,20 @@
                             {{ current_user.status }}</div>
                     </div>
                 </div>
+
+                <div class="shift">
+                    <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                    <div style="font-size: 12px;">{{ current_user.open_ticket_count }}</div>
+                </div>
+                <div class="shift">
+                    <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                    <div style="font-size: 12px;">{{ current_user.pending_ticket_count }}</div>
+                </div>
                     <div class="shift">
                         <div style="font-size: 14px; font-weight: bold;">Shift:</div>
                         <div style="font-size: 12px;">{{ current_user.shift }}</div>
                     </div>
-                                        <div class="title">
+                    <div class="title">
                         <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
                         <div style="font-size: 12px;">{{ current_user.job_title }}</div>
                     </div>
@@ -67,12 +76,9 @@
                     <div>{{ ticket.subject|default:"N/A" }}</div>
                     <div>{{ ticket.priority|default:"Normal" }}</div>
                     <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-                
-                    <div style="text-align: center;">
-                      <div class="menu-wrapper1">
-                        <button type="button" class="menu-btn-cmt"><i class="fa-solid fa-comments" style="color: black;"></i></button>
-                      </div>
-                    </div>
+                    <div><button type="button" class="menu-btn-cmt"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                    <div><button type="button" class="cnge-btn-cmt"><i class="fa-solid fa-shuffle" style="color: black;"></i></button></div>
+
                   </div>
                 
                   <div class="comment-box1 hidden">
@@ -115,7 +121,14 @@
                             {{ user.status }}</div>
                     </div>
                 </div>
-
+                <div class="shift">
+                    <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                    <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                </div>
+                <div class="shift">
+                    <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                    <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                </div>
                 <div class="shift">
                     <div style="font-size: 14px; font-weight: bold;">Shift:</div>
                     <div style="font-size: 12px;">{{ user.shift }}</div>
@@ -153,22 +166,13 @@
                       {% if ticket.assignee_name == user.assignee_name%}
                         <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
                           <div class="ticket-info">
-                          <div>{{ ticket.ticket_id }}</div>
-                          <div>{{ ticket.subject|default:"N/A" }}</div>
-                          <div>{{ ticket.priority|default:"Normal" }}</div>
-                          <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-                          
-                          <div style="text-align: center;">
-                            <div class="menu-wrapper">
-                              <button type="button" class="menu-btn">&#8942;</button>
-                              
-                              <div class="dropdown-section hidden">
-                                <button class="comment-option"><i class="fa-solid fa-comments" style="color: black;"></i></button>
-                                <button class="assign-option"><i class="fa-solid fa-id-badge" style="color: black;"></i></button>
-                              </div>
-                            </div>
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                            <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
                           </div>
-                        </div>
 
                   
                           <div class="comment-box hidden">
@@ -186,7 +190,7 @@
                                 {% endfor %}
                             </select>
                           
-                            <button class="submit-assign">Assign Ticket</button>
+                            <button class="submit-assign">Assign</button>
                           </div>
                           
                           
@@ -358,43 +362,35 @@
     // Initial load
     showAllTickets();
 });
-                   
-                  
-      // Toggle three-dot menu
-      document.querySelectorAll(".menu-btn").forEach(btn => {
-        btn.addEventListener("click", function (e) {
-          e.stopPropagation(); // Prevent closing when clicking the button
-          const section = btn.closest(".menu-wrapper").querySelector(".dropdown-section");
-  
-          // Close all other dropdowns
-          document.querySelectorAll(".dropdown-section").forEach(el => {
-            if (el !== section) el.classList.add("hidden");
-          });
-  
-          section.classList.toggle("hidden");
-        });
-      });
-  
-      // Comment button
-      document.querySelectorAll(".comment-option").forEach(btn => {
-        btn.addEventListener("click", function () {
-          const row = btn.closest(".ticket-row");
-          row.querySelector(".comment-box").classList.toggle("hidden");
-          row.querySelector(".assign-box").classList.add("hidden");
-          row.querySelector(".dropdown-section").classList.add("hidden");
-        });
-      });
-  
-      // Assign button
-      document.querySelectorAll(".assign-option").forEach(btn => {
-        btn.addEventListener("click", function () {
-          const row = btn.closest(".ticket-row");
-          row.querySelector(".assign-box").classList.toggle("hidden");
-          row.querySelector(".comment-box").classList.add("hidden");
-          row.querySelector(".dropdown-section").classList.add("hidden");
-        });
-      });
-  
+        
+
+
+
+// Helper: Close all open comment and assign boxes
+function closeAllBoxes() {
+  document.querySelectorAll('.comment-box, .comment-box1').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.assign-box').forEach(el => el.classList.add('hidden'));
+}
+
+// Comment button for agent tickets
+document.querySelectorAll(".comment-btn").forEach(btn => {
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();  // prevent document click from closing it
+    const row = btn.closest(".ticket-row");
+    closeAllBoxes();  // Close any open boxes
+    row.querySelector(".comment-box").classList.toggle("hidden");
+  });
+});
+
+// Assign button for agent tickets
+document.querySelectorAll(".assign-btn").forEach(btn => {
+  btn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    const row = btn.closest(".ticket-row");
+    closeAllBoxes();
+    row.querySelector(".assign-box").classList.toggle("hidden");
+  });
+});
       // Submit comment
       document.querySelectorAll(".submit-comment").forEach(btn => {
         btn.addEventListener("click", function () {
@@ -559,4 +555,32 @@
     });
     </script>
     
-    
+<script>
+  document.querySelectorAll('.cnge-btn-cmt').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const ticketRow = btn.closest('.ticket-row1');
+      const ticketId = ticketRow.dataset.ticketId;
+
+      fetch("{% url 'reset_ticket_assignee' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ ticket_id: ticketId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("Assignee reset for ticket " + ticketId);
+          location.reload(); // Optional: refresh to reflect changes
+        } else {
+          alert("Error: " + data.error);
+        }
+      });
+    });
+  });
+</script>
+
+
+

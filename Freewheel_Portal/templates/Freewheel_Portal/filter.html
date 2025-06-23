@@ -29,6 +29,17 @@
             {% endfor %}
           </select>
 
+                    <select id="manager-filter">
+            <option value="All">Manager Filter</option>
+            <option value="Sorna"> Ravi</option>
+            {% for user in users %}
+            {% if user.assignee_name == Manager %}
+            <option value="{{user.assignee_name}}">{{user.assignee_name}}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+
+
           <div class="button-group">
             <button data-role="E1">E1</button>
             <button data-role="E2">E2</button>
@@ -60,49 +71,21 @@
         
           {% if is_allowed %}
           <!-- ✅ Notice Post Form -->
-          <form method="POST" style="margin-bottom: 10px;">
-            {% csrf_token %}
-            <textarea name="message" placeholder="Enter notice..." required style="width: 100%; padding: 6px;"></textarea>
-            <button type="submit" name="post_notice" style="margin-top: 5px;">Post</button>
-          </form>
+            <form method="POST" action="{% url 'notice_sub' %}" style="margin-bottom: 10px;">
+              {% csrf_token %}
+              <textarea name="message" placeholder="Enter notice..." required style="width: 100%; padding: 6px;"></textarea>
+              <button type="submit" name="post_notice" style="margin-top: 5px;">Post</button>
+            </form>
           {% endif %}
         
-          <div class="notice-preview" style="max-height: 300px; overflow-y: auto;">
-            {% for notice in notices %}
-              <div style="margin-bottom: 8px; padding: 4px; {% if '📌' in notice.message or '📬' in notice.message %}font-weight: bold;{% endif %}">
-                • {{ notice.message }}
-        
-                {% if notice.posted_by %}
-                {% load tz %}
-                <small>
-                  Posted by {{ notice.posted_by.assignee_name }} at {{ notice.posted_at|date:"d-M H:i" }}
-                </small>
-        
-                  {% if is_allowed and current_user.emp_id == notice.posted_by.emp_id %}
-                    <!-- ✅ Edit Form -->
-                    <form method="POST" style="margin-top: 5px;">
-                      {% csrf_token %}
-                      <input type="hidden" name="notice_id" value="{{ notice.id }}">
-                      <input type="text" name="message" value="{{ notice.message }}" required style="width: 80%;">
-                      <button type="submit" name="edit_notice">Edit</button>
-                    </form>
-        
-                    <!-- ✅ Delete Form -->
-                    <form method="POST" style="margin-top: 3px;">
-                      {% csrf_token %}
-                      <input type="hidden" name="notice_id" value="{{ notice.id }}">
-                      <button type="submit" name="delete_notice" onclick="return confirm('Delete this notice?')">Delete</button>
-                    </form>
-                  {% endif %}
-                {% endif %}
-              </div>
-            {% empty %}
-              <p>No notices yet.</p>
-            {% endfor %}
-          </div>
-        
+        <div class="notice-view">
+          {% for notice in latest_notice %}
+          <div class="notice_latest"><p><strong>{{notice.message}}</strong></p></div>
+          {% endfor %}
+        </div>
+
           <div class="view-more" onclick="openModal()" style="cursor: pointer; text-align: center;">
-            <p><strong>-- View More --</strong></p>
+            <div class="view-more-border"><p>Cick To Add Notice</p></div>
           </div>
         </div>
         

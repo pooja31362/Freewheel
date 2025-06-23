@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <title>Ticket Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
+
+
+    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
+</head>
+<body>
+    {%include 'Freewheel_Portal/navbar.html' %}
+    {%include 'Freewheel_Portal/deligation.html' %}
+
+    <div class="notice-board">
+
+    <!-- Heading -->
+            <div class='heading'>
+                <h1>🗒️ Team Notice Board</h1>
+            </div>
+
+    <!-- Notices List -->
+<div class="notice-list">
+  {% for notice in all_notices %}
+    <div class="notice-msg bg-white shadow p-4 rounded-xl mb-4 border-l-4 border-indigo-400">
+      <h3 class="text-lg font-semibold text-indigo-700">
+        👨‍💼 {{ notice.posted_by.assignee_name }}
+      </h3>
+      <p class="text-gray-700 mt-1">{{ notice.message }}</p>
+      <span class="text-xs text-gray-500">{{ notice.posted_at|date:"d M Y, h:i A" }}</span>
+    </div>
+  {% endfor %}
+</div>
+
+
+
+    <!-- Post Section -->
+            <div class="post-section">
+                <h2>✍️ Post a New Notice</h2>
+                <form method="POST" action="{% url 'notice_sub' %}">
+                    {% csrf_token %}
+                    <textarea rows="1" placeholder="Type something impactful..." name="message"></textarea>
+                    <div class="button">
+                        <button class="glow-button" name="post_notice">🚀 Post Now</button>
+                    </div>
+                </form>
+            </div>
+
+
+    </div>
+
+</body>
+</html>
+
+<style>
+    .notice-board {
+    background: white;
+    border: 2px solid #3b0a75;
+    box-shadow: rgba(49, 32, 99, 1) -.5rem 0rem 0rem;
+    border-radius: 10px;
+    padding: 1rem 16rem;
+    margin: .5rem 0 0 4.6rem;
+    height: 91vh;
+    box-sizing: border-box;
+    width: 94.5%;
+    }
+
+        .glass {
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .glow-button {
+      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      box-shadow: 0 0 10px #8b5cf6, 0 0 20px #6366f1;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glow-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px #8b5cf6, 0 0 30px #6366f1;
+    }
+
+    .notice-board .heading{
+        background-color: #3b0a75;
+        border-radius: .7rem;
+        text-align: center;
+        padding: .7rem;
+        margin-bottom: 1rem;
+    }
+
+    .notice-board h1 {
+        padding: 0;
+        margin: 0;
+        color: white;
+    }    
+
+    .post-section {
+        padding: 1.5rem;
+        border-radius: 1rem;
+        background-color: #3b0a75;
+        box-shadow: 0 8px 32px 0 #3b0a75;
+    }
+
+    .post-section h2 {
+        color: white;
+    }
+
+    .post-section textarea {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        box-shadow: 0 0 10px black;
+        padding: 1rem;
+        border-color: black;
+        resize: none;
+        border-width: 1px;
+        width: 100%;
+        border-radius: 0.75rem;
+    }
+
+    .post-section .button {
+        text-align: right;
+    }
+
+    .notice-list {
+        gap: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        height: 54vh;
+        scroll-behavior: smooth;
+        overflow-y: auto;
+    }
+
+    .notice-list::-webkit-scrollbar {
+    display: none;
+    }
+
+    .notice-list .notice-msg {
+        padding: .5rem;
+        border-radius: .75rem;
+        background-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 32px 0 rgba(49, 32, 99, .5);
+        max-height: 14vh ;
+    }
+
+    .notice-msg h3 {
+        font-weight: 600;
+        color: #3b0a75;
+        line-height: 1.5rem;
+        margin: .5rem;
+        font-size: .9rem;
+    }
+
+    .notice-list p {
+        margin-bottom: .7rem;
+    }
+
+    .notice-list span {
+        font-size: .7rem;
+        line-height: 1rem;
+    }
+
+    .post-section form {
+        display: flex;
+        gap: .5rem;
+    }
+</style>

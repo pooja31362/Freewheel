@@ -145,7 +145,16 @@
 
                     .comment-box input{
                       margin: .2rem .1rem;
-                      width: 100%;
+                      width: 80%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+                    .comment-box select{
+                      margin: .2rem .1rem;
+                      width: 20%;
                       border-radius: 10px;
                       padding: 0 .4rem;
                       box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
@@ -154,7 +163,22 @@
 
                     .comment-box1 input{
                       margin: .2rem .1rem;
-                      width: 100%;
+                      width: 80%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+                    .comment-box1 input:focus-visible {
+                      border: none;
+                      outline: none;
+                      box-shadow: 0 0 9px rgba(32,20,63, 1);
+                    }
+
+                    .comment-box1 select{
+                      margin: .2rem .1rem;
+                      width: 20%;
                       border-radius: 10px;
                       padding: 0 .4rem;
                       box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);

@@ -24,6 +24,11 @@ urlpatterns = [
     path('submit-leave/', views.submit_leave, name='submit_leave'),
     path('manual-freeze/', views.manual_freeze_view, name='manual-freeze'),
     path("reset-ticket-assignee/", views.reset_ticket_assignee, name="reset_ticket_assignee"),
+    path('upload_bihourly/', views.upload_excel_report, name='upload_excel_report'),
+    path('update/<int:pk>/', views.update_report_row, name='update_report_row'),
+    path('save-updates/', views.save_bulk_report_updates, name='save_bulk_report_updates'),
+    path('notice/', views.notice, name='notice'),
+    path('notice/submit/', views.notice_sub, name='notice_sub'),  # 👈 this name must match
 
 
 ]

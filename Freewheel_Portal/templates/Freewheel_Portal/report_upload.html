@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticket Report Upload</title>
+    <style>
+        /* Table styling to match shift end mail */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        .small-col { width: 10%; }
+        .medium-col { width: 20%; }
+        .large-col { width: 30%; }
+ 
+        /* Button styles */
+        .btn {
+            padding: 8px 16px;
+            margin: 10px 5px;
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+ 
+        /* Copy confirmation message */
+        #copiedMessage {
+            color: green;
+            font-size: 14px;
+            display: none;
+            margin-left: 10px;
+        }
+ 
+        /* Readonly input appearance */
+        input[disabled] {
+            background-color: #f3f3f3;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+ 
+<h2>Upload Ticket Excel</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn">Upload & Process</button>
+</form>
+ 
+{% if report_data %}
+    <div style="margin: 10px 0;">
+        <button id="editBtn" class="btn" onclick="enableEdit()">Edit</button>
+        <button id="saveBtn" class="btn" onclick="saveEdits()" style="display:none;">Save</button>
+        <button class="btn" onclick="copyTable()">📋 Copy All Tables</button>
+        <span id="copiedMessage">Copied!</span>
+    </div>
+ 
+    <form method="POST" action="{% url 'save_bulk_report_updates' %}" id="editForm">
+        {% csrf_token %}
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Timestamp</th><th>Product</th><th>Open</th><th>New</th>
+                    <th>Urgent</th><th>High</th><th>Normal</th><th>Low</th>
+                    <th>Being Worked</th><th>Unattended</th><th>Engineers</th><th>HO/Follow up</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in report_data %}
+                <tr>
+                    <td>{{ row.timestamp }}</td>
+                    <td>{{ row.product }}</td>
+                    <td>{{ row.open_count }}</td>
+                    <td>{{ row.new_count }}</td>
+                    <td>{{ row.urgent_count }}</td>
+                    <td>{{ row.high_count }}</td>
+                    <td>{{ row.normal_count }}</td>
+                    <td>{{ row.low_count }}</td>
+                    <td>{{ row.being_worked }}</td>
+                    <td>{{ row.unattended }}</td>
+                    <td>
+                        <input type="number" name="engineers_{{ row.id }}" value="{{ row.engineers|default:0 }}" disabled>
+                    </td>
+                    <td>
+                        <input type="number" name="ho_followup_{{ row.id }}" value="{{ row.ho_followup|default:0 }}" disabled>
+                        <input type="hidden" name="ids" value="{{ row.id }}">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+{% endif %}
+ 
+<script>
+    function enableEdit() {
+        document.querySelectorAll('#reportTable input[type="number"]').forEach(input => {
+            if (input.name.startsWith('engineers_') || input.name.startsWith('ho_followup_')) {
+                input.disabled = false;
+            }
+        });
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'inline-block';
+    }
+ 
+    function saveEdits() {
+        document.getElementById('editForm').submit();
+    }
+ 
+    function copyTable() {
+        const table = document.getElementById("reportTable");
+        const inputs = table.querySelectorAll("input[type='number']");
+        const originalStates = [];
+ 
+        inputs.forEach(input => {
+            const td = input.parentNode;
+            const span = document.createElement("span");
+            span.textContent = input.value || "0";
+            originalStates.push({ td, input, span });
+ 
+            td.removeChild(input);
+            td.appendChild(span);
+        });
+ 
+        const range = document.createRange();
+        range.selectNodeContents(table);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand("copy");
+        sel.removeAllRanges();
+ 
+        originalStates.forEach(({ td, input, span }) => {
+            td.removeChild(span);
+            td.appendChild(input);
+        });
+ 
+        const msg = document.getElementById("copiedMessage");
+        msg.style.display = "inline";
+        setTimeout(() => msg.style.display = "none", 2000);
+    }
+</script>
+ 
+</body>
+</html>
+ 
+ 

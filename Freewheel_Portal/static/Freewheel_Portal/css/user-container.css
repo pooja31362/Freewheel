@@ -7,7 +7,7 @@
     max-width: 73rem;
     overflow-y: auto;
     scroll-behavior: smooth;
-    height: 79vh;
+    height: 82.5vh;
     width: 100%;
     }
 .user {
@@ -18,6 +18,9 @@
     overflow-y: auto;
     }
 
+    .notice_latest p{
+      margin: 0;
+    }
 
 .ticket {
     overflow: hidden;
@@ -28,8 +31,14 @@
 
 }
 
+.status-section.active {
+    box-shadow: -0.5rem 0 0 rgba(59, 10, 117, 1);
+    background-color: rgba(59, 10, 117, 1);
+    border-radius: 10px;
+}
+
 .ticket.active {
-    max-height: 80vh;
+    max-height: 100%;
 }
 
 .user-container::-webkit-scrollbar {
@@ -40,7 +49,7 @@ display: none;
 .user-card {
     background: white;
     border: 2px solid #3b0a75;
-    box-shadow: rgba(49,32,99 ,1) -.5rem 0rem 0rem;
+    box-shadow: rgba(59,10,117,1) -.5rem 0rem 0rem;
     max-height: 2.6rem;
     border-radius: 10px;
     margin-bottom: 10px;
@@ -53,7 +62,7 @@ display: none;
     transition: 0.3s ease-in-out;
 }
 .user-card.active {
-  max-height: 1000px; /* Adjust to expected full height */
+  max-height: max-content; /* Adjust to expected full height */
 }
   
 .user-info {
@@ -127,7 +136,7 @@ display: none;
     .userCard-ticketList {
     background: white;
     border: 2px solid #3b0a75;
-    box-shadow: rgba(49, 32, 99, 1) -.5rem 0rem 0rem;
+    box-shadow: rgba(59,10,117,1) -.5rem 0rem 0rem;
     border-radius: 10px;
     padding: 10px;
     max-width: 100%;
@@ -211,10 +220,17 @@ display: none;
 }
 
 .comment-btn {
-  border: none;
-  background: #dcdcdc;
-  padding: 5px 10px;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
+    background: transparent;
+    border: none;
+    font-size: 23px;
+    font-weight: bolder;
+    cursor: pointer;
+}
+
+.assign-btn {
+    background: transparent;
+    border: none;
+    font-size: 23px;
+    font-weight: bolder;
+    cursor: pointer;
 }

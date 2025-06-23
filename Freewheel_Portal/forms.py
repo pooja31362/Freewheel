@@ -2,6 +2,7 @@ from django import forms
 from .models import User, Access
 import secrets
 import string
+
  
 class UserForm(forms.ModelForm):
     class Meta:
@@ -36,4 +37,9 @@ class UserForm(forms.ModelForm):
             self.save_m2m()  # Save many-to-many relations
  
         return user
+    
+
+
+class UploadExcelForm(forms.Form):
+    excel_file = forms.FileField()
  

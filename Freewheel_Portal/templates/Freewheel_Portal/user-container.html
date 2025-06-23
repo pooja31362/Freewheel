@@ -82,6 +82,12 @@
                   </div>
                 
                   <div class="comment-box1 hidden">
+                    <select name="status" id="status-drop">
+                      <option value="Open">Open</option>
+                      <option value="Pending">Pending</option>
+                      <option value="Hold">On-Hold</option>
+                      <option value="Solved">Solved</option>
+                    </select>
                     <input type="text" placeholder="Enter comment..." style="width:100%">
                     <button class="submit-comment1">Comment</button>
                   </div>
@@ -92,227 +98,1177 @@
             </div>
             </div>
         </div>
+
+
+
         <!-- Repeat this ticket-card div for each user -->
-         {% for user in users %}
-        <div class="user-card"
-            data-agent="{{ user.assignee_name }}"
-            data-shift="{{ user.shift }}"
-            data-manager="{{ user.repor_manager }}"
-            data-role="{{ user.job_title }}">
-            <div class="top-section">
-                <div class="user-info">
-                    <div class="user-img">
-                        <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+         <div class="status-section active">
+          <div class="collapse active"><div>Available</div><div><i class="fa-solid fa-square-caret-down"></i></div></div>
+          <div class="content" style="display: block;">
+            {% for user in users %}
+            {% if user.status == 'Available' %}
+            <div class="user-card"
+                data-agent="{{ user.assignee_name }}"
+                data-shift="{{ user.shift }}"
+                data-manager="{{ user.repor_manager }}"
+                data-role="{{ user.job_title }}">
+                <div class="top-section">
+                    <div class="user-info">
+                        <div class="user-img">
+                            <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                        </div>
+                        <div style="width: 40vh;">
+                            <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
+                            <div style="font-size: 12px;">
+                                {% if user.status == 'Available' %}
+                                <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                                {% elif user.status == 'Away' %}
+                                <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                                {% elif user.status == 'In-Meeting' %}
+                                <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
+                                {% elif user.status == 'Offline' %}
+                                <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                                {% elif user.status == 'Out Of Office' %}
+                                <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
+                                {% endif %}
+                                {{ user.status }}</div>
+                        </div>
                     </div>
-                    <div style="width: 40vh;">
-                        <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
-                        <div style="font-size: 12px;">
-                            {% if user.status == 'Available' %}
-                            <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
-                            {% elif user.status == 'Away' %}
-                            <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
-                            {% elif user.status == 'In-Meeting' %}
-                            <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
-                            {% elif user.status == 'Offline' %}
-                            <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
-                            {% elif user.status == 'Out Of Office' %}
-                            <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
-                            {% endif %}
-                            {{ user.status }}</div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                        <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                        <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                        <div style="font-size: 12px;">{{ user.shift }}</div>
+                    </div>
+
+                    <div class="title">
+                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                        <div style="font-size: 12px;">{{ user.job_title }}</div>
+                    </div>
+
+                    <div class="manager">
+                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                    </div>
+
+
+                    <div class="user-actions">
+                        <button class="ticketsList">Tickets</button>
+                        <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                        <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
                     </div>
                 </div>
-                <div class="shift">
-                    <div style="font-size: 14px; font-weight: bold;">Open :</div>
-                    <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
-                </div>
-                <div class="shift">
-                    <div style="font-size: 14px; font-weight: bold;">Pending :</div>
-                    <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
-                </div>
-                <div class="shift">
-                    <div style="font-size: 14px; font-weight: bold;">Shift:</div>
-                    <div style="font-size: 12px;">{{ user.shift }}</div>
+                <div class="ticket" >
+                <div class="ticket-tabs">
+                    <button class="tab" data-status="open">Open Tickets</button>
+                    <button class="tab" data-status="pending">Pending Tickets</button>
+                    <button class="tab" data-status="hold">On-Hold Ticket</button>
+                    <button class="tab" data-status="solved">Solved Ticket</button>
                 </div>
 
-                <div class="title">
-                    <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
-                    <div style="font-size: 12px;">{{ user.job_title }}</div>
-                </div>
+                <div class="ticket-content">
+                      
+                      <div class="ticket-table open-tab">
+                        {% for ticket in tickets %}
+                          {% if ticket.assignee_name == user.assignee_name%}
+                            <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                              <div class="ticket-info">
+                                <div>{{ ticket.ticket_id }}</div>
+                                <div>{{ ticket.subject|default:"N/A" }}</div>
+                                <div>{{ ticket.priority|default:"Normal" }}</div>
+                                <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                                <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                                <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+                              </div>
 
-                <div class="manager">
-                    <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
-                    <div style="font-size: 12px;">{{ user.repor_manager }}</div>
-                </div>
+                      
+                              <div class="comment-box hidden">
+                                <select name="status" id="status-drop">
+                                  <option value="Open">Open</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Hold">On-Hold</option>
+                                  <option value="Solved">Solved</option>
+                                </select>
+                                <input type="text" placeholder="Enter comment..." style="width:100%"></input>
+                                <button class="submit-comment">Comment</button>
+                              </div>
+                      
+                              <div class="assign-box hidden">                          
+                                <select class="assignee-dropdown" style="width: 100%;">
+                                    <option value="">-- Select New Assignee --</option>
+                                    {% for usr in users %}
+                                        {% if usr.assignee_name != ticket.assignee_name %}
+                                            <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                              
+                                <button class="submit-assign">Assign</button>
+                              </div>
+                              
+                              
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      
 
-
-                <div class="user-actions">
-                    <button class="ticketsList">Tickets</button>
-                    <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
-                    <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
-                </div>
-            </div>
-            <div class="ticket" >
-            <div class="ticket-tabs">
-                <button class="tab" data-status="open">Open Tickets</button>
-                <button class="tab" data-status="pending">Pending Tickets</button>
-                <button class="tab" data-status="hold">On-Hold Ticket</button>
-                <button class="tab" data-status="solved">Solved Ticket</button>
-            </div>
-
-            <div class="ticket-content">
                   
-                  <div class="ticket-table open-tab">
-                    {% for ticket in tickets %}
-                      {% if ticket.assignee_name == user.assignee_name%}
+                    <div class="ticket-table pending-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
                         <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
-                          <div class="ticket-info">
                             <div>{{ ticket.ticket_id }}</div>
                             <div>{{ ticket.subject|default:"N/A" }}</div>
                             <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
                             <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-                            <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
-                            <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+                            <div>
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                    <input type="text" name="comment" placeholder="Add comment" required>
+                                    <button type="submit">💬</button>
+                                </form>
+                            </div>
                           </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table hold-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div style="text-align: center; position: relative;">
+                                
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+                                        &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+                                      </button>
+                                      <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+                                        <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+                                        <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+                                      </div>
+                                  
+                                      <!-- Hidden comment form -->
+                                      <div class="comment-form hidden" style="margin-top: 10px;">
+                                        <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+                                        <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+                                      </div>
+                                  
+                                      <!-- Hidden assign form -->
+                                      <div class="assign-form hidden" style="margin-top: 10px;">
+                                        <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+                                        <select class="assignee-dropdown" style="width: 100%;">
+                                          <option value="John Doe">John Doe</option>
+                                          <option value="Jane Smith">Jane Smith</option>
+                                          <option value="Michael Scott">Michael Scott</option>
+                                          <!-- Add more options dynamically from Django -->
+                                        </select>
+                                        <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+                                      </div>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table solved-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
 
-                  
-                          <div class="comment-box hidden">
-                            <input type="text" placeholder="Enter comment..." style="width:100%"></input>
-                            <button class="submit-comment">Comment</button>
                           </div>
-                  
-                          <div class="assign-box hidden">                          
-                            <select class="assignee-dropdown" style="width: 100%;">
-                                <option value="">-- Select New Assignee --</option>
-                                {% for usr in users %}
-                                    {% if usr.assignee_name != ticket.assignee_name %}
-                                        <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            </select>
-                          
-                            <button class="submit-assign">Assign</button>
-                          </div>
-                          
-                          
-                        </div>
-                      {% endif %}
-                    {% endfor %}
-                  </div>
-                  
-
-              
-                <div class="ticket-table pending-tab" style="display: none;">
-                  {% for ticket in tickets %}
-                    {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
-                    <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
-                        <div>{{ ticket.ticket_id }}</div>
-                        <div>{{ ticket.subject|default:"N/A" }}</div>
-                        <div>{{ ticket.priority|default:"Normal" }}</div>
-                        <div>
-                            {% if ticket.due_timestamp and ticket.updated_timestamp %}
-                                {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
-                                    {{ remaining }}
-                                {% endwith %}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </div>
-                        <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-                        <div>
-                            <form method="POST" action="{% url 'submit_comment' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
-                                <input type="text" name="comment" placeholder="Add comment" required>
-                                <button type="submit">💬</button>
-                            </form>
-                        </div>
-                      </div>
-                    {% endif %}
-                  {% endfor %}
+                        {% endif %}
+                      {% endfor %}
+                    </div>
                 </div>
-              
-                <div class="ticket-table hold-tab" style="display: none;">
-                  {% for ticket in tickets %}
-                    {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
-                    <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
-                        <div>{{ ticket.ticket_id }}</div>
-                        <div>{{ ticket.subject|default:"N/A" }}</div>
-                        <div>{{ ticket.priority|default:"Normal" }}</div>
-                        <div>
-                            {% if ticket.due_timestamp and ticket.updated_timestamp %}
-                                {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
-                                    {{ remaining }}
-                                {% endwith %}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </div>
-                        <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-                        <div style="text-align: center; position: relative;">
-                            
-                            <form method="POST" action="{% url 'submit_comment' %}">
-                                {% csrf_token %}
-                                <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
-                                    &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
-                                  </button>
-                                  <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
-                                    <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
-                                    <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
-                                  </div>
-                               
-                                  <!-- Hidden comment form -->
-                                  <div class="comment-form hidden" style="margin-top: 10px;">
-                                    <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
-                                    <button class="submit-comment" style="margin-top: 5px;">Submit</button>
-                                  </div>
-                               
-                                  <!-- Hidden assign form -->
-                                  <div class="assign-form hidden" style="margin-top: 10px;">
-                                    <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
-                                    <select class="assignee-dropdown" style="width: 100%;">
-                                      <option value="John Doe">John Doe</option>
-                                      <option value="Jane Smith">Jane Smith</option>
-                                      <option value="Michael Scott">Michael Scott</option>
-                                      <!-- Add more options dynamically from Django -->
-                                    </select>
-                                    <button class="submit-assign" style="margin-top: 5px;">Assign</button>
-                                  </div>
-                            </form>
-                        </div>
-                      </div>
-                    {% endif %}
-                  {% endfor %}
-                </div>
-              
-                <div class="ticket-table solved-tab" style="display: none;">
-                  {% for ticket in tickets %}
-                    {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
-                    <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
-                        <div>{{ ticket.ticket_id }}</div>
-                        <div>{{ ticket.subject|default:"N/A" }}</div>
-                        <div>{{ ticket.priority|default:"Normal" }}</div>
-                        <div>
-                            {% if ticket.due_timestamp and ticket.updated_timestamp %}
-                                {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
-                                    {{ remaining }}
-                                {% endwith %}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </div>
-                        <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-
-                      </div>
-                    {% endif %}
-                  {% endfor %}
+                  
+                  
                 </div>
             </div>
-              
-              
-            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
         </div>
 
-        {% endfor %}
+        <div class="status-section">
+          <div class="collapse"><div>In-Meeting</div><div><i class="fa-solid fa-square-caret-down"></i></div></div>
+          <div class="content" style="display: none;">
+            {% for user in users %}
+            {% if user.status == 'In-Meeting' %}
+            <div class="user-card"
+                data-agent="{{ user.assignee_name }}"
+                data-shift="{{ user.shift }}"
+                data-manager="{{ user.repor_manager }}"
+                data-role="{{ user.job_title }}">
+                <div class="top-section">
+                    <div class="user-info">
+                        <div class="user-img">
+                            <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                        </div>
+                        <div style="width: 40vh;">
+                            <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
+                            <div style="font-size: 12px;">
+                                {% if user.status == 'Available' %}
+                                <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                                {% elif user.status == 'Away' %}
+                                <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                                {% elif user.status == 'In-Meeting' %}
+                                <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
+                                {% elif user.status == 'Offline' %}
+                                <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                                {% elif user.status == 'Out Of Office' %}
+                                <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
+                                {% endif %}
+                                {{ user.status }}</div>
+                        </div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                        <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                        <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                        <div style="font-size: 12px;">{{ user.shift }}</div>
+                    </div>
+
+                    <div class="title">
+                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                        <div style="font-size: 12px;">{{ user.job_title }}</div>
+                    </div>
+
+                    <div class="manager">
+                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                    </div>
+
+
+                    <div class="user-actions">
+                        <button class="ticketsList">Tickets</button>
+                        <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                        <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
+                    </div>
+                </div>
+                <div class="ticket" >
+                <div class="ticket-tabs">
+                    <button class="tab" data-status="open">Open Tickets</button>
+                    <button class="tab" data-status="pending">Pending Tickets</button>
+                    <button class="tab" data-status="hold">On-Hold Ticket</button>
+                    <button class="tab" data-status="solved">Solved Ticket</button>
+                </div>
+
+                <div class="ticket-content">
+                      
+                      <div class="ticket-table open-tab">
+                        {% for ticket in tickets %}
+                          {% if ticket.assignee_name == user.assignee_name%}
+                            <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                              <div class="ticket-info">
+                                <div>{{ ticket.ticket_id }}</div>
+                                <div>{{ ticket.subject|default:"N/A" }}</div>
+                                <div>{{ ticket.priority|default:"Normal" }}</div>
+                                <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                                <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                                <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+                              </div>
+
+                      
+                              <div class="comment-box hidden">
+                                <select name="status" id="status-drop">
+                                  <option value="Open">Open</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Hold">On-Hold</option>
+                                  <option value="Solved">Solved</option>
+                                </select>
+                                <input type="text" placeholder="Enter comment..." style="width:100%"></input>
+                                <button class="submit-comment">Comment</button>
+                              </div>
+                      
+                              <div class="assign-box hidden">                          
+                                <select class="assignee-dropdown" style="width: 100%;">
+                                    <option value="">-- Select New Assignee --</option>
+                                    {% for usr in users %}
+                                        {% if usr.assignee_name != ticket.assignee_name %}
+                                            <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                              
+                                <button class="submit-assign">Assign</button>
+                              </div>
+                              
+                              
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      
+
+                  
+                    <div class="ticket-table pending-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div>
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                    <input type="text" name="comment" placeholder="Add comment" required>
+                                    <button type="submit">💬</button>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table hold-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div style="text-align: center; position: relative;">
+                                
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+                                        &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+                                      </button>
+                                      <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+                                        <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+                                        <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+                                      </div>
+                                  
+                                      <!-- Hidden comment form -->
+                                      <div class="comment-form hidden" style="margin-top: 10px;">
+                                        <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+                                        <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+                                      </div>
+                                  
+                                      <!-- Hidden assign form -->
+                                      <div class="assign-form hidden" style="margin-top: 10px;">
+                                        <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+                                        <select class="assignee-dropdown" style="width: 100%;">
+                                          <option value="John Doe">John Doe</option>
+                                          <option value="Jane Smith">Jane Smith</option>
+                                          <option value="Michael Scott">Michael Scott</option>
+                                          <!-- Add more options dynamically from Django -->
+                                        </select>
+                                        <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+                                      </div>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table solved-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                </div>
+                  
+                  
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="status-section">
+          <div class="collapse"><div>Away</div><div><i class="fa-solid fa-square-caret-down"></i></div></div>
+          <div class="content" style="display: none;">
+            {% for user in users %}
+            {% if user.status == 'Away' %}
+            <div class="user-card"
+                data-agent="{{ user.assignee_name }}"
+                data-shift="{{ user.shift }}"
+                data-manager="{{ user.repor_manager }}"
+                data-role="{{ user.job_title }}">
+                <div class="top-section">
+                    <div class="user-info">
+                        <div class="user-img">
+                            <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                        </div>
+                        <div style="width: 40vh;">
+                            <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
+                            <div style="font-size: 12px;">
+                                {% if user.status == 'Available' %}
+                                <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                                {% elif user.status == 'Away' %}
+                                <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                                {% elif user.status == 'In-Meeting' %}
+                                <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
+                                {% elif user.status == 'Offline' %}
+                                <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                                {% elif user.status == 'Out Of Office' %}
+                                <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
+                                {% endif %}
+                                {{ user.status }}</div>
+                        </div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                        <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                        <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                        <div style="font-size: 12px;">{{ user.shift }}</div>
+                    </div>
+
+                    <div class="title">
+                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                        <div style="font-size: 12px;">{{ user.job_title }}</div>
+                    </div>
+
+                    <div class="manager">
+                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                    </div>
+
+
+                    <div class="user-actions">
+                        <button class="ticketsList">Tickets</button>
+                        <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                        <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
+                    </div>
+                </div>
+                <div class="ticket" >
+                <div class="ticket-tabs">
+                    <button class="tab" data-status="open">Open Tickets</button>
+                    <button class="tab" data-status="pending">Pending Tickets</button>
+                    <button class="tab" data-status="hold">On-Hold Ticket</button>
+                    <button class="tab" data-status="solved">Solved Ticket</button>
+                </div>
+
+                <div class="ticket-content">
+                      
+                      <div class="ticket-table open-tab">
+                        {% for ticket in tickets %}
+                          {% if ticket.assignee_name == user.assignee_name%}
+                            <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                              <div class="ticket-info">
+                                <div>{{ ticket.ticket_id }}</div>
+                                <div>{{ ticket.subject|default:"N/A" }}</div>
+                                <div>{{ ticket.priority|default:"Normal" }}</div>
+                                <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                                <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                                <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+                              </div>
+
+                      
+                              <div class="comment-box hidden">
+                                <select name="status" id="status-drop">
+                                  <option value="Open">Open</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Hold">On-Hold</option>
+                                  <option value="Solved">Solved</option>
+                                </select>
+                                <input type="text" placeholder="Enter comment..." style="width:100%"></input>
+                                <button class="submit-comment">Comment</button>
+                              </div>
+                      
+                              <div class="assign-box hidden">                          
+                                <select class="assignee-dropdown" style="width: 100%;">
+                                    <option value="">-- Select New Assignee --</option>
+                                    {% for usr in users %}
+                                        {% if usr.assignee_name != ticket.assignee_name %}
+                                            <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                              
+                                <button class="submit-assign">Assign</button>
+                              </div>
+                              
+                              
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      
+
+                  
+                    <div class="ticket-table pending-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div>
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                    <input type="text" name="comment" placeholder="Add comment" required>
+                                    <button type="submit">💬</button>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table hold-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div style="text-align: center; position: relative;">
+                                
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+                                        &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+                                      </button>
+                                      <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+                                        <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+                                        <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+                                      </div>
+                                  
+                                      <!-- Hidden comment form -->
+                                      <div class="comment-form hidden" style="margin-top: 10px;">
+                                        <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+                                        <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+                                      </div>
+                                  
+                                      <!-- Hidden assign form -->
+                                      <div class="assign-form hidden" style="margin-top: 10px;">
+                                        <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+                                        <select class="assignee-dropdown" style="width: 100%;">
+                                          <option value="John Doe">John Doe</option>
+                                          <option value="Jane Smith">Jane Smith</option>
+                                          <option value="Michael Scott">Michael Scott</option>
+                                          <!-- Add more options dynamically from Django -->
+                                        </select>
+                                        <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+                                      </div>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table solved-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                </div>
+                  
+                  
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        
+
+        <div class="status-section">
+          <div class="collapse"><div>Offline</div><div><i class="fa-solid fa-square-caret-down"></i></div></div>
+          <div class="content" style="display: none;">
+            {% for user in users %}
+            {% if user.status == 'Offline' %}
+            <div class="user-card"
+                data-agent="{{ user.assignee_name }}"
+                data-shift="{{ user.shift }}"
+                data-manager="{{ user.repor_manager }}"
+                data-role="{{ user.job_title }}">
+                <div class="top-section">
+                    <div class="user-info">
+                        <div class="user-img">
+                            <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                        </div>
+                        <div style="width: 40vh;">
+                            <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
+                            <div style="font-size: 12px;">
+                                {% if user.status == 'Available' %}
+                                <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                                {% elif user.status == 'Away' %}
+                                <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                                {% elif user.status == 'In-Meeting' %}
+                                <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
+                                {% elif user.status == 'Offline' %}
+                                <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                                {% elif user.status == 'Out Of Office' %}
+                                <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
+                                {% endif %}
+                                {{ user.status }}</div>
+                        </div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                        <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                        <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                        <div style="font-size: 12px;">{{ user.shift }}</div>
+                    </div>
+
+                    <div class="title">
+                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                        <div style="font-size: 12px;">{{ user.job_title }}</div>
+                    </div>
+
+                    <div class="manager">
+                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                    </div>
+
+
+                    <div class="user-actions">
+                        <button class="ticketsList">Tickets</button>
+                        <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                        <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
+                    </div>
+                </div>
+                <div class="ticket" >
+                <div class="ticket-tabs">
+                    <button class="tab" data-status="open">Open Tickets</button>
+                    <button class="tab" data-status="pending">Pending Tickets</button>
+                    <button class="tab" data-status="hold">On-Hold Ticket</button>
+                    <button class="tab" data-status="solved">Solved Ticket</button>
+                </div>
+
+                <div class="ticket-content">
+                      
+                      <div class="ticket-table open-tab">
+                        {% for ticket in tickets %}
+                          {% if ticket.assignee_name == user.assignee_name%}
+                            <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                              <div class="ticket-info">
+                                <div>{{ ticket.ticket_id }}</div>
+                                <div>{{ ticket.subject|default:"N/A" }}</div>
+                                <div>{{ ticket.priority|default:"Normal" }}</div>
+                                <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                                <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                                <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+                              </div>
+
+                      
+                              <div class="comment-box hidden">
+                                <select name="status" id="status-drop">
+                                  <option value="Open">Open</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Hold">On-Hold</option>
+                                  <option value="Solved">Solved</option>
+                                </select>
+                                <input type="text" placeholder="Enter comment..." style="width:100%"></input>
+                                <button class="submit-comment">Comment</button>
+                              </div>
+                      
+                              <div class="assign-box hidden">                          
+                                <select class="assignee-dropdown" style="width: 100%;">
+                                    <option value="">-- Select New Assignee --</option>
+                                    {% for usr in users %}
+                                        {% if usr.assignee_name != ticket.assignee_name %}
+                                            <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                              
+                                <button class="submit-assign">Assign</button>
+                              </div>
+                              
+                              
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      
+
+                  
+                    <div class="ticket-table pending-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div>
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                    <input type="text" name="comment" placeholder="Add comment" required>
+                                    <button type="submit">💬</button>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table hold-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div style="text-align: center; position: relative;">
+                                
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+                                        &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+                                      </button>
+                                      <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+                                        <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+                                        <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+                                      </div>
+                                  
+                                      <!-- Hidden comment form -->
+                                      <div class="comment-form hidden" style="margin-top: 10px;">
+                                        <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+                                        <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+                                      </div>
+                                  
+                                      <!-- Hidden assign form -->
+                                      <div class="assign-form hidden" style="margin-top: 10px;">
+                                        <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+                                        <select class="assignee-dropdown" style="width: 100%;">
+                                          <option value="John Doe">John Doe</option>
+                                          <option value="Jane Smith">Jane Smith</option>
+                                          <option value="Michael Scott">Michael Scott</option>
+                                          <!-- Add more options dynamically from Django -->
+                                        </select>
+                                        <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+                                      </div>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table solved-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                </div>
+                  
+                  
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="status-section">
+          <div class="collapse"><div>Out Of Office</div><div><i class="fa-solid fa-square-caret-down"></i></div></div>
+          <div class="content" style="display: none;">
+            {% for user in users %}
+            {% if user.status == 'Away' %}
+            <div class="user-card"
+                data-agent="{{ user.assignee_name }}"
+                data-shift="{{ user.shift }}"
+                data-manager="{{ user.repor_manager }}"
+                data-role="{{ user.job_title }}">
+                <div class="top-section">
+                    <div class="user-info">
+                        <div class="user-img">
+                            <img src="../../static/Freewheel_Portal/images/png-clipart-thinking-man-question-mark-bow-down.png" alt="User">
+                        </div>
+                        <div style="width: 40vh;">
+                            <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
+                            <div style="font-size: 12px;">
+                                {% if user.status == 'Available' %}
+                                <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
+                                {% elif user.status == 'Away' %}
+                                <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
+                                {% elif user.status == 'In-Meeting' %}
+                                <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
+                                {% elif user.status == 'Offline' %}
+                                <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
+                                {% elif user.status == 'Out Of Office' %}
+                                <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
+                                {% endif %}
+                                {{ user.status }}</div>
+                        </div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Open :</div>
+                        <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Pending :</div>
+                        <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                    </div>
+                    <div class="shift">
+                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
+                        <div style="font-size: 12px;">{{ user.shift }}</div>
+                    </div>
+
+                    <div class="title">
+                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
+                        <div style="font-size: 12px;">{{ user.job_title }}</div>
+                    </div>
+
+                    <div class="manager">
+                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                    </div>
+
+
+                    <div class="user-actions">
+                        <button class="ticketsList">Tickets</button>
+                        <img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams">
+                        <img src="https://img.icons8.com/color/48/slack-new.png" alt="slack">
+                    </div>
+                </div>
+                <div class="ticket" >
+                <div class="ticket-tabs">
+                    <button class="tab" data-status="open">Open Tickets</button>
+                    <button class="tab" data-status="pending">Pending Tickets</button>
+                    <button class="tab" data-status="hold">On-Hold Ticket</button>
+                    <button class="tab" data-status="solved">Solved Ticket</button>
+                </div>
+
+                <div class="ticket-content">
+                      
+                      <div class="ticket-table open-tab">
+                        {% for ticket in tickets %}
+                          {% if ticket.assignee_name == user.assignee_name%}
+                            <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                              <div class="ticket-info">
+                                <div>{{ ticket.ticket_id }}</div>
+                                <div>{{ ticket.subject|default:"N/A" }}</div>
+                                <div>{{ ticket.priority|default:"Normal" }}</div>
+                                <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                                <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+                                <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+                              </div>
+
+                      
+                              <div class="comment-box hidden">
+                                <select name="status" id="status-drop">
+                                  <option value="Open">Open</option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Hold">On-Hold</option>
+                                  <option value="Solved">Solved</option>
+                                </select>
+                                <input type="text" placeholder="Enter comment..." style="width:100%"></input>
+                                <button class="submit-comment">Comment</button>
+                              </div>
+                      
+                              <div class="assign-box hidden">                          
+                                <select class="assignee-dropdown" style="width: 100%;">
+                                    <option value="">-- Select New Assignee --</option>
+                                    {% for usr in users %}
+                                        {% if usr.assignee_name != ticket.assignee_name %}
+                                            <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                              
+                                <button class="submit-assign">Assign</button>
+                              </div>
+                              
+                              
+                            </div>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                      
+
+                  
+                    <div class="ticket-table pending-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Pending" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div>
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                    <input type="text" name="comment" placeholder="Add comment" required>
+                                    <button type="submit">💬</button>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table hold-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Hold" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                            <div style="text-align: center; position: relative;">
+                                
+                                <form method="POST" action="{% url 'submit_comment' %}">
+                                    {% csrf_token %}
+                                    <button class="menu-btn" style="background: none; border: none; cursor: pointer;">
+                                        &#8942; <!-- Unicode for vertical ellipsis (⋮) -->
+                                      </button>
+                                      <div class="dropdown-menu" style="display: none; flex-direction: column; position: absolute; right: 0; top: 30px; background: white; border: 1px solid #ccc; padding: 5px; z-index: 10;">
+                                        <button class="comment-btn" style="padding: 5px; border: none; background: none; text-align: left;">Comment</button>
+                                        <button class="assign-btn" style="padding: 5px; border: none; background: none; text-align: left;">Assign</button>
+                                      </div>
+                                  
+                                      <!-- Hidden comment form -->
+                                      <div class="comment-form hidden" style="margin-top: 10px;">
+                                        <textarea placeholder="Comment here..." rows="2" style="width: 100%;"></textarea>
+                                        <button class="submit-comment" style="margin-top: 5px;">Submit</button>
+                                      </div>
+                                  
+                                      <!-- Hidden assign form -->
+                                      <div class="assign-form hidden" style="margin-top: 10px;">
+                                        <input type="text" class="assignee-filter" placeholder="Filter assignees..." style="width: 100%; margin-bottom: 5px;">
+                                        <select class="assignee-dropdown" style="width: 100%;">
+                                          <option value="John Doe">John Doe</option>
+                                          <option value="Jane Smith">Jane Smith</option>
+                                          <option value="Michael Scott">Michael Scott</option>
+                                          <!-- Add more options dynamically from Django -->
+                                        </select>
+                                        <button class="submit-assign" style="margin-top: 5px;">Assign</button>
+                                      </div>
+                                </form>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  
+                    <div class="ticket-table solved-tab" style="display: none;">
+                      {% for ticket in tickets %}
+                        {% if ticket.assignee_name == user.assignee_name and ticket.status == "Solved" %}
+                        <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
+                            <div>{{ ticket.ticket_id }}</div>
+                            <div>{{ ticket.subject|default:"N/A" }}</div>
+                            <div>{{ ticket.priority|default:"Normal" }}</div>
+                            <div>
+                                {% if ticket.due_timestamp and ticket.updated_timestamp %}
+                                    {% with remaining=ticket.due_timestamp|timesince:ticket.updated_timestamp %}
+                                        {{ remaining }}
+                                    {% endwith %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+
+                          </div>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                </div>
+                  
+                  
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+
         <!-- Duplicate above for each entry -->
       </div>
     </div>
@@ -397,6 +1353,8 @@ document.querySelectorAll(".assign-btn").forEach(btn => {
           const row = btn.closest(".ticket-row");
           const ticketId = row.dataset.ticketId;
           const comment = row.querySelector("input[type='text']").value.trim();
+          const status = select.value.trim();
+
   
           if (!comment) return showToast("Comment cannot be empty.");
   
@@ -406,7 +1364,7 @@ document.querySelectorAll(".assign-btn").forEach(btn => {
               "Content-Type": "application/json",
               "X-CSRFToken": "{{ csrf_token }}"
             },
-            body: JSON.stringify({ ticket_id: ticketId, comment: comment })
+            body: JSON.stringify({ ticket_id: ticketId, comment: comment, status:status })
           })
           .then(res => res.json())
           .then(data => {
@@ -515,6 +1473,8 @@ document.querySelectorAll(".assign-btn").forEach(btn => {
         const commentBox1 = row.querySelector(".comment-box1");
         const submitBtn1 = row.querySelector(".submit-comment1");
         const inputField = commentBox1?.querySelector("input[type='text']");
+        const select = commentBox1?.querySelector("select[name='status']");
+
     
         if (toggleBtn1 && commentBox1 && submitBtn1 && inputField) {
           // Toggle comment box
@@ -526,6 +1486,7 @@ document.querySelectorAll(".assign-btn").forEach(btn => {
           submitBtn1.addEventListener("click", function () {
             const ticketId = row.dataset.ticketId;
             const comment = inputField.value.trim();
+            const status = select.value.trim();
     
             if (!comment) return showToast("Comment cannot be empty.");
     
@@ -535,7 +1496,7 @@ document.querySelectorAll(".assign-btn").forEach(btn => {
                 "Content-Type": "application/json",
                 "X-CSRFToken": "MUyw4Gc6AM9Ga4jMDkKaabS29rBiSaivIBfCTAHs73cXu73eihdP16FUg0ecPA2c"
               },
-              body: JSON.stringify({ ticket_id: ticketId, comment: comment })
+              body: JSON.stringify({ ticket_id: ticketId, comment: comment, status: status })
             })
             .then(res => res.json())
             .then(data => {
@@ -582,5 +1543,67 @@ document.querySelectorAll(".assign-btn").forEach(btn => {
   });
 </script>
 
+<script>
+document.querySelectorAll(".collapse").forEach(header => {
+  header.addEventListener("click", () => {
+    const currentContent = header.nextElementSibling;
 
+    // Hide all other content
+    document.querySelectorAll(".content").forEach(section => {
+      if (section !== currentContent) section.style.display = "none";
+    });
+
+    // Remove active from all headers
+    document.querySelectorAll(".collapse").forEach(h => {
+      if (h !== header) h.classList.remove("active");
+    });
+
+    // ✅ NEW: Remove active from all status-section or status-update
+    document.querySelectorAll(".status-section").forEach(section => {
+      section.classList.remove("active");
+    });
+
+    // Toggle current section
+    const isVisible = currentContent.style.display === "block";
+    currentContent.style.display = isVisible ? "none" : "block";
+    header.classList.toggle("active", !isVisible);
+
+    // ✅ Add active to parent .status-section if not visible
+    if (!isVisible) {
+      header.closest(".status-section")?.classList.add("active");
+    }
+  });
+});
+</script>
+
+
+<style>
+  .collapse {
+  background-color: rgba(59,10,117,1);
+  box-shadow: rgba(59, 10, 117, 1) -.5rem 0rem 0rem;
+  display: flex;
+  justify-content: space-between;
+  color: white;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+.collapse i{
+  rotate: 180deg;
+  transition: 0.3s ease-in-out;
+}
+
+.collapse.active {
+  background-color: rgba(59,10,117,1);
+}
+
+.collapse.active i{
+    rotate: 0deg;
+
+}
+
+</style>
 

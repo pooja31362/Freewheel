@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
  
 class Ticket(models.Model):
     ticket_id = models.CharField(max_length=100, unique=True)
@@ -205,3 +206,33 @@ class Schedule(models.Model):
 
     def __str__(self):
         return f"Schedule for {self.date}"
+
+
+
+
+
+PRODUCT_CHOICES = [
+    ('SH', 'SH'),
+    ('FW DSP', 'FW DSP'),
+    ('FW SSP', 'FW SSP'),
+    ('Strata', 'Strata'),
+]
+ 
+class TicketReport(models.Model):
+    timestamp = models.DateTimeField(default=now)
+    product = models.CharField(max_length=20, choices=PRODUCT_CHOICES)
+    open_count = models.IntegerField(default=0)
+    new_count = models.IntegerField(default=0)
+    urgent_count = models.IntegerField(default=0)
+    high_count = models.IntegerField(default=0)
+    normal_count = models.IntegerField(default=0)
+    low_count = models.IntegerField(default=0)
+    being_worked = models.IntegerField(default=0)
+    unattended = models.IntegerField(default=0)
+    engineers = models.IntegerField(default=0)
+    ho_followup = models.IntegerField(default=0)
+ 
+    def save(self, *args, **kwargs):
+        self.unattended = max((self.new_count + self.open_count) - self.being_worked, 0)
+        super().save(*args, **kwargs)  
+ 

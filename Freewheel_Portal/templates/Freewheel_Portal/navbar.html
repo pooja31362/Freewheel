@@ -15,7 +15,7 @@
             <button type="submit">Upload Excel</button>
           </form>
           <hr>
-          <form method="post" enctype="multipart/form-data" action="{% url 'upload_shift_excel' %}">
+          <form method="POST" enctype="multipart/form-data" action="{% url 'upload_shift_excel' %}">
             {% csrf_token %}
             <input type="file" name="excel_file" accept=".xlsx,.xls" required>
             <button type="submit">Upload</button>
@@ -25,6 +25,9 @@
  
         <a href="{% url 'logout' %}">
           <i class="fa-solid fa-right-from-bracket" title="Logout" style="cursor: pointer;"></i>
+        </a>
+        <a href="{% url 'create_emp' %}">
+          <i class="fa-solid fa-user-plus" title="Create Employee" style="cursor: pointer;"></i>
         </a>
     </div>
  

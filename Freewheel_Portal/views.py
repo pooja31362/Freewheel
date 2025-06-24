@@ -609,7 +609,8 @@ def notice(request):
 
 def notice_sub(request):
         # ✅ Handle Notice POST Actions
-
+    if 'emp_id' not in request.session:
+        return redirect('login')
     current_user = User.objects.get(emp_id=request.session['emp_id'])
 
     if request.method == 'POST':
@@ -653,6 +654,8 @@ import json
 
 @csrf_exempt
 def reset_ticket_assignee(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == "POST":
         data = json.loads(request.body)
         ticket_id = data.get("ticket_id")
@@ -712,6 +715,9 @@ def do_login(request):
 from django.http import JsonResponse
 
 def update_status(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
+
     print("Request method:", request.method)
     print("Request POST data:", request.POST)
     if request.method == 'POST':
@@ -773,6 +779,9 @@ from .models import Ticket
 from django.utils.timezone import make_aware
  
 def upload_excel(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST' and request.FILES.get('file'):
         excel_file = request.FILES['file']
         df = pd.read_excel(excel_file)
@@ -855,10 +864,15 @@ from django.shortcuts import render
 from .models import Ticket
  
 def ticket_list(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
     tickets = Ticket.objects.all().order_by('ticket_id')  # ascending order
     return render(request, 'Freewheel_Portal/ticket_list.html', {'tickets': tickets})
 
 def test(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
+
     return render(request,'Freewheel_Portal/test.html')
  
  
@@ -868,6 +882,9 @@ from .forms import UserForm
 from .models import GroupAccess, Access
  
 def create_user(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
     initial_data = {}
  
     if request.method == 'GET':
@@ -902,6 +919,10 @@ from .models import Ticket, ShiftEndTable, User
 
 @csrf_exempt
 def submit_comment(request):
+
+
+    if 'emp_id' not in request.session:
+        return redirect('login') 
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -960,6 +981,8 @@ from .models import Ticket, User
 
 @csrf_exempt
 def assign_ticket(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -1254,6 +1277,9 @@ from django.utils import timezone
 from dateutil import parser
 
 def submit_leave(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
+
     if request.method == "POST":
         leave_until_str = request.POST.get('leave_until')
 
@@ -1276,6 +1302,9 @@ def submit_leave(request):
 
 
 def new_tickets_view(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST':
         ticket_id = request.POST.get('ticket_id')
         assignee_emp_id = request.POST.get('assignee_emp_id')
@@ -1305,6 +1334,9 @@ from django.urls import reverse
  
 SHIFT_EXCEL_PATH = os.path.join(settings.BASE_DIR, 'media', 'shifts.xlsx')
 def filter_by_shift(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
+
     employees = []
     selected_shift = request.GET.get('shift', '').strip()
     today_day = datetime.datetime.now().day  # just day number, e.g., 19
@@ -1346,64 +1378,34 @@ def filter_by_shift(request):
  
  
 import os
-import pandas as pd
-import datetime
-from django.db.models import Q
 from django.conf import settings
-from django.contrib import messages
 from django.shortcuts import redirect
-from Freewheel_Portal.models import User
-from Freewheel_Portal import utils  # ✅ import your utils module to clear cache
+from django.core.files.storage import default_storage
 
 def upload_shift_excel(request):
-    if request.method == 'POST' and request.FILES.get('shift_excel'):
-        excel_file = request.FILES['shift_excel']
+
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
+    print('called Upload_shift_excel')
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        print('upload_shift_excel POST')
+        excel_file = request.FILES['excel_file']
         file_path = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
 
-        # ✅ Save file
-        with open(file_path, 'wb+') as destination:
+        # Delete the old file if it exists
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print('removed Success')
+
+        # Save the new uploaded file
+        with default_storage.open(file_path, 'wb+') as destination:
             for chunk in excel_file.chunks():
                 destination.write(chunk)
-
-        try:
-            df = pd.read_excel(file_path, header=None)
-            today_day = datetime.datetime.now().day
-            shift_col_index = None
-
-            date_row = df.iloc[1]  # second row (index 1)
-            for idx, cell in enumerate(date_row):
-                try:
-                    parsed_date = pd.to_datetime(str(cell), dayfirst=True, errors='coerce')
-                    if not pd.isna(parsed_date) and parsed_date.day == today_day:
-                        shift_col_index = idx
-                        break
-                except:
-                    continue
-
-            if shift_col_index is None:
-                raise KeyError(f"Today's date ({today_day}) not found in second row.")
-
-            updated_count = 0
-            for i in range(4, len(df)):
-                name = str(df.iloc[i, 0]).strip()
-                shift = str(df.iloc[i, shift_col_index]).strip()
-
-                user_qs = User.objects.filter(Q(username__iexact=name) | Q(name__iexact=name))
-                for user in user_qs:
-                    try:
-                        user.shift = shift
-                        user.save(update_fields=['shift'])
-                        updated_count += 1
-                    except:
-                        continue
-
-            messages.success(request, f"Shift file uploaded and {updated_count} user(s) updated successfully.")
-            request.session['shift_file_uploaded'] = True
-
-        except Exception as e:
-            messages.error(request, f"Error loading shift data: {str(e)}")
+                print('saved Success')
 
     return redirect('home')
+
 
 
 
@@ -1411,6 +1413,10 @@ from django.http import JsonResponse
 from .utils import truncate_shift_end
 
 def manual_freeze_view(request):
+
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == "POST":
         success = truncate_shift_end()
         return JsonResponse({'success': success})
@@ -1422,37 +1428,6 @@ from django.shortcuts import render, redirect
 from django.utils import timezone
 from .models import User  # or your Employee model
 
-def create_employee(request):
-    if request.method == "POST":
-        full_name = request.POST.get("full_name")
-        emp_id = request.POST.get("emp_id")
-        contact = request.POST.get("contact_number")
-        email = request.POST.get("email")
-        department = request.POST.get("department")
-        slack_channel = request.POST.get("slack_channel")
-        job_title = request.POST.get("job_title")
-        business_unit = request.POST.get("business_unit")
-        reporting_manager = request.POST.get("reporting_manager")
-
-        User.objects.create(
-            assignee_name=full_name,
-            emp_id=emp_id,
-            contact=contact,
-            email=email,
-            department=department,
-            slack_channel=slack_channel,
-            job_title=job_title,
-            business_unit=business_unit,
-            reporting_manager=reporting_manager,
-            created_at=timezone.now()
-        )
-
-        return redirect('home')  # or some success page
-
-    return render(request, 'Freewheel_Portal/create_employee.html')
-
-
-
 
 #bi-hourly report
 import pandas as pd
@@ -1463,6 +1438,8 @@ from django.utils.timezone import now
 from collections import defaultdict
  
 def classify_product(row):
+
+
     tg = row.get('ticket group', '')
     if tg == "Support Eng":
         return "SH"
@@ -1475,6 +1452,9 @@ def classify_product(row):
     return None
  
 def upload_excel_report(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
     form = UploadExcelForm()
     report_data = TicketReport.objects.all().order_by('timestamp')  # default load
  
@@ -1554,6 +1534,8 @@ from django.http import HttpResponseRedirect
  
 @csrf_exempt
 def save_bulk_report_updates(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST':
         ids = request.POST.getlist('ids')
         for id in ids:
@@ -1848,6 +1830,9 @@ from .models import User
 from django.contrib import messages
 
 def create_employee(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
     users = User.objects.all()  # for manager dropdown
 
     if request.method == 'POST':
@@ -1855,16 +1840,24 @@ def create_employee(request):
         try:
             print('trying')
             emp_id = request.POST['emp_id']
+            print('emp_id',emp_id)
             assignee_name = request.POST['full_name']
-            password = "default123"  # or generate/save securely
+            print('assignee_name',assignee_name)
             department = request.POST.get('department', '')
+            print('department',department)
+
             BussinessUnit = request.POST.get('business_unit', '')
+            print('BussinessUnit',BussinessUnit)
+
             job_title = request.POST.get('job_title', '')
+            print('job_title',job_title)
+
             repor_manager = request.POST.get('reporting_manager', '')
+            print('repor_manager',repor_manager)
+
             user_type = request.POST.get('user_type', 'staff')
             contact_number = request.POST.get('contact_number', '')
             email = request.POST.get('email', '')
-            user_name = email.split('@')[0]
 
             slack_id = request.POST.get('slack_channel', '')
             work_region = request.POST.get('region', '')
@@ -1873,8 +1866,6 @@ def create_employee(request):
             User.objects.create(
                 emp_id=emp_id,
                 assignee_name=assignee_name,
-                user_name=user_name,
-                password=password,
                 department=department,
                 BussinessUnit=BussinessUnit,
                 job_title=job_title,
@@ -1888,9 +1879,11 @@ def create_employee(request):
                 shift='',
                 access=[],
             )
+            print('succeessfully created')
             messages.success(request, "✅ Employee created successfully!")
             return redirect('create_emp')
         except Exception as e:
+            print("eror",e)
             messages.error(request, f"❌ Failed to create employee: {e}")
 
     return redirect('home')

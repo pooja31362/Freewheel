@@ -15,7 +15,7 @@ class Ticket(models.Model):
     comment = models.TextField(null=True, blank=True)
     group = models.CharField(max_length=20, null=True, blank=True)
     form = models.CharField(max_length=50, null=True, blank=True)
-
+ 
     # 🕒 Timestamp fields
     created_timestamp = models.DateTimeField(null=True, blank=True)
     solved_timestamp = models.DateTimeField(null=True, blank=True)
@@ -51,6 +51,11 @@ class GroupAccess(models.Model):
     def __str__(self):
         return f"{self.get_user_type_display()} Access: {self.availed_access}"
  
+import secrets
+import string
+from django.contrib.auth.hashers import make_password
+from django.db import models
+ 
  
 class User(models.Model):
     USER_TYPE_CHOICES = [
@@ -70,10 +75,11 @@ class User(models.Model):
  
     emp_id = models.CharField(max_length=20, primary_key=True)
     assignee_name = models.CharField(max_length=100)
-    user_name = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=128)
-    work_region = models.CharField(max_length=100, blank=True, null=True)
+    user_name = models.CharField(max_length=100, unique=True, blank=True)  # Allow blank initially
+    password = models.CharField(max_length=128, blank=True)  # Allow blank initially
     department = models.CharField(max_length=100)
+    work_region = models.CharField(max_length=100, blank=True, null=True)
+
     BussinessUnit = models.CharField(max_length=100)
     job_title = models.CharField(max_length=100)
     repor_manager = models.CharField(max_length=100)
@@ -82,19 +88,29 @@ class User(models.Model):
     email = models.EmailField()
     slack_id = models.CharField(max_length=50)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Offline')
-
     shift = models.CharField(max_length=20)
     profile_image = models.ImageField(upload_to='profile_images/', default='profile_images/image.png', blank=True, null=True)
     access = models.JSONField(default=list)
-    leave_until = models.DateTimeField(null=True, blank=True)  # ✅ correct
+    leave_until = models.DateTimeField(null=True, blank=True)
     last_shift_update = models.DateField(null=True, blank=True)
 
-
+ 
+    def save(self, *args, **kwargs):
+    # Auto-generate username from email if not provided
+        if not self.user_name and self.email:
+            self.user_name = self.email.split('@')[0]
+ 
+    # Auto-generate a 10-digit numeric password if not provided
+        if not self.password:
+            self.password = ''.join(secrets.choice(string.digits) for _ in range(10))
+ 
+        super().save(*args, **kwargs)
+ 
  
     def __str__(self):
         return f"{self.emp_id} - {self.user_name}"
-    
-
+ 
+ 
 class ShiftEndTicketDetails(models.Model):
     status = models.CharField(max_length=50)
     open = models.PositiveIntegerField(default=0)
@@ -106,7 +122,7 @@ class ShiftEndTicketDetails(models.Model):
     def __str__(self):
         return f"Details - Status: {self.status}, Total: {self.total}"
  
-
+ 
 class PreviousShiftEndTicketDetails(models.Model):
     status = models.CharField(max_length=50)
     open = models.PositiveIntegerField(default=0)
@@ -117,7 +133,7 @@ class PreviousShiftEndTicketDetails(models.Model):
  
     def __str__(self):
         return f"Details - Status: {self.status}, Total: {self.total}"
-
+ 
  
 class SLABreachedTicket(models.Model):
     ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id FK
@@ -128,20 +144,20 @@ class SLABreachedTicket(models.Model):
  
     def __str__(self):
         return f"SLA Breach - Ticket {self.ticket_id.ticket_id}"
-    
-
-
+   
+ 
+ 
 class PreviousSLABreachedTicket(models.Model):
     ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id FK
     subject = models.CharField(max_length=200)
     duration = models.CharField(max_length=50)
     duration_of_the_breach = models.CharField(max_length=50)
-    reason_for_the_breach = models.TextField() 
+    reason_for_the_breach = models.TextField()
     def __str__(self):
         return f"SLA Breach - Ticket {self.ticket_id.ticket_id}"
    
-
-
+ 
+ 
 class ShiftEndTable(models.Model):
     ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id as FK
     start_date = models.DateTimeField()
@@ -158,11 +174,11 @@ class ShiftEndTable(models.Model):
     next_comment = models.DateTimeField()
     time_left = models.CharField(max_length=50)
     comment = models.TextField()
-
+ 
     def __str__(self):
         return f"ShiftEnd for Ticket {self.ticket_id.ticket_id}"
-    
-
+   
+ 
 class PreviousShiftEndTable(models.Model):
     ticket_id = models.ForeignKey('Ticket', on_delete=models.CASCADE)  # ticket_id as FK
     start_date = models.DateTimeField()
@@ -182,38 +198,38 @@ class PreviousShiftEndTable(models.Model):
  
     def __str__(self):
         return f"ShiftEnd for Ticket {self.ticket_id.ticket_id}"
-    
-
-    
+   
+ 
+   
 class Notice(models.Model):
     message = models.TextField()
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
     posted_at = models.DateTimeField(auto_now_add=True)
-
+ 
     def __str__(self):
         return f"{self.posted_by.username} - {self.posted_at.strftime('%Y-%m-%d %H:%M')}"
-
-
+ 
+ 
 # Daily shift schedule
 class Schedule(models.Model):
     date = models.DateField(unique=True)
-
+ 
     shift1_status = models.JSONField(default=dict, blank=True)
     shift3_status = models.JSONField(default=dict, blank=True)
     shift6_status = models.JSONField(default=dict, blank=True)
-
+ 
     shift1_end_email = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='shift1_end_user')
     shift3_end_email = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='shift3_end_user')
     shift6_end_email = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='shift6_end_user')  # ✅ NEW
-
-
+ 
+ 
     def __str__(self):
         return f"Schedule for {self.date}"
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
 PRODUCT_CHOICES = [
     ('SH', 'SH'),
     ('FW DSP', 'FW DSP'),
@@ -238,7 +254,3 @@ class TicketReport(models.Model):
     def save(self, *args, **kwargs):
         self.unattended = max((self.new_count + self.open_count) - self.being_worked, 0)
         super().save(*args, **kwargs)  
- 
-
-
- 

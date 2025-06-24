@@ -1884,3 +1884,25 @@ def create_employee(request):
             messages.error(request, f"❌ Failed to create employee: {e}")
 
     return redirect('home')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.http import HttpResponse    # edited
+ 
+def health_check(request):              # edited
+    return HttpResponse("OK")

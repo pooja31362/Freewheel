@@ -47,7 +47,6 @@ from Freewheel_Portal.models import User
 
 SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
 
-# Cache the dataframe and date-column index for performance
 _cached_shift_df = None
 _cached_shift_col_index = None
 _cached_shift_date = None
@@ -59,16 +58,18 @@ def get_today_shift_for_user(name):
 
     try:
         if _cached_shift_df is None or _cached_shift_date != today:
-            df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
-            _cached_shift_df = df
+            if not os.path.exists(SHIFT_EXCEL_PATH):
+                print(f"[ERROR] Shift Excel file not found at: {SHIFT_EXCEL_PATH}")
+                return None
+
+            _cached_shift_df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
             _cached_shift_date = today
 
-            date_row = df.iloc[1]
+            date_row = _cached_shift_df.iloc[1]
             dates = pd.to_datetime(date_row, errors='coerce').dt.date
 
             try:
-                shift_col_index = dates[dates == today].index[0]
-                _cached_shift_col_index = shift_col_index
+                _cached_shift_col_index = dates[dates == today].index[0]
             except IndexError:
                 print(f"[ERROR] Today's date ({today}) not found in Excel.")
                 return None
@@ -76,7 +77,6 @@ def get_today_shift_for_user(name):
         df = _cached_shift_df
         shift_col_index = _cached_shift_col_index
 
-        # Convert names in the Excel column to lowercase once
         user_names = df.iloc[4:, 0].astype(str).str.strip().str.lower()
         name = name.strip().lower()
 
@@ -84,12 +84,16 @@ def get_today_shift_for_user(name):
             row_index = user_names[user_names == name].index[0]
             shift_value = str(df.iloc[row_index, shift_col_index]).strip()
 
+            if not shift_value or shift_value.lower() == 'nan':
+                print(f"[WARN] No shift value found for {name} on {today}")
+                return None
+
             try:
                 user_obj = User.objects.get(assignee_name__iexact=name)
                 if user_obj.shift != shift_value:
                     user_obj.shift = shift_value
-                    user_obj.save()
-                    print(f"[INFO] Updated shift for {name} in User model.")
+                    user_obj.save(update_fields=['shift'])
+                    print(f"[INFO] Updated shift for {name} to '{shift_value}' in User model.")
                 else:
                     print(f"[INFO] Shift for {name} already up to date.")
             except User.DoesNotExist:
@@ -103,6 +107,7 @@ def get_today_shift_for_user(name):
     except Exception as e:
         print(f"[ERROR] Failed to fetch shift for {name}: {e}")
         return None
+
 
 
 

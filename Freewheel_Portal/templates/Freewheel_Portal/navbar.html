@@ -3,13 +3,31 @@
         <i class="fa-solid fa-bars"></i>
         <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i></a>
         <i class="fa-solid fa-people-group" id="delBtn"></i>
-<a href="{% url 'upload_excel_report' %}"><i class="fa-solid fa-table" title="Upload Bihourly Report" style="cursor: pointer;"></i></a>
-
+        <a href="{% url 'upload_excel_report' %}"><i class="fa-solid fa-table" title="Upload Bihourly Report" style="cursor: pointer;"></i></a>
+ 
         <a href="{% url 'shift_end_summary' %}"><i class="fa-solid fa-envelope" id="shiftMailBtn" style="cursor: pointer;"></i></a>
-        <i class="fa-solid fa-upload"></i>
-        <i class="fa-solid fa-right-from-bracket"></i>
+        <i class="fa-solid fa-upload" id="uploadTrigger" style="cursor: pointer;"></i>
+ 
+        <div id="uploadDropdown" class="upload-dropdown" style="display: none; position: absolute; left: 60px; top: 160px; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 6px; z-index: 1000;">
+          <form method="post" enctype="multipart/form-data" action ="{% url 'upload_excel' %}">
+            {% csrf_token %}
+            <input type="file" name="file" accept=".xlsx,.xls" required>
+            <button type="submit">Upload Excel</button>
+          </form>
+          <hr>
+          <form method="post" enctype="multipart/form-data" action="{% url 'upload_shift_excel' %}">
+            {% csrf_token %}
+            <input type="file" name="excel_file" accept=".xlsx,.xls" required>
+            <button type="submit">Upload</button>
+          </form>
+ 
+        </div>
+ 
+        <a href="{% url 'logout' %}">
+          <i class="fa-solid fa-right-from-bracket" title="Logout" style="cursor: pointer;"></i>
+        </a>
     </div>
-
+ 
     <div class="check">
         <div class="topbar">
             <input type="text" placeholder="Search">
@@ -17,33 +35,33 @@
                 <div class="circle" style="background:brown;width:20px;height:20px;border-radius:50%;"></div>
                 <i class="fa-solid fa-bell"></i>
                 <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 30px; height: 30px;">
-                
+               
                 <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
             </div>
         </div>
-
+ 
         <div id="status-section" data-update-url="{% url 'status_update' %}" data-csrf="{{ csrf_token }}">
             <div class="status">
                 <div class="status-box" title="Available" data-color="#4CAF50"><i class="fa-solid fa-circle-check" style="color: #000000;font-size: x-large;"></i></div>
                 <div class="status-box" title="Away" data-color="#FFC107"><i class="fa-solid fa-clock" style="color: #000000;font-size: x-large;"></i></div>
                 <div class="status-box" title="In-Meeting" data-color="#F44336"><i class="fa-solid fa-phone" style="color: #000000; font-size: x-large;"></i></div>
                 <div class="status-box" title="Offline" data-color="#9E9E9E"><i class="fa-solid fa-circle-xmark" style="color: #000000;font-size: x-large;"></i></div>
-                
-                
-                
-                
+               
+               
+               
+               
                 <!-- Flatpickr Dark Theme -->
                 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
-
+ 
                 <form method="POST" action="/submit-leave/">
                   <!-- Optional: include CSRF token if using Django -->
                   {% csrf_token %}
-
+ 
                   <div>
                     <div id="out-office" class="status-box" title="Out Of Office" data-color="#c235e0 ">
                       <i class="fa-solid fa-circle-arrow-right" style="color: #000000; font-size: x-large;"></i>
                     </div>
-
+ 
                     <div class="leave-period" id="leave-period" style="display: none;">
                       <select id="quick-select" name="leave_period">
                         <option value="">Select Period</option>
@@ -52,170 +70,207 @@
                         <option value="this-week">This Week</option>
                         <option value="custom">Custom Date</option>
                       </select>
-
+ 
                       <input id="datetime-picker" type="text" placeholder="Pick a custom date and time" name="leave_until" class="leave-input" style="display: none;">
                                       <button type="submit" class="leave-btn">Submit</button>
-
+ 
                     </div>
                   </div>
-
+ 
                 </form>
-
-
-
+ 
+ 
+ 
                 <!-- Flatpickr JS -->
                 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
               </div>
         </div>
-
+ 
     </div>
-        
+       
 </nav>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 <script>
   const outOfficeBtn = document.getElementById('out-office');
   const leavePeriod = document.getElementById('leave-period');
-
+ 
   outOfficeBtn.addEventListener('click', () => {
-    leavePeriod.style.display = 'block';
+    leavePeriod.style.display = 'flex';
   });
 </script>
-
+ 
 <script>
   const datetimeInput = document.getElementById('datetime-picker');
-
+ 
   const datetimePicker = flatpickr("#datetime-picker", {
     enableTime: true,
     dateFormat: "Y-m-d h:i K",
   });
-
+ 
   document.getElementById('quick-select').addEventListener('change', function () {
-    const now = new Date();
-    const value = this.value;
-
-    if (value === "custom") {
-      datetimeInput.style.display = "block";
-    } else {
-      datetimeInput.style.display = "none";
-
-      if (value === "today") {
-        datetimePicker.setDate(now);
-      } else if (value === "tomorrow") {
-        const tomorrow = new Date(now);
-        tomorrow.setDate(now.getDate() + 1);
-        datetimePicker.setDate(tomorrow);
-      } else if (value === "this-week") {
-        const endOfWeek = new Date(now);
-        const day = now.getDay(); // 0 = Sunday
-        endOfWeek.setDate(now.getDate() + (6 - day));
-        datetimePicker.setDate(endOfWeek);
-      }
+  const now = new Date();
+  const value = this.value;
+ 
+  if (value === "custom") {
+    datetimeInput.style.display = "block";
+  } else {
+    datetimeInput.style.display = "none";
+ 
+    if (value === "today") {
+      const endOfToday = new Date();
+      endOfToday.setHours(23, 59, 59, 999);
+      datetimePicker.setDate(endOfToday);
+    } else if (value === "tomorrow") {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      tomorrow.setHours(23, 59, 59, 999);
+      datetimePicker.setDate(tomorrow);
+    } else if (value === "this-week") {
+      const endOfWeek = new Date(now);
+      const day = now.getDay(); // 0 = Sunday
+      endOfWeek.setDate(now.getDate() + (6 - day));
+      endOfWeek.setHours(23, 59, 59, 999);
+      datetimePicker.setDate(endOfWeek);
+    }
+  }
+});
+ 
+</script>
+ 
+<script>
+  document.addEventListener('click', function(event) {
+    const leavePeriod = document.getElementById('leave-period');
+    const outOfficeBtn = document.getElementById('out-office');
+ 
+    // If the dropdown is open and the click is outside both the button and the dropdown, hide it
+    if (
+      leavePeriod.style.display === 'flex' &&
+      !leavePeriod.contains(event.target) &&
+      !outOfficeBtn.contains(event.target)
+    ) {
+      leavePeriod.style.display = 'none';
     }
   });
 </script>
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
+ 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const statusBoxes = document.querySelectorAll('.status-box');
     const currentStatus = "{{ current_user.status }}";
-
-    // On load: highlight the current status
+ 
+    // Highlight current status on load
     statusBoxes.forEach(box => {
       const status = box.getAttribute('title');
       const color = box.getAttribute('data-color');
-
+ 
       if (status === currentStatus) {
         box.classList.add('active');
         box.style.backgroundColor = color;
         box.style.color = 'white';
       }
-
-      // On click: update status and color
+ 
+      // Click event
       box.addEventListener('click', () => {
         const selectedStatus = box.getAttribute('title');
-
+ 
+        // ✅ Only trigger form for "Out Of Office"
+        if (selectedStatus === 'Out Of Office') {
+          document.getElementById('leave-period').style.display = 'flex';
+          return;  // 🔒 Don't send update yet
+        }
+ 
         // Reset all boxes
         statusBoxes.forEach(b => {
           b.classList.remove('active');
           b.style.backgroundColor = 'white';
           b.style.color = 'black';
         });
-
-        // Highlight clicked
+ 
+        // Highlight selected
         box.classList.add('active');
         box.style.backgroundColor = color;
         box.style.color = 'white';
-
-        // Send AJAX to update backend
+ 
+        // Send AJAX to update backend for non-Out Of Office
         fetch("{% url 'status_update' %}", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': '{{ csrf_token }}',
           },
-          body: new URLSearchParams({
-            status: selectedStatus
-          })
+          body: new URLSearchParams({ status: selectedStatus })
         })
         .then(res => res.json())
         .then(data => {
-  if (data.success) {
-    console.log("Status updated to", selectedStatus);
+          if (data.success) {
+            const statusDisplay = document.getElementById('user-status-display');
+            let iconHTML = '';
  
-    const statusDisplay = document.getElementById('user-status-display');
-    let iconHTML = '';
+            if (selectedStatus === 'Available') {
+              iconHTML = `<i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>`;
+            } else if (selectedStatus === 'Away') {
+              iconHTML = `<i class="fa-solid fa-clock" style="color: #FFC107;"></i>`;
+            } else if (selectedStatus === 'In-Meeting') {
+              iconHTML = `<i class="fa-solid fa-phone" style="color: #F44336;"></i>`;
+            } else if (selectedStatus === 'Offline') {
+              iconHTML = `<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>`;
+            }
  
-    if (selectedStatus === 'Available') {
-      iconHTML = `<i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>`;
-    } else if (selectedStatus === 'Away') {
-      iconHTML = `<i class="fa-solid fa-clock" style="color: #FFC107;"></i>`;
-    } else if (selectedStatus === 'In-Meeting') {
-      iconHTML = `<i class="fa-solid fa-clock" style="color: #F44336;"></i>`;
-    } else if (selectedStatus === 'Offline') {
-      iconHTML = `<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>`;
-    }else if (selectedStatus === 'Out Of Office') {
-      iconHTML = `<i class="fa-solid fa-circle-arrow-right" style="color: #c235e0;"></i>`;
-    }
- 
-    // Update icon + text instantly
-    statusDisplay.innerHTML = `${iconHTML} ${selectedStatus}`;
-  } else {
-    console.error("Update failed:", data.error);
-  }
-})
-
+            // Update status display
+            statusDisplay.innerHTML = `${iconHTML} ${selectedStatus}`;
+          } else {
+            console.error("Update failed:", data.error);
+          }
+        })
         .catch(err => console.error("Network error:", err));
       });
     });
   });
 </script>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const uploadIcon = document.getElementById("uploadTrigger");
+    const dropdown = document.getElementById("uploadDropdown");
+ 
+    uploadIcon.addEventListener("click", function () {
+      dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+    });
+ 
+    document.addEventListener("click", function (e) {
+      if (!dropdown.contains(e.target) && !uploadIcon.contains(e.target)) {
+        dropdown.style.display = "none";
+      }
+    });
+  });
+</script>

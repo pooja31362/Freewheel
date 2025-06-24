@@ -20,7 +20,7 @@
     {% for ticket in tickets %}
         <div class="ticket-row2" data-ticket-id="{{ ticket.ticket_id }}" >
           <div class="info">
-          <div style="flex: 1;">{{ ticket.ticket_id }}</div>
+          <div style="flex: 1;"><a href="https://freewheel.zendesk.com/agent/tickets/{{ ticket.ticket_id }}" target="_blank">{{ ticket.ticket_id }}</a></div>
           <div style="flex: 4;">{{ ticket.subject|default:"N/A" }}</div>
           <div style="flex: 1;">{{ ticket.priority|default:"Normal" }}</div>
           <div style="flex: 1;" class="status-field">{{ ticket.status }}</div>

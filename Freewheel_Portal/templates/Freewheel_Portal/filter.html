@@ -1,14 +1,14 @@
-      <div class="filters">
+<div class="filters">
         <div class="section filter" id="user-filter">
           <h4>Agent Filter</h4>
-
+ 
           <select id="agent-filter">
             <option value="All">Agents Filter</option>
             {% for user in users %}
             <option value="{{user.assignee_name}}">{{user.assignee_name}}</option>
             {% endfor %}
           </select>
-
+ 
           <select id="shift-filter">
             <option value="All">Shift Filter</option>
             <option value="S1">Shift 1</option>
@@ -18,7 +18,7 @@
             <option value="S5">Shift 5</option>
             <option value="S6">Shift 6</option>
           </select>
-
+ 
           <select id="manager-filter">
             <option value="All">Manager Filter</option>
             <option value="Sorna"> Ravi</option>
@@ -28,18 +28,17 @@
             {% endif %}
             {% endfor %}
           </select>
-
-                    <select id="manager-filter">
-            <option value="All">Manager Filter</option>
-            <option value="Sorna"> Ravi</option>
-            {% for user in users %}
-            {% if user.assignee_name == Manager %}
-            <option value="{{user.assignee_name}}">{{user.assignee_name}}</option>
-            {% endif %}
-            {% endfor %}
+ 
+          <select id="region-filter">
+            <option value="All">User Status Filter</option>
+            <option value="Available"> Available</option>
+            <option value="In-Meeting"> In-Meeting</option>
+            <option value="Away"> Away</option>
+            <option value="Offline"> Offline</option>
+            <option value="Out Of Office"> Out Of Office</option>
           </select>
-
-
+ 
+ 
           <div class="button-group">
             <button data-role="E1">E1</button>
             <button data-role="E2">E2</button>
@@ -65,41 +64,46 @@
           </div> -->
           <div class="clear-filter"><p>Clear Filter</p></div>
         </div>
-        
+       
         <div class="section notice">
           <h4>Notice</h4><br>
-        
-          {% if is_allowed %}
+       
+          {% comment %} {% if is_allowed %}
           <!-- ✅ Notice Post Form -->
             <form method="POST" action="{% url 'notice_sub' %}" style="margin-bottom: 10px;">
               {% csrf_token %}
               <textarea name="message" placeholder="Enter notice..." required style="width: 100%; padding: 6px;"></textarea>
               <button type="submit" name="post_notice" style="margin-top: 5px;">Post</button>
             </form>
-          {% endif %}
-        
+          {% endif %} {% endcomment %}
+       
         <div class="notice-view">
           {% for notice in latest_notice %}
           <div class="notice_latest"><p><strong>{{notice.message}}</strong></p></div>
           {% endfor %}
         </div>
-
+ 
           <div class="view-more" onclick="openModal()" style="cursor: pointer; text-align: center;">
-            <div class="view-more-border"><p>Cick To Add Notice</p></div>
+            <div class="view-more-border"><p>Cick To View Notice</p></div>
           </div>
         </div>
-        
-        
-
+ 
+        <a href="{% url 'notice' %}" style="text-decoration: none;">
+          <div class="view-more" style="cursor: pointer; text-align: center;">
+            <div class="view-more-border"><p>Click To Add your Notice</p></div>
+          </div>
+        </a>
+       
+ 
         <!-- 🔲 Hidden Modal Container -->
         <div id="noticeModal" class="modal" style="display: none;">
           <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-        
+       
             <h3 style="margin-bottom: 15px;">📋 Today's Delegation Overview</h3>
-        
+       
             <div style="max-height: 500px; overflow-y: auto; font-size: 14px;">
-        
+       
               <!-- 🔹 Bihourly Allocations -->
               <div style="margin-bottom: 20px;">
                 <h4 style="color: #004085; margin-bottom: 8px;">📌 Bihourly Allocation</h4>
@@ -113,7 +117,62 @@
                   {% endfor %}
                 </div>
               </div>
-        
+ 
+              <!-- 🔲 Hidden Modal Container -->
+<div id="noticeModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closeNoticeModal()">&times;</span>
+ 
+    <h3 style="margin-bottom: 15px;">📋 Today's Delegation Overview</h3>
+ 
+    <div style="max-height: 500px; overflow-y: auto; font-size: 14px;">
+ 
+      <!-- 🔹 Bihourly Allocations -->
+      <div style="margin-bottom: 20px;">
+        <h4 style="color: #004085; margin-bottom: 8px;">📌 Bihourly Allocation</h4>
+        <div style="padding: 10px; background: #e9f5ff; border-left: 4px solid #1890ff; border-radius: 4px;">
+          {% for notice in notices %}
+            {% if "—" in notice.message and "Shift" in notice.message %}
+              <div style="margin-bottom: 5px;">
+                {{ notice.message }}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+ 
+      <!-- 🟢 Shift-End Assignments -->
+      <div style="margin-bottom: 20px;">
+        <h4 style="color: #155724; margin-bottom: 8px;">📬 Shift-End Mail Assignments</h4>
+        <div style="padding: 10px; background: #e6ffe6; border-left: 4px solid #28a745; border-radius: 4px;">
+          {% for notice in notices %}
+            {% if "Shift" in notice.message and "End Mail" in notice.message %}
+              <div style="margin-bottom: 5px;">
+                {{ notice.message }}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+ 
+      <!-- 👤 Team Messages -->
+      <div>
+        <h4 style="color: #333;">🧍 Team Notices</h4>
+        {% for notice in notices %}
+          {% if notice.posted_by %}
+            <div style="padding: 8px; background: #f8f9fa; margin-bottom: 8px; border-left: 4px solid #6c757d; border-radius: 4px;">
+              <strong>{{ notice.posted_by.assignee_name }}</strong>: {{ notice.message }}
+              <div style="font-size: 12px; color: #888;">{{ notice.posted_at|date:"d-M H:i" }}</div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+ 
+    </div>
+  </div>
+</div>
+ 
+       
               <!-- 🟢 Shift-End Assignments -->
               <div style="margin-bottom: 20px;">
                 <h4 style="color: #155724; margin-bottom: 8px;">📬 Shift-End Mail Assignments</h4>
@@ -127,7 +186,7 @@
                   {% endfor %}
                 </div>
               </div>
-        
+       
               <!-- 👤 User Notices -->
               <div>
                 <h4 style="color: #333;">🧍 Team Notices</h4>
@@ -140,13 +199,13 @@
                   {% endif %}
                 {% endfor %}
               </div>
-        
+       
             </div>
           </div>
         </div>
-
-
-
+ 
+ 
+ 
         {% if delegated_to_user %}
         <div style="background-color: #fffae6; border: 1px solid #ffd700; color: #333; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
           🔔 <strong>You have been assigned a delegation in today's shift!</strong>
@@ -159,11 +218,11 @@
           {% endif %}
         </div>
       {% endif %}
-      
-        
-
-        
-
+     
+       
+ 
+       
+ 
 <style>
   .modal {
     display: none;
@@ -174,7 +233,7 @@
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.6);
   }
-
+ 
   .modal-content {
     background-color: #fff;
     margin: 10% auto;
@@ -185,24 +244,24 @@
     max-height: 70vh;
     overflow-y: auto;
   }
-
+ 
   .close-btn {
     float: right;
     font-size: 20px;
     cursor: pointer;
   }
 </style>
-
-
+ 
+ 
 <script>
   function openModal() {
     document.getElementById("noticeModal").style.display = "block";
   }
-
+ 
   function closeModal() {
     document.getElementById("noticeModal").style.display = "none";
   }
-
+ 
   // Optional: Close when clicking outside
   window.onclick = function(event) {
     const modal = document.getElementById("noticeModal");
@@ -211,31 +270,31 @@
     }
   }
 </script>
-
+ 
 <script>
   function updateDropdowns() {
     const selectedShift1 = new Set();
     const selectedShift3 = new Set();
     const selectedShift6 = new Set();
-
+ 
     // Collect selected values for Shift 1
     document.querySelectorAll(".shift1-select, #shift1_end_email").forEach(select => {
       const val = select.value;
       if (val && val !== "Assignee") selectedShift1.add(val);
     });
-
+ 
     // Collect selected values for Shift 3
     document.querySelectorAll(".shift3-select, #shift3_end_email").forEach(select => {
       const val = select.value;
       if (val && val !== "Assignee") selectedShift3.add(val);
     });
-
+ 
     // Collect selected values for Shift 6
     document.querySelectorAll(".shift6-select, #shift6_end_email").forEach(select => {
       const val = select.value;
       if (val && val !== "Assignee") selectedShift6.add(val);
     });
-
+ 
     // Disable already selected users in Shift 1
     document.querySelectorAll(".shift1-select, #shift1_end_email").forEach(select => {
       const currentVal = select.value;
@@ -245,7 +304,7 @@
         }
       });
     });
-
+ 
     // Disable already selected users in Shift 3
     document.querySelectorAll(".shift3-select, #shift3_end_email").forEach(select => {
       const currentVal = select.value;
@@ -255,7 +314,7 @@
         }
       });
     });
-
+ 
     // Disable already selected users in Shift 6
     document.querySelectorAll(".shift6-select, #shift6_end_email").forEach(select => {
       const currentVal = select.value;
@@ -266,10 +325,10 @@
       });
     });
   }
-
+ 
   // Initial run
   updateDropdowns();
-
+ 
   // Add event listeners for all dropdowns (Shift 1, 3, 6)
   document.querySelectorAll(
     ".shift1-select, .shift3-select, .shift6-select, #shift1_end_email, #shift3_end_email, #shift6_end_email"
@@ -277,6 +336,6 @@
     select.addEventListener("change", updateDropdowns);
   });
 </script>
-
-  
+ 
+ 
 <script src="../../static/Freewheel_Portal/js/filters.js" defer></script>

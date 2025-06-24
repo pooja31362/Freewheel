@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 
  
 urlpatterns = [
+    path('logout/', views.logout_view, name='logout'),
     path('home/', views.home, name='home'),
     path('upload/', views.upload_excel, name='upload_excel'),
     path('tickets/', views.ticket_list, name='ticket_list'),
@@ -29,9 +30,9 @@ urlpatterns = [
     path('save-updates/', views.save_bulk_report_updates, name='save_bulk_report_updates'),
     path('notice/', views.notice, name='notice'),
     path('notice/submit/', views.notice_sub, name='notice_sub'),  # 👈 this name must match
+    path('create-emp/', views.create_emp, name='create_emp'),
+    path('create-employee/', views.create_employee, name='create_employee'),
+    path('health/', views.health_check),          # edited  
 
-
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # edited

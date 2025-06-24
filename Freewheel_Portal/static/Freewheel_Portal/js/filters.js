@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const agentFilter = document.getElementById('agent-filter');
   const shiftFilter = document.getElementById('shift-filter');
   const managerFilter = document.getElementById('manager-filter');
+  const userStatus = document.getElementById('region-filter')
   const clearBtn = document.querySelector('.clear-filter p');
   const userCards = document.querySelectorAll('.user-card');
   const roleButtons = document.querySelectorAll('#user-filter .button-group button');
@@ -12,12 +13,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedAgent = agentFilter.value;
     const selectedShift = shiftFilter.value;
     const selectedManager = managerFilter.value;
+    const selectedStatus = userStatus.value;
 
     userCards.forEach(card => {
       const agent = card.getAttribute('data-agent');
       const shift = card.getAttribute('data-shift');
       const manager = card.getAttribute('data-manager');
       const role = card.getAttribute('data-role');
+      const status = card.getAttribute('data-status');
 
       const roleMatch = selectedRoles.length === 0 || selectedRoles.includes(role);
 
@@ -25,6 +28,8 @@ document.addEventListener('DOMContentLoaded', function () {
         (selectedAgent === 'All' || agent === selectedAgent) &&
         (selectedShift === 'All' || shift === selectedShift) &&
         (selectedManager === 'All' || manager === selectedManager) &&
+        (selectedStatus === 'All' || status === selectedStatus) &&
+
         roleMatch;
 
       card.style.display = show ? 'block' : 'none';
@@ -34,6 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
   agentFilter.addEventListener('change', applyFilters);
   shiftFilter.addEventListener('change', applyFilters);
   managerFilter.addEventListener('change', applyFilters);
+  userStatus.addEventListener('change', applyFilters);
+
 
   roleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -56,6 +63,8 @@ document.addEventListener('DOMContentLoaded', function () {
     agentFilter.value = 'All';
     shiftFilter.value = 'All';
     managerFilter.value = 'All';
+    userStatus.value = 'All';
+
     selectedRoles = [];
 
     roleButtons.forEach(b => b.classList.remove('active'));

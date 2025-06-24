@@ -72,6 +72,7 @@ class User(models.Model):
     assignee_name = models.CharField(max_length=100)
     user_name = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=128)
+    work_region = models.CharField(max_length=100, blank=True, null=True)
     department = models.CharField(max_length=100)
     BussinessUnit = models.CharField(max_length=100)
     job_title = models.CharField(max_length=100)
@@ -86,6 +87,8 @@ class User(models.Model):
     profile_image = models.ImageField(upload_to='profile_images/', default='profile_images/image.png', blank=True, null=True)
     access = models.JSONField(default=list)
     leave_until = models.DateTimeField(null=True, blank=True)  # ✅ correct
+    last_shift_update = models.DateField(null=True, blank=True)
+
 
  
     def __str__(self):
@@ -235,4 +238,7 @@ class TicketReport(models.Model):
     def save(self, *args, **kwargs):
         self.unattended = max((self.new_count + self.open_count) - self.being_worked, 0)
         super().save(*args, **kwargs)  
+ 
+
+
  

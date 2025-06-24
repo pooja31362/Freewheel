@@ -7,6 +7,15 @@ from django.views.decorators.cache import never_cache
 def login_view(request):
     return render(request, 'Freewheel_Portal/login.html')
 
+
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+ 
+def logout_view(request):
+    request.session.flush()  # clears session
+    return redirect('login')
+
+
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.timezone import now, localdate, localtime
@@ -666,6 +675,9 @@ from .models import User
 from django.contrib import messages
 from django.shortcuts import redirect
 
+from datetime import date
+from Freewheel_Portal.utils import get_today_shift_for_user  # adjust if needed
+
 def do_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -680,6 +692,12 @@ def do_login(request):
                 request.session['emp_id'] = user.emp_id
                 request.session['access'] = access
 
+                # 🔁 Run shift updater once per day
+                if user.last_shift_update != date.today():
+                    get_today_shift_for_user(user.assignee_name)
+                    user.last_shift_update = date.today()
+                    user.save(update_fields=['last_shift_update'])
+
                 return redirect('home')
             else:
                 messages.error(request, "Invalid password.")
@@ -687,6 +705,7 @@ def do_login(request):
             messages.error(request, "User not found.")
 
     return redirect('login')
+
 
 
 
@@ -830,8 +849,7 @@ def upload_excel(request):
         for tid in Ticket.objects.values_list('ticket_id', flat=True):
             return HttpResponse("✔️ Tickets uploaded and synced with database.")
    
-    return render(request, 'Freewheel_Portal/upload.html')
- 
+    return redirect('home') 
  
 from django.shortcuts import render
 from .models import Ticket
@@ -988,8 +1006,6 @@ def shift_end_summary(request):
         u.shift = dynamic_shift
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
-        else:
-            u.status = 'Offline'
         u.save(update_fields=['shift', 'status'])
 
     # ✅ Handle JSON delegation submission
@@ -1288,25 +1304,36 @@ from django.conf import settings
 from django.urls import reverse
  
 SHIFT_EXCEL_PATH = os.path.join(settings.BASE_DIR, 'media', 'shifts.xlsx')
- 
 def filter_by_shift(request):
     employees = []
     selected_shift = request.GET.get('shift', '').strip()
-    today = datetime.datetime.now().strftime("%d-%b")
-   
+    today_day = datetime.datetime.now().day  # just day number, e.g., 19
+ 
     try:
-        df = pd.read_excel(SHIFT_EXCEL_PATH)
-        df.columns = df.columns.map(str).str.strip()
+        df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
+        date_row = df.iloc[1]  # Row 2 in Excel (index 1)
  
-        if today not in df.columns:
-            today = today.lstrip("0")
+        shift_col_index = None
+        for col_index, cell in enumerate(date_row):
+            try:
+                parsed_date = pd.to_datetime(str(cell), errors='coerce')
+                if not pd.isna(parsed_date) and parsed_date.day == today_day:
+                    shift_col_index = col_index
+                    break
+            except:
+                continue
  
-        df['Name'] = df['Name'].astype(str).str.strip()
-        df[today] = df[today].astype(str).str.strip()
+        if shift_col_index is None:
+            raise KeyError(f"Today's date ({today_day}) not found in Excel header row.")
  
-        if selected_shift and today in df.columns:
-            filtered_df = df[df[today] == selected_shift]
-            employees = filtered_df['Name'].tolist()
+        # Extract employees for selected shift
+        if selected_shift:
+            for i in range(4, len(df)):  # data starts from 5th row (index 4)
+                name = str(df.iloc[i, 0]).strip()
+                shift = str(df.iloc[i, shift_col_index]).strip()
+                if shift == selected_shift:
+                    employees.append(name)
+ 
     except Exception as e:
         return render(request, 'Freewheel_Portal/filter_shift.html', {
             'error': f"Error loading shift data: {str(e)}"
@@ -1317,9 +1344,9 @@ def filter_by_shift(request):
         'selected_shift': selected_shift
     })
  
+ 
 from django.db.models import Q
 from django.contrib import messages
- 
 def upload_shift_excel(request):
     if request.method == 'POST' and request.FILES.get('shift_excel'):
         excel_file = request.FILES['shift_excel']
@@ -1330,34 +1357,36 @@ def upload_shift_excel(request):
                 destination.write(chunk)
  
         try:
-            df = pd.read_excel(file_path)
-            df.columns = df.columns.map(str).str.strip()
+            df = pd.read_excel(file_path, header=None)
+            today_day = datetime.datetime.now().day
+            shift_col_index = None
  
-            if 'Name' not in df.columns:
-                raise KeyError("The uploaded file does not contain a 'Name' column.")
+            date_row = df.iloc[1]  # second row (index 1)
  
-            today = datetime.datetime.now().strftime("%d-%b")
-            if today not in df.columns:
-                today = today.lstrip("0")
+            for idx, cell in enumerate(date_row):
+                try:
+                    parsed_date = pd.to_datetime(str(cell), dayfirst=True, errors='coerce')
+                    if not pd.isna(parsed_date) and parsed_date.day == today_day:
+                        shift_col_index = idx
+                        break
+                except:
+                    continue
  
-            if today not in df.columns:
-                raise KeyError(f"The Excel file doesn't contain shift data for today ({today})")
- 
-            df['Name'] = df['Name'].astype(str).str.strip()
-            df[today] = df[today].astype(str).str.strip()
+            if shift_col_index is None:
+                raise KeyError(f"Today's date ({today_day}) not found in second row.")
  
             updated_count = 0
-            for _, row in df.iterrows():
-                name = row['Name']
-                shift_today = str(row[today]).strip()
+            for i in range(4, len(df)):
+                name = str(df.iloc[i, 0]).strip()
+                shift = str(df.iloc[i, shift_col_index]).strip()
  
                 user_qs = User.objects.filter(Q(username__iexact=name) | Q(name__iexact=name))
                 for user in user_qs:
                     try:
-                        user.shift = shift_today
+                        user.shift = shift
                         user.save(update_fields=['shift'])
                         updated_count += 1
-                    except Exception as e:
+                    except:
                         continue
  
             messages.success(request, f"Shift file uploaded and {updated_count} user(s) updated successfully.")
@@ -1366,8 +1395,7 @@ def upload_shift_excel(request):
         except Exception as e:
             messages.error(request, f"Error loading shift data: {str(e)}")
  
-    return redirect('filter_by_shift')
-
+    return redirect('home')
 
 from django.http import JsonResponse
 from .utils import truncate_shift_end
@@ -1378,6 +1406,40 @@ def manual_freeze_view(request):
         return JsonResponse({'success': success})
 
 
+
+
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from .models import User  # or your Employee model
+
+def create_employee(request):
+    if request.method == "POST":
+        full_name = request.POST.get("full_name")
+        emp_id = request.POST.get("emp_id")
+        contact = request.POST.get("contact_number")
+        email = request.POST.get("email")
+        department = request.POST.get("department")
+        slack_channel = request.POST.get("slack_channel")
+        job_title = request.POST.get("job_title")
+        business_unit = request.POST.get("business_unit")
+        reporting_manager = request.POST.get("reporting_manager")
+
+        User.objects.create(
+            assignee_name=full_name,
+            emp_id=emp_id,
+            contact=contact,
+            email=email,
+            department=department,
+            slack_channel=slack_channel,
+            job_title=job_title,
+            business_unit=business_unit,
+            reporting_manager=reporting_manager,
+            created_at=timezone.now()
+        )
+
+        return redirect('home')  # or some success page
+
+    return render(request, 'Freewheel_Portal/create_employee.html')
 
 
 
@@ -1497,3 +1559,328 @@ def save_bulk_report_updates(request):
     return HttpResponseRedirect(reverse('upload_excel_report'))
  
  
+def create_emp(request):
+
+    if 'emp_id' not in request.session:
+        return redirect('login')
+    
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    dynamic_shift = None
+    latest_notice = list(Notice.objects.order_by('-posted_at')[:4].values())
+    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+
+    for u in users:
+        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        u.shift = dynamic_shift
+        if u.shift in ['WO', 'CO', 'UL', 'PL']:
+            u.status = 'Out Of Office'
+        u.save(update_fields=['shift', 'status'])
+ 
+    for user in users:
+        user.open_ticket_count = Ticket.objects.filter(
+            assignee_name=user.assignee_name,
+            status__iexact='Open'
+        ).count()
+
+        user.pending_ticket_count = Ticket.objects.filter(
+            assignee_name=user.assignee_name,
+            status__iexact='Pending'
+        ).count()
+
+        current_user.open_ticket_count = Ticket.objects.filter(
+            assignee_name=current_user.assignee_name,
+            status__iexact='Open'
+        ).count()
+
+        current_user.pending_ticket_count = Ticket.objects.filter(
+            assignee_name=current_user.assignee_name,
+            status__iexact='Pending'
+        ).count()
+
+
+
+
+    # ✅ Handle JSON delegation submission
+    if request.method == 'POST' and request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+            shift1_status = data.get('shift1_status', {})
+            shift3_status = data.get('shift3_status', {})
+            shift6_status = data.get('shift6_status', {})  # ✅ NEW
+
+            shift1_end_email = data.get('shift1_end_email', "")
+            shift3_end_email = data.get('shift3_end_email', "")
+            shift6_end_email = data.get("shift6_end_email", "")
+
+            shift1_end_user = User.objects.filter(emp_id=shift1_end_email).first()
+            shift3_end_user = User.objects.filter(emp_id=shift3_end_email).first()
+            shift6_end_user = User.objects.filter(emp_id=shift6_end_email).first()
+            
+
+            Schedule.objects.update_or_create(
+                date=now().date(),
+                defaults={
+                    'shift1_status': shift1_status,
+                    'shift3_status': shift3_status,
+                    'shift1_end_email': shift1_end_user,
+                    'shift3_end_email': shift3_end_user,
+                    'shift6_status': shift6_status, # ✅ store shift6
+                    'shift6_end_email': shift6_end_user,
+                }
+            )
+
+            # Add notice for bihourly assignment
+            Notice.objects.create(
+            message=f"📌 Bihourly assigned for {localdate().strftime('%d-%b-%Y')}",
+            posted_by=current_user,
+            posted_at=timezone.now()
+            )
+
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+
+    # ✅ Get today's schedule
+    schedule = Schedule.objects.filter(date=now().date()).first()
+    shift1_status = schedule.shift1_status if schedule else {}
+    shift3_status = schedule.shift3_status if schedule else {}
+    shift6_status = schedule.shift6_status if schedule and hasattr(schedule, 'shift6_status') else {}  # ✅
+
+    shift1_end_email_id = schedule.shift1_end_email_id if schedule else ""
+    shift3_end_email_id = schedule.shift3_end_email_id if schedule else ""
+    shift6_end_email_id = schedule.shift6_end_email_id if schedule else ""
+
+    # ✅ Notices
+    shift_notices = []
+    today_str = localdate().strftime('%d-%b-%Y')
+    shift_notices.append(f"📌 Bihourly Allocation for {today_str}")
+
+    def add_shift_details(shift_name, shift_data):
+        for time, emp_id in shift_data.items():
+            try:
+                user = User.objects.get(emp_id=emp_id)
+                shift_notices.append(f"{shift_name} — {time}: {user.assignee_name}")
+            except User.DoesNotExist:
+                shift_notices.append(f"{shift_name} — {time}: Not Assigned")
+
+    add_shift_details("Shift 1", shift1_status)
+    add_shift_details("Shift 3", shift3_status)
+    add_shift_details("Shift 6", shift6_status)  # ✅
+
+    shift_notices.append("📬 Shift-end Email Allocation")
+    if shift1_end_email_id:
+        try:
+            user = User.objects.get(emp_id=shift1_end_email_id)
+            shift_notices.append(f"Shift 1 End Mail: {user.assignee_name}")
+        except User.DoesNotExist:
+            shift_notices.append(f"Shift 1 End Mail: [Unknown ID: {shift1_end_email_id}]")
+    else:
+        shift_notices.append("Shift 1 End Mail: Not Assigned")
+
+    if shift3_end_email_id:
+        try:
+            user = User.objects.get(emp_id=shift3_end_email_id)
+            shift_notices.append(f"Shift 3 End Mail: {user.assignee_name}")
+        except User.DoesNotExist:
+            shift_notices.append(f"Shift 3 End Mail: [Unknown ID: {shift3_end_email_id}]")
+    else:
+        shift_notices.append("Shift 3 End Mail: Not Assigned")
+
+    if shift6_end_email_id:
+        try:
+            user = User.objects.get(emp_id=shift6_end_email_id)
+            shift_notices.append(f"Shift 6 End Mail: {user.assignee_name}")
+        except User.DoesNotExist:
+            shift_notices.append(f"Shift 6 End Mail: [Unknown ID: {shift6_end_email_id}]")
+    else:
+        shift_notices.append("Shift 6 End Mail: Not Assigned")
+
+
+    # ✅ Combine notices
+    combined_notices = []
+    for msg in shift_notices:
+        combined_notices.append({
+            "message": msg,
+            "posted_by": None,
+            "posted_at": localtime(timezone.now()),
+        })
+
+    for note in Notice.objects.order_by('-posted_at'):
+        combined_notices.append({
+            "id": note.id,
+            "message": note.message,
+            "posted_by": note.posted_by,
+            "posted_at": localtime(note.posted_at),
+        })
+
+    is_allowed = current_user.assignee_name in ALLOWED_USERS
+
+    delegated_to_user = any(
+        emp_id == current_user.emp_id
+        for emp_id in list(shift1_status.values()) + list(shift3_status.values()) + list(shift6_status.values())  # ✅
+    )
+
+    # ✅ Split shift-specific users
+    shift1_users = [user for user in users if user.shift == 'S1']
+    shift3_users = [user for user in users if user.shift in ['S2','S3']]
+    shift6_users = [user for user in users if user.shift in ['S5','S6']]  # ✅
+
+
+
+
+
+    assigned_tasks = []  # Collect messages like: "Shift 1 – 9:00 AM", or "Shift 3 – End Mail"
+
+    if schedule:
+        for time, emp_id in schedule.shift1_status.items():
+            if emp_id == current_user.emp_id:
+                assigned_tasks.append(f"Shift 1 – {time}")
+        for time, emp_id in schedule.shift3_status.items():
+            if emp_id == current_user.emp_id:
+                assigned_tasks.append(f"Shift 3 – {time}")
+        for time, emp_id in schedule.shift6_status.items():
+            if emp_id == current_user.emp_id:
+                assigned_tasks.append(f"Shift 6 – {time}")
+
+        if schedule.shift1_end_email_id == current_user.emp_id:
+            assigned_tasks.append("Shift 1 – End Mail")
+        if schedule.shift3_end_email_id == current_user.emp_id:
+            assigned_tasks.append("Shift 3 – End Mail")
+        if schedule.shift6_end_email_id == current_user.emp_id:
+            assigned_tasks.append("Shift 6 – End Mail")
+
+# Pass it to the template
+    delegated_to_user = bool(assigned_tasks)
+
+    # ✅ Sort users by status
+    status_priority = {'Available': 0, 'In-Meeting': 1, 'Away': 2, 'Offline': 3, 'Out Of Office': 4}
+    users.sort(key=lambda user: status_priority.get(user.status, 99))
+
+    hold_product_counts = (
+        Ticket.objects.filter(status='Hold')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    new_product_counts = (
+        Ticket.objects.filter(status='New')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    pending_product_counts = (
+        Ticket.objects.filter(status='Pending')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+ 
+    open_product_counts = (
+        Ticket.objects.filter(status='Open')
+        .values('product_category')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
+    context = {
+        'users': users,
+        'current_user': current_user,
+        'tickets': Ticket.objects.all(),
+        'open_tickets': Ticket.objects.filter(status='Open'),
+        'pending_tickets': Ticket.objects.filter(status='Pending'),
+        'hold_tickets': Ticket.objects.filter(status='Hold'),
+        'new_tickets': Ticket.objects.filter(status='New'),
+        'unassigned_tickets': Ticket.objects.filter(assignee_name="",).exclude(status="New"),
+
+        'shift1_times': SHIFT1_TIMINGS,
+        'shift3_times': SHIFT3_TIMINGS,
+        'shift6_times': SHIFT6_TIMINGS,  # ✅
+
+        'shift1_status': shift1_status,
+        'shift3_status': shift3_status,
+        'shift6_status': shift6_status,  # ✅
+
+        'shift1_end_email_id': shift1_end_email_id,
+        'shift3_end_email_id': shift3_end_email_id,
+        'shift6_end_email_id': shift6_end_email_id,
+
+        'all_notices': Notice.objects.select_related('posted_by').order_by('-posted_at'),
+
+
+        'latest_notice': latest_notice,
+        'notices': combined_notices,
+        'is_allowed': is_allowed,
+        'delegated_to_user': delegated_to_user,
+        'schedule': schedule,
+
+        'shift1_users': shift1_users,
+        'shift3_users': shift3_users,
+        'shift6_users': shift6_users,  # ✅
+        "delegated_to_user": delegated_to_user,
+        "user_assignments": assigned_tasks,
+
+        "today" : datetime.date.today,
+
+        'pending_product_counts': pending_product_counts,
+        'hold_product_counts': hold_product_counts,
+        'new_product_counts': new_product_counts,
+        'open_product_counts ': open_product_counts,
+    }
+
+    return render(request, 'Freewheel_Portal/create_user.html', context)
+
+
+from django.shortcuts import render, redirect
+from .models import User
+from django.contrib import messages
+
+def create_employee(request):
+    users = User.objects.all()  # for manager dropdown
+
+    if request.method == 'POST':
+        print('Post')
+        try:
+            print('trying')
+            emp_id = request.POST['emp_id']
+            assignee_name = request.POST['full_name']
+            password = "default123"  # or generate/save securely
+            department = request.POST.get('department', '')
+            BussinessUnit = request.POST.get('business_unit', '')
+            job_title = request.POST.get('job_title', '')
+            repor_manager = request.POST.get('reporting_manager', '')
+            user_type = request.POST.get('user_type', 'staff')
+            contact_number = request.POST.get('contact_number', '')
+            email = request.POST.get('email', '')
+            user_name = email.split('@')[0]
+
+            slack_id = request.POST.get('slack_channel', '')
+            work_region = request.POST.get('region', '')
+            print('about to create', emp_id)
+            # Create the user
+            User.objects.create(
+                emp_id=emp_id,
+                assignee_name=assignee_name,
+                user_name=user_name,
+                password=password,
+                department=department,
+                BussinessUnit=BussinessUnit,
+                job_title=job_title,
+                repor_manager=repor_manager,
+                user_type=user_type,
+                contact_number=contact_number,
+                email=email,
+                slack_id=slack_id,
+                work_region=work_region,
+                status='Offline',
+                shift='',
+                access=[],
+            )
+            messages.success(request, "✅ Employee created successfully!")
+            return redirect('create_emp')
+        except Exception as e:
+            messages.error(request, f"❌ Failed to create employee: {e}")
+
+    return redirect('home')

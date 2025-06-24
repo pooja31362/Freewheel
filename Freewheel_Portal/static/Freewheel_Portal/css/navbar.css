@@ -100,14 +100,13 @@
 
 
 .leave-period {
-    display: flex;
     width: 40vh;
     align-items: center;
     gap: 12px;
     margin-top: 10px;
     padding: 1.5rem .5rem;
     background: white;
-    box-shadow: 0 0 5px black;
+    box-shadow: 0 0 5px rgba(59, 10, 117, 1);
     position: fixed;
     /* border: 6px solid black; */
     top: 2.5rem;
@@ -120,7 +119,7 @@
       padding: 10px 12px;
     border-radius: 20px;
     border: 1px solid #444;
-    background-color: #1f1f1f;
+    background-color: rgba(59, 10, 117, 1);
     color: white;
     font-size: 14px;
     width: 220px;
@@ -130,7 +129,7 @@
   padding: 10px 12px;
   border-radius: 20px;
   border: 1px solid #444;
-  background-color: #1f1f1f;
+  background-color: rgba(59, 10, 117, 1);
   text-align: center;
   color: white;
   font-size: 14px;

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <title>Ticket Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
+
+
+    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
+</head>
+<body>
+    {%include 'Freewheel_Portal/navbar.html' %}
+    {%include 'Freewheel_Portal/deligation.html' %}
+
+    <div class="create-emp-board">
+
+        <div class="header">Create Employee</div>
+    <form method="POST" action="{% url 'create_employee' %}">
+        {% csrf_token %}
+      <div class="form-group">
+        <label for="full_name">Full Name</label>
+        <input type="text" name="full_name" required>
+      </div>
+      <div class="form-group">
+        <label for="contact_number">Contact Number</label>
+        <input type="text" name="contact_number" required>
+      </div>
+      <div class="form-group">
+        <label for="emp_id">Employee ID</label>
+        <input type="text" name="emp_id" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" name="email" required>
+      </div>
+        <div class="form-group">
+        <label for="Region">Work Region</label>
+        <input type="text" name="region" required>
+      </div>
+      <div class="form-group">
+        <label for="department">Department</label>
+        <input type="text" name="department" required>
+      </div>
+      <div class="form-group">
+        <label for="slack_channel">Slack Channel ID</label>
+        <input type="text" name="slack_channel" required>
+      </div>
+      <div class="form-group">
+        <label for="job_title">Job Title</label>
+        <input type="text" name="job_title" required>
+      </div>
+      <div class="form-group">
+        <label for="business_unit">Business Unit</label>
+        <input type="text" name="business_unit" required>
+      </div>
+      <div class="form-group">
+        <label for="reporting_manager">Reporting Manager</label>
+        <select type="text" name="reporting_manager" required>
+            {% for user in users %}
+            {% if user.job_title == 'Manager' %}
+            <option value="{{user.assignee_name}}">{{ user.assignee_name }}</option>
+            {% endif %}
+            {% endfor %}
+            <option value="Nihtin"> nithin</option>
+        </select>      </div>
+        <div class="form-group">
+        <label for="user_type">User Access</label>
+        <input type="text" name="user_type" required>
+      </div>
+      <div class="full-width">
+        <button type="submit">Create Employee</button>
+      </div>
+    </form>
+
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+<style>
+    .create-emp-board {
+        margin: .5rem 0 0 4rem;
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 2px 5px;
+    border-radius: 10px;
+    padding: 1.5rem;
+    max-width: 91rem;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    height: 90.5vh;
+    width: 100%;
+    }
+
+    .create-emp-board .header {
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      background: #3b0a75;
+    color: white;
+    padding: .7rem;
+    border-radius: 1rem;
+    }
+
+    .create-emp-board form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .create-emp-board .form-group {
+      display: flex;
+      flex-direction: column;
+      margin: .6rem;
+    }
+
+    .create-emp-board label {
+font-weight: 600;
+    margin-bottom: 0.3rem;
+    font-size: 13px;
+    }
+
+    .create-emp-board input {
+      padding: 0.7rem;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 2px 2px rgba(59, 10, 117, 0.5);
+    }
+
+    .create-emp-board select {
+      padding: 0.7rem;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 2px 2px rgba(59, 10, 117, 0.5);
+    }
+
+    .create-emp-board .full-width {
+      grid-column: span 2;
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0 0 0 ;
+    }
+
+    .create-emp-board button {
+      background-color: #4a4ae3;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .create-emp-board button:hover {
+      background-color: #3737c5;
+    }
+</style>
+
+
+
+
+</body>
+</html>

@@ -43,34 +43,68 @@ import pandas as pd
 import datetime
 import os
 from django.conf import settings
- 
+from Freewheel_Portal.models import User
+
 SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
- 
+
+# Cache the dataframe and date-column index for performance
+_cached_shift_df = None
+_cached_shift_col_index = None
+_cached_shift_date = None
+
 def get_today_shift_for_user(name):
+    global _cached_shift_df, _cached_shift_col_index, _cached_shift_date
+
+    today = datetime.date.today()
+
     try:
-        df = pd.read_excel(SHIFT_EXCEL_PATH)
-        df.columns = df.columns.map(str).str.strip()
- 
-        today = datetime.datetime.now().strftime("%d-%b")
-        today_alt = today.lstrip("0")  # Handle both "09-Jun" and "9-Jun"
- 
-        shift_col = today if today in df.columns else today_alt
-        if shift_col not in df.columns:
-            print(f"[ERROR] Shift column for today ({today}) not found.")
-            return None
- 
-        df['Name'] = df['Name'].astype(str).str.strip().str.lower()
-        match = df[df['Name'] == name.strip().lower()]
- 
-        if not match.empty:
-            shift_val = match.iloc[0][shift_col]
-            return shift_val
- 
+        if _cached_shift_df is None or _cached_shift_date != today:
+            df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
+            _cached_shift_df = df
+            _cached_shift_date = today
+
+            date_row = df.iloc[1]
+            dates = pd.to_datetime(date_row, errors='coerce').dt.date
+
+            try:
+                shift_col_index = dates[dates == today].index[0]
+                _cached_shift_col_index = shift_col_index
+            except IndexError:
+                print(f"[ERROR] Today's date ({today}) not found in Excel.")
+                return None
+
+        df = _cached_shift_df
+        shift_col_index = _cached_shift_col_index
+
+        # Convert names in the Excel column to lowercase once
+        user_names = df.iloc[4:, 0].astype(str).str.strip().str.lower()
+        name = name.strip().lower()
+
+        if name in user_names.values:
+            row_index = user_names[user_names == name].index[0]
+            shift_value = str(df.iloc[row_index, shift_col_index]).strip()
+
+            try:
+                user_obj = User.objects.get(assignee_name__iexact=name)
+                if user_obj.shift != shift_value:
+                    user_obj.shift = shift_value
+                    user_obj.save()
+                    print(f"[INFO] Updated shift for {name} in User model.")
+                else:
+                    print(f"[INFO] Shift for {name} already up to date.")
+            except User.DoesNotExist:
+                print(f"[WARN] User with assignee_name '{name}' not found in database.")
+
+            return shift_value
+
+        print(f"[WARN] No matching user found in Excel for name: {name}")
         return None
+
     except Exception as e:
-        print(f"[ERROR] Failed to get shift from Excel for {name}: {e}")
+        print(f"[ERROR] Failed to fetch shift for {name}: {e}")
         return None
-    
+
+
 
 from django.utils.timezone import localtime
 from Freewheel_Portal.models import (

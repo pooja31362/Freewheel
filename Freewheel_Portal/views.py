@@ -1345,24 +1345,32 @@ def filter_by_shift(request):
     })
  
  
+import os
+import pandas as pd
+import datetime
 from django.db.models import Q
+from django.conf import settings
 from django.contrib import messages
+from django.shortcuts import redirect
+from Freewheel_Portal.models import User
+from Freewheel_Portal import utils  # ✅ import your utils module to clear cache
+
 def upload_shift_excel(request):
     if request.method == 'POST' and request.FILES.get('shift_excel'):
         excel_file = request.FILES['shift_excel']
         file_path = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
- 
+
+        # ✅ Save file
         with open(file_path, 'wb+') as destination:
             for chunk in excel_file.chunks():
                 destination.write(chunk)
- 
+
         try:
             df = pd.read_excel(file_path, header=None)
             today_day = datetime.datetime.now().day
             shift_col_index = None
- 
+
             date_row = df.iloc[1]  # second row (index 1)
- 
             for idx, cell in enumerate(date_row):
                 try:
                     parsed_date = pd.to_datetime(str(cell), dayfirst=True, errors='coerce')
@@ -1371,15 +1379,15 @@ def upload_shift_excel(request):
                         break
                 except:
                     continue
- 
+
             if shift_col_index is None:
                 raise KeyError(f"Today's date ({today_day}) not found in second row.")
- 
+
             updated_count = 0
             for i in range(4, len(df)):
                 name = str(df.iloc[i, 0]).strip()
                 shift = str(df.iloc[i, shift_col_index]).strip()
- 
+
                 user_qs = User.objects.filter(Q(username__iexact=name) | Q(name__iexact=name))
                 for user in user_qs:
                     try:
@@ -1388,14 +1396,16 @@ def upload_shift_excel(request):
                         updated_count += 1
                     except:
                         continue
- 
+
             messages.success(request, f"Shift file uploaded and {updated_count} user(s) updated successfully.")
             request.session['shift_file_uploaded'] = True
- 
+
         except Exception as e:
             messages.error(request, f"Error loading shift data: {str(e)}")
- 
+
     return redirect('home')
+
+
 
 from django.http import JsonResponse
 from .utils import truncate_shift_end

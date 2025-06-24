@@ -49,21 +49,24 @@ SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
 
 _cached_shift_df = None
 _cached_shift_col_index = None
-_cached_shift_date = None
+_cached_shift_timestamp = None  # ← use file modified time as cache key
 
 def get_today_shift_for_user(name):
-    global _cached_shift_df, _cached_shift_col_index, _cached_shift_date
+    global _cached_shift_df, _cached_shift_col_index, _cached_shift_timestamp
 
     today = datetime.date.today()
 
     try:
-        if _cached_shift_df is None or _cached_shift_date != today:
-            if not os.path.exists(SHIFT_EXCEL_PATH):
-                print(f"[ERROR] Shift Excel file not found at: {SHIFT_EXCEL_PATH}")
-                return None
+        if not os.path.exists(SHIFT_EXCEL_PATH):
+            print(f"[ERROR] Shift Excel file not found at: {SHIFT_EXCEL_PATH}")
+            return None
 
+        file_timestamp = os.path.getmtime(SHIFT_EXCEL_PATH)
+
+        if _cached_shift_df is None or _cached_shift_timestamp != file_timestamp:
+            print(f"[INFO] Reloading Excel file (modified: {file_timestamp})")
             _cached_shift_df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
-            _cached_shift_date = today
+            _cached_shift_timestamp = file_timestamp
 
             date_row = _cached_shift_df.iloc[1]
             dates = pd.to_datetime(date_row, errors='coerce').dt.date

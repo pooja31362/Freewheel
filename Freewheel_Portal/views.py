@@ -325,8 +325,7 @@ def home(request):
         "delegated_to_user": delegated_to_user,
         "user_assignments": assigned_tasks,
 
-        "today" : datetime.date.today,
-
+        "today": datetime.today().date(),
         'pending_product_counts': pending_product_counts,
         'hold_product_counts': hold_product_counts,
         'new_product_counts': new_product_counts,
@@ -791,6 +790,7 @@ def upload_excel(request):
     if 'emp_id' not in request.session:
         return redirect('login')
     if request.method == 'POST' and request.FILES.get('file'):
+        print('accessing dump')
         excel_file = request.FILES['file']
         df = pd.read_excel(excel_file)
  
@@ -1917,3 +1917,119 @@ from django.http import HttpResponse    # edited
  
 def health_check(request):              # edited
     return HttpResponse("OK")
+
+
+
+
+
+
+
+from Freewheel_Portal.utils import get_shifts_for_date
+from datetime import datetime
+from django.shortcuts import render
+import json
+ 
+def view_shift_day(request):
+    shift_data = {}
+    hour_distribution = {}
+ 
+    if request.method == 'POST':
+        date_str = request.POST.get('selected_date')
+ 
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+ 
+            shift_data = get_shifts_for_date(selected_date)  # function for 1 day only
+ 
+            from Freewheel_Portal.utils import get_utc_half_hour_distribution
+ 
+            hour_distribution = get_utc_half_hour_distribution(shift_data, selected_date)
+            print("[DEBUG] UTC Hour Distribution:", hour_distribution)
+ 
+ 
+        except Exception as e:
+            messages.error(request, f"Invalid date input: {str(e)}")
+ 
+    return render(request, 'Freewheel_Portal/view_shift_range.html', {
+        'shift_data': shift_data,
+        'hour_distribution': json.dumps(hour_distribution)
+    })
+
+
+from Freewheel_Portal.utils import get_shifts_for_date_range
+from datetime import datetime
+from collections import defaultdict, OrderedDict
+from django.contrib import messages
+from django.shortcuts import render
+ 
+# Friendly labels for shifts (in your desired order)
+SHIFT_LABELS_ORDERED = OrderedDict([
+    ("S1", "S1 (6:30am - 3:30pm)"),
+    ("S2", "S2 (11am - 8pm)"),
+    ("S3", "S3 (1:30pm - 10:30pm)"),
+    ("S4", "S4 (3pm - 12am)"),
+    ("S6", "S6 (10pm - 7am)"),
+    ("PL", "PL (Planned Leave)"),
+    ("UL", "UL (Unplanned Leave)"),
+    ("CL", "CL (Casual Leave)"),
+    ("SL", "SL (Sick Leave)"),
+    ("CO", "CO (Comp Off)")
+])
+ 
+def view_shift(request):
+    shift_data = {}
+    shift_counts = defaultdict(int)
+ 
+    if request.method == 'POST':
+        from_date_str = request.POST.get('from_date')
+        to_date_str = request.POST.get('to_date')
+ 
+        try:
+            from_date = datetime.strptime(from_date_str, '%Y-%m-%d').date()
+            to_date = datetime.strptime(to_date_str, '%Y-%m-%d').date()
+ 
+            shift_data = get_shifts_for_date_range(from_date, to_date)
+ 
+            # Count shifts
+            for user, shifts in shift_data.items():
+                for date, shift in shifts.items():
+                    shift = shift.upper().strip()
+                    if shift in SHIFT_LABELS_ORDERED:
+                        shift_counts[shift] += 1
+ 
+        except Exception as e:
+            shift_data = {}
+            messages.error(request, f"Invalid date input: {str(e)}")
+ 
+    # Prepare shift summary in required display format and order
+    ordered_shift_summary = []
+    for code, label in SHIFT_LABELS_ORDERED.items():
+        count = shift_counts.get(code, 0)
+        ordered_shift_summary.append({"label": label, "count": count})
+ 
+    return render(request, 'Freewheel_Portal/view_shift.html', {
+        'shift_data': shift_data,
+        'shift_summary': ordered_shift_summary,
+        'shift_labels': dict(SHIFT_LABELS_ORDERED)
+    })
+ 
+    
+
+from django.http import JsonResponse
+ 
+def upload_profile_image(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
+    print("Request method:", request.method)
+    print("Is authenticated:", request.user.is_authenticated)
+    print("Files:", request.FILES)
+ 
+    if request.method == "POST" and request.FILES.get("profile_image"):
+        print("Processing profile image upload")
+        profile_image = request.FILES["profile_image"]
+        current_user = User.objects.get(emp_id=request.session['emp_id'])
+        current_user.profile_image = profile_image
+        current_user.save(update_fields=["profile_image"])
+        return JsonResponse({"success": True, "image_url": current_user.profile_image.url})
+ 
+    return JsonResponse({"success": False, "message": "Invalid request"}, status=400)

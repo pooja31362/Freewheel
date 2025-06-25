@@ -1,20 +1,30 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+
+
 <nav>
     <div class="sidebar">
         <i class="fa-solid fa-bars"></i>
-        <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i></a>
-        <i class="fa-solid fa-people-group" id="delBtn"></i>
+        <a href="{% url 'home' %}"><i class="fa-solid fa-house" title="Home"></i></a>
+        <i class="fa-solid fa-people-group" id="delBtn" title="Delegation"></i>
         <a href="{% url 'upload_excel_report' %}"><i class="fa-solid fa-table" title="Upload Bihourly Report" style="cursor: pointer;"></i></a>
- 
-        <a href="{% url 'shift_end_summary' %}"><i class="fa-solid fa-envelope" id="shiftMailBtn" style="cursor: pointer;"></i></a>
-        <i class="fa-solid fa-upload" id="uploadTrigger" style="cursor: pointer;"></i>
+        <a href="{% url 'view_shift' %}"><i class="fa-solid fa-calendar" style="color: #ffffff;" title="Shift Summary"></i></a>
+        <a href="{% url 'view_shift_range' %}"><i class="fa-solid fa-chart-simple" style="color: #ffffff;" title="Shift Analysis"></i></a>
+
+        <a href="{% url 'shift_end_summary' %}"><i class="fa-solid fa-envelope" id="shiftMailBtn" style="cursor: pointer;" title="Shift-End Mail"></i></a>
+        <i class="fa-solid fa-upload" id="uploadTrigger" style="cursor: pointer;" title="Dump Upload"></i>
  
         <div id="uploadDropdown" class="upload-dropdown" style="display: none; position: absolute; left: 60px; top: 160px; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 6px; z-index: 1000;">
+          <div><h2>Ticket Dump</h2></div>
           <form method="post" enctype="multipart/form-data" action ="{% url 'upload_excel' %}">
             {% csrf_token %}
             <input type="file" name="file" accept=".xlsx,.xls" required>
             <button type="submit">Upload Excel</button>
           </form>
           <hr>
+          <div><h2>Shift Roaster</h2></div>
+
           <form method="POST" enctype="multipart/form-data" action="{% url 'upload_shift_excel' %}">
             {% csrf_token %}
             <input type="file" name="excel_file" accept=".xlsx,.xls" required>
@@ -36,8 +46,29 @@
             <input type="text" placeholder="Search">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-bell" style="font-size: 20px;"></i>
-                <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 30px; height: 30px;">
-               
+<!-- Wrapper to contain profile image and dropdown -->
+            <div class="profile-dropdown-wrapper" style="position: relative; display: inline-block;">
+              <!-- Profile image trigger -->
+              <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 30px; height: 30px; border-radius: 50%; cursor: pointer;" />
+           
+              <!-- Profile Details Dropdown -->
+              <div id="profileDetails" style="display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.3); border-radius: 10px; z-index: 999;">
+                <div style="text-align: center; position: relative;">
+                  <label for="imageUploadDropdown" style="cursor: pointer; display: inline-block; position: relative;">
+                    <img id="dropdownProfilePreview" src="{{ current_user.profile_image.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" alt="User Image" />
+                    <div style="position: absolute; bottom: 0; right: 0; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 5px;">
+                      <span style="color: white; font-size: 14px;">📷</span>
+                    </div>
+                  </label>
+                  <input type="file" id="imageUploadDropdown" accept="image/*" style="display: none;">
+                  <div id="uploadStatus" style="margin-top: 10px;"></div>
+                </div>
+                <h3 style="margin: 10px 0 5px;">{{ current_user.assignee_name }}</h3>
+                <p style="margin: 2px 0;"><strong>Role:</strong> {{ current_user.job_title }}</p>
+                <p style="margin: 2px 0;"><strong>Availability:</strong> {{ current_user.status }}</p>
+                <p style="margin: 2px 0;"><strong>Email:</strong> {{ current_user.email }}</p>
+              </div>
+            </div>               
                 <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
             </div>
         </div>
@@ -103,6 +134,119 @@
  
  
  
+ <div id="cropModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background-color:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:9999;">
+  <div style="background:#fff; padding:20px 30px; border-radius:12px; max-width:520px; width:90%; display:flex; flex-direction:column; align-items:center;">
+    <h3 style="color:#312063; margin-bottom:10px;">Crop Image</h3>
+ 
+    <div style="width:100%; max-height:400px; overflow:hidden; margin-bottom:20px;">
+      <img id="imageToCrop" style="max-width:100%; max-height:400px;" />
+    </div>
+ 
+    <div style="display:flex; justify-content:flex-end; width:100%;">
+      <button onclick="cropImage()" style="background-color:#312063; cursor:pointer;color:white; padding:8px 16px; border:none; border-radius:5px; margin-right:10px;">Crop & Upload</button>
+      <button onclick="closeModal()" style="background-color:#ccc; color:black;cursor:pointer; padding:8px 16px; border:none; border-radius:5px;">Cancel</button>
+ 
+    </div>
+  </div>
+</div>
+ 
+ 
+<script>
+ 
+ 
+  (function () {
+    let cropper;
+    const fileInput = document.getElementById("imageUploadDropdown");
+    const cropModal = document.getElementById("cropModal");
+    const imageToCrop = document.getElementById("imageToCrop");
+ 
+    // ✅ No conflict — scoped within function
+    let profilePreview = document.getElementById("dropdownProfilePreview");
+    let uploadStatus = document.getElementById("uploadStatus");
+    const csrfToken = "{{ csrf_token }}";
+ 
+    fileInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+ 
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        imageToCrop.onload = function () {
+          cropModal.style.display = "flex";
+ 
+          if (cropper) cropper.destroy();
+ 
+          cropper = new Cropper(imageToCrop, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 1,
+            zoomable: true,
+            scalable: true,
+            movable: true,
+            dragMode: "move",
+          });
+        };
+        imageToCrop.src = event.target.result;
+      };
+ 
+      reader.readAsDataURL(file);
+    });
+ 
+    window.cropImage = function () {
+      if (!cropper) return;
+ 
+      cropper.getCroppedCanvas({
+        width: 300,
+        height: 300,
+        imageSmoothingQuality: "high"
+      }).toBlob(blob => {
+        if (!blob) {
+          uploadStatus.textContent = "Cropping failed.";
+          uploadStatus.style.color = "red";
+          return;
+        }
+ 
+        const formData = new FormData();
+        formData.append("profile_image", blob);
+ 
+        fetch("{% url 'upload_profile_image' %}", {
+          method: "POST",
+          headers: { "X-CSRFToken": csrfToken },
+          credentials: "same-origin",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            profilePreview.src = data.image_url + "?v=" + new Date().getTime();
+            uploadStatus.textContent = "Profile image updated!";
+            uploadStatus.style.color = "green";
+ 
+            setTimeout(() => {
+              window.location.href = "/home/";
+            }, 2000);
+          } else {
+            uploadStatus.textContent = data.message || "Upload failed.";
+            uploadStatus.style.color = "red";
+          }
+        })
+        .catch(() => {
+          uploadStatus.textContent = "Upload error.";
+          uploadStatus.style.color = "red";
+        })
+        .finally(() => closeModal());
+      }, "image/jpeg");
+    };
+ 
+    window.closeModal = function () {
+      cropModal.style.display = "none";
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
+    };
+  })();
+  </script>
  
  
  
@@ -112,8 +256,65 @@
  
  
  
+ <script>
+  const profileImage = document.getElementById('profileImage');
+  const profileDetails = document.getElementById('profileDetails');
  
+  profileImage.addEventListener('click', function (e) {
+    e.stopPropagation();
+    profileDetails.style.display = profileDetails.style.display === 'none' ? 'block' : 'none';
+  });
  
+  document.addEventListener('click', function (e) {
+    if (!profileDetails.contains(e.target) && e.target !== profileImage) {
+      profileDetails.style.display = 'none';
+    }
+  });
+ 
+  // Upload functionality
+  const imageInput = document.getElementById("imageUploadDropdown");
+  const profilePreview = document.getElementById("dropdownProfilePreview");
+  const uploadStatus = document.getElementById("uploadStatus");
+ 
+  imageInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file) return;
+ 
+    const formData = new FormData();
+    formData.append("profile_image", file);
+ 
+    fetch("{% url 'upload_profile_image' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      credentials: "same-origin",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+  if (data.success) {
+    profilePreview.src = data.image_url + "?v=" + new Date().getTime();
+    uploadStatus.textContent = "Profile image updated!";
+    uploadStatus.style.color = "green";
+ 
+    // ✅ Redirect after 2 seconds
+    // setTimeout(() => {
+    //   window.location.href = "/home/";
+    // }, 1000); // 2000ms = 2 seconds
+ 
+  } else {
+    uploadStatus.textContent = data.message || "Upload failed.";
+    uploadStatus.style.color = "red";
+  }
+})
+    .catch(() => {
+      uploadStatus.textContent = "Upload error.";
+      uploadStatus.style.color = "red";
+    });
+  });
+  console.log("{% url 'upload_profile_image' %}");
+</script>
  
  
  

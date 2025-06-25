@@ -43,7 +43,8 @@
     <!-- Forgot Password Form -->
     <div class="form-box forgot-password">
       <form id="forget-form"action="{% url 'forgot_password' %}" method="POST">
-        
+            {% csrf_token %}
+
         <h1>Lost it? Let's get you back in!</h1>
 
         <div class="input-box">

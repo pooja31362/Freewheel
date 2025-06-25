@@ -144,3 +144,18 @@ MIDDLEWARE = [
     # ✅ Add this line (below the auth middleware)
     'Freewheel_Portal.middleware.LeaveStatusMiddleware',
 ]
+
+
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://freewheelportal.dev.cnap.comcast.net",
+]
+CSRF_COOKIE_HTTPONLY = False
+ 
+# If using HTTPS in production
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+ 
+# Cross-browser compatibility
+CSRF_COOKIE_SAMESITE = 'Lax'
+ 

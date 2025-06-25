@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <title>Ticket Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
+
+
+    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
+</head>
+<body style="overflow: hidden">
+    {%include 'Freewheel_Portal/navbar.html' %}
+    {%include 'Freewheel_Portal/deligation.html' %}
+
+  <div id="click" class="click" style=" padding:1rem 4rem;">
+    <div class="whole-page" id="wholePage" style="height: 90vh;">
+      <form method="POST">
+  {% csrf_token %}
+  <label for="selected_date">Select Date:</label>
+  <input type="date" name="selected_date" required>
+  <button type="submit">View Shift</button>
+</form>
+ 
+<canvas id="shiftChart" width="1000" height="450"></canvas>
+ 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Load half-hour shift data from Django
+  const hourDistribution = {{ hour_distribution|safe }};
+ 
+  // Create 30-minute UTC time labels (00:00, 00:30, ..., 23:30)
+  const labels = [];
+  for (let h = 0; h < 24; h++) {
+    labels.push(`${String(h).padStart(2, '0')}:00`);
+    labels.push(`${String(h).padStart(2, '0')}:30`);
+  }
+ 
+  // Map data for each 30-minute interval from the received hourDistribution
+  const data = labels.map(label => hourDistribution[label] || 0);
+ 
+  const ctx = document.getElementById('shiftChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Engineer Count (UTC - 30 min intervals)',
+        data: data,
+        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Engineer Count'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time (UTC)'
+          },
+          ticks: {
+            autoSkip: true,
+            maxRotation: 90,
+            minRotation: 45
+          }
+        }
+      }
+    }
+  });
+</script>
+    </div>
+  </div>
+
+</body>
+</html>

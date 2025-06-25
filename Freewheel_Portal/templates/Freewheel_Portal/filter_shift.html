@@ -1,6 +1,7 @@
 <h2>Filter Employees by Shift</h2>
  
 <form method="get" action="{% url 'filter_by_shift' %}">
+    {% csrf_token %}
     <label for="shift">Choose Shift:</label>
     <select name="shift" id="shift">
         <option value="">--Select Shift--</option>

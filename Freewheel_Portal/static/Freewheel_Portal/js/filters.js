@@ -1,15 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // ===== USER FILTERS =====
   const agentFilter = document.getElementById('agent-filter');
   const shiftFilter = document.getElementById('shift-filter');
   const managerFilter = document.getElementById('manager-filter');
-  const userStatus = document.getElementById('region-filter')
-  const clearBtn = document.querySelector('.clear-filter p');
+  const userStatus = document.getElementById('region-filter');
+  const userClearBtn = document.querySelector('#user-filter .clear-filter p');
   const userCards = document.querySelectorAll('.user-card');
   const roleButtons = document.querySelectorAll('#user-filter .button-group button');
-
   let selectedRoles = [];
 
-  function applyFilters() {
+  function applyUserFilters() {
     const selectedAgent = agentFilter.value;
     const selectedShift = shiftFilter.value;
     const selectedManager = managerFilter.value;
@@ -29,24 +29,20 @@ document.addEventListener('DOMContentLoaded', function () {
         (selectedShift === 'All' || shift === selectedShift) &&
         (selectedManager === 'All' || manager === selectedManager) &&
         (selectedStatus === 'All' || status === selectedStatus) &&
-
         roleMatch;
 
       card.style.display = show ? 'block' : 'none';
     });
   }
 
-  agentFilter.addEventListener('change', applyFilters);
-  shiftFilter.addEventListener('change', applyFilters);
-  managerFilter.addEventListener('change', applyFilters);
-  userStatus.addEventListener('change', applyFilters);
-
+  agentFilter?.addEventListener('change', applyUserFilters);
+  shiftFilter?.addEventListener('change', applyUserFilters);
+  managerFilter?.addEventListener('change', applyUserFilters);
+  userStatus?.addEventListener('change', applyUserFilters);
 
   roleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      const role = btn.textContent;
-
-      // Toggle role in selectedRoles array
+      const role = btn.dataset.role;
       if (selectedRoles.includes(role)) {
         selectedRoles = selectedRoles.filter(r => r !== role);
         btn.classList.remove('active');
@@ -54,20 +50,66 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedRoles.push(role);
         btn.classList.add('active');
       }
-
-      applyFilters();
+      applyUserFilters();
     });
   });
 
-  clearBtn.addEventListener('click', () => {
+  userClearBtn?.addEventListener('click', () => {
     agentFilter.value = 'All';
     shiftFilter.value = 'All';
     managerFilter.value = 'All';
     userStatus.value = 'All';
-
     selectedRoles = [];
-
     roleButtons.forEach(b => b.classList.remove('active'));
-    applyFilters();
+    applyUserFilters();
+  });
+
+  // ===== TICKET FILTERS =====
+  const ticketIdInput = document.getElementById('ticket-id');
+  const ticketAssignee = document.getElementById('ticket-assignee');
+  const ticketGroup = document.getElementById('ticket-group');
+  const ticketPriority = document.querySelector('#ticket-filter select:nth-of-type(3)');
+  const ticketManager = document.querySelector('#ticket-filter select:nth-of-type(4)');
+  const clearTicketFilter = document.querySelector('#ticket-filter .clear-filter p');
+  const ticketCards = document.querySelectorAll('.ticket-card');
+
+  function applyTicketFilters() {
+    const idFilter = ticketIdInput.value.trim();
+    const assigneeFilter = ticketAssignee.value;
+    const groupFilter = ticketGroup.value;
+    const priorityFilter = ticketPriority.value;
+    const managerFilter = ticketManager.value;
+
+    ticketCards.forEach(card => {
+      const cardId = card.getAttribute('data-ticket-id');
+      const cardAssignee = card.getAttribute('data-assignee-name');
+      const cardGroup = card.getAttribute('data-product');
+      const cardPriority = card.getAttribute('data-priority');
+      const cardManager = card.getAttribute('data-manager');
+
+      const matchesId = idFilter === '' || cardId === idFilter;
+      const matchesAssignee = assigneeFilter === '' || cardAssignee === assigneeFilter;
+      const matchesGroup = groupFilter === '' || cardGroup === groupFilter;
+      const matchesPriority = priorityFilter === '' || cardPriority === priorityFilter;
+      const matchesManager = managerFilter === '' || cardManager === managerFilter;
+
+      const show = matchesId && matchesAssignee && matchesGroup && matchesPriority && matchesManager;
+      card.style.display = show ? 'block' : 'none';
+    });
+  }
+
+  ticketIdInput?.addEventListener('input', applyTicketFilters);
+  ticketAssignee?.addEventListener('change', applyTicketFilters);
+  ticketGroup?.addEventListener('change', applyTicketFilters);
+  ticketPriority?.addEventListener('change', applyTicketFilters);
+  ticketManager?.addEventListener('change', applyTicketFilters);
+
+  clearTicketFilter?.addEventListener('click', () => {
+    ticketIdInput.value = '';
+    ticketAssignee.selectedIndex = 0;
+    ticketGroup.selectedIndex = 0;
+    ticketPriority.selectedIndex = 0;
+    ticketManager.selectedIndex = 0;
+    applyTicketFilters();
   });
 });

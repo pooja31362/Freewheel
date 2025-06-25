@@ -33,6 +33,9 @@ urlpatterns = [
     path('create-emp/', views.create_emp, name='create_emp'),
     path('create-employee/', views.create_employee, name='create_employee'),
     path('health/', views.health_check),          # edited  
+    path('view_shift_range/', views.view_shift_day, name='view_shift_range'),
+    path('view_shift/', views.view_shift, name='view_shift'),  
+    path('upload-profile-image/', views.upload_profile_image, name='upload_profile_image'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # edited

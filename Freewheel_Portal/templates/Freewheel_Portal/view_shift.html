@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shift Summary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+    <!-- Portal Styles -->
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+ 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ 
+    <style>
+        .shift-mail-form {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 1rem 1rem 4rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+ 
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+ 
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+ 
+        th {
+            background-color: #f3f3f3;
+        }
+ 
+        .btn {
+            padding: 6px 12px;
+            margin: 5px 3px;
+            background-color: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+ 
+        .btn:hover {
+            background-color: #2563eb;
+        }
+ 
+        .filter-buttons {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+ 
+{% include 'Freewheel_Portal/navbar.html' %}
+{% include 'Freewheel_Portal/deligation.html' %}
+ 
+<div class="click">
+    <div class="whole-page" id="wholePage">
+        <div class="shift-mail-form">
+            <h2>View Shift Summary</h2>
+ 
+            <form method="POST">
+                {% csrf_token %}
+                <label>From Date: <input type="date" name="from_date" required></label>
+                <label>To Date: <input type="date" name="to_date" required></label>
+                <button type="submit" class="btn">View Shifts</button>
+            </form>
+ 
+            {% if shift_summary %}
+                <h3>Shift Count Summary</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Shift</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in shift_summary %}
+                            {% if item.count > 0 %}
+                                <tr>
+                                    <td>{{ item.label }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+ 
+            {% if shift_data %}
+                <div class="filter-buttons">
+                    <h3>Filter by Shift</h3>
+                    {% for code, label in shift_labels.items %}
+                        <button class="btn" onclick="filterShift('{{ code }}')">{{ code }}</button>
+                    {% endfor %}
+                    <button class="btn" onclick="filterShift('ALL')">Show All</button>
+                </div>
+ 
+                <div style="overflow-x:auto;">
+                    <table id="shiftTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                {% for name, shifts in shift_data.items %}
+                                    {% if forloop.first %}
+                                        {% for date_key in shifts.keys %}
+                                            <th>{{ date_key }}</th>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for name, shifts in shift_data.items %}
+                                <tr>
+                                    <td class="emp-name">{{ name }}</td>
+                                    {% for date, shift in shifts.items %}
+                                        <td class="shift-cell" data-shift="{{ shift|upper }}">{{ shift }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p style="margin-top: 20px;">No shift data available for the selected date range.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+ 
+<script>
+    function filterShift(shiftCode) {
+        const rows = document.querySelectorAll("#shiftTable tbody tr");
+ 
+        rows.forEach(row => {
+            let showRow = false;
+            const cells = row.querySelectorAll(".shift-cell");
+ 
+            cells.forEach(cell => {
+                const cellShift = cell.getAttribute("data-shift");
+                if (shiftCode === "ALL" || cellShift === shiftCode) {
+                    showRow = true;
+                }
+            });
+ 
+            row.style.display = showRow ? "" : "none";
+        });
+    }
+</script>
+ 
+<!-- Scripts -->
+<script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+<script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+<script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+</body>
+</html>

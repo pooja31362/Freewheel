@@ -180,3 +180,152 @@ def truncate_shift_end():
         print("❌ Error during shift data move:", e)
         return False
 
+
+
+def get_shifts_for_date(date: datetime.date):
+    """
+    Returns a dictionary {emp_id: shift} for the given date.
+    """
+    try:
+        if not os.path.exists(SHIFT_EXCEL_PATH):
+            print(f"[ERROR] Shift Excel file not found at: {SHIFT_EXCEL_PATH}")
+            return {}
+ 
+        df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
+        date_row = pd.to_datetime(df.iloc[1], errors='coerce').dt.date  # row with dates
+        emp_ids = df.iloc[3:, 1].astype(str).str.strip().str.lower()    # employee IDs (row 4+ col 2)
+ 
+        # Find the column for the given date
+        try:
+            col_index = date_row[date_row == date].index[0]
+        except IndexError:
+            print(f"[WARN] Date {date} not found in shift Excel.")
+            return {}
+ 
+        shift_map = {}
+        for i, emp_id in enumerate(emp_ids, start=3):
+            shift = str(df.iloc[i, col_index]).strip()
+            if shift and shift.lower() != 'nan':
+                shift_map[emp_id] = shift
+ 
+        return shift_map
+ 
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch shifts for date {date}: {e}")
+        return {}
+
+ 
+ 
+def get_utc_half_hour_distribution(shift_data, date):
+    from datetime import datetime, timedelta
+    import pytz
+ 
+    # IST to UTC conversion
+    IST = pytz.timezone('Asia/Kolkata')
+    UTC = pytz.utc
+ 
+    # Shift timings in IST (24h format)
+    shift_times = {
+        'S1': ('06:30', '15:30'),
+        'G':  ('09:30', '18:30'),
+        'S2': ('11:00', '20:00'),
+        'S3': ('13:30', '22:30'),
+        'S4': ('15:00', '00:00'),
+        'S5': ('18:00', '03:00'),
+        'S6': ('22:00', '07:00')
+    }
+ 
+    # Count of engineers active in each 30-min UTC slot: key format 'HH:MM'
+    slot_distribution = {}
+ 
+    # Generate all 48 half-hour UTC slots for the given date
+    utc_day_start = datetime.combine(date, datetime.min.time()).replace(tzinfo=UTC)
+    for i in range(48):
+        slot_time = utc_day_start + timedelta(minutes=30 * i)
+        label = slot_time.strftime('%H:%M')
+        slot_distribution[label] = 0
+ 
+    for name, shift in shift_data.items():
+        shift = shift.upper().strip()
+        if shift not in shift_times:
+            continue
+ 
+        start_str, end_str = shift_times[shift]
+        shift_start = IST.localize(datetime.strptime(f"{date} {start_str}", "%Y-%m-%d %H:%M"))
+ 
+        if end_str == '00:00':
+            shift_end = IST.localize(datetime.strptime(f"{date + timedelta(days=1)} 00:00", "%Y-%m-%d %H:%M"))
+        else:
+            end_dt = datetime.strptime(end_str, "%H:%M")
+            if end_dt < datetime.strptime(start_str, "%H:%M"):
+                # crosses midnight
+                shift_end = IST.localize(datetime.strptime(f"{date + timedelta(days=1)} {end_str}", "%Y-%m-%d %H:%M"))
+            else:
+                shift_end = IST.localize(datetime.strptime(f"{date} {end_str}", "%Y-%m-%d %H:%M"))
+ 
+        start_utc = shift_start.astimezone(UTC)
+        end_utc = shift_end.astimezone(UTC)
+ 
+        for i in range(48):
+            slot_start = utc_day_start + timedelta(minutes=30 * i)
+            slot_end = slot_start + timedelta(minutes=30)
+ 
+            # Check if shift overlaps with the half-hour slot
+            if start_utc < slot_end and end_utc > slot_start:
+                label = slot_start.strftime('%H:%M')
+                slot_distribution[label] += 1
+ 
+    return slot_distribution
+ 
+
+
+def get_shifts_for_date_range(from_date: datetime.date, to_date: datetime.date):
+    """
+    Returns a dictionary of shifts for each user between from_date and to_date.
+    {
+        'john': {'2025-06-20': 'S1', '2025-06-21': 'S2'},
+        ...
+    }
+    """
+    try:
+        if not os.path.exists(SHIFT_EXCEL_PATH):
+            print(f"[ERROR] Shift Excel not found at: {SHIFT_EXCEL_PATH}")
+            return {}
+ 
+        df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
+        date_row = pd.to_datetime(df.iloc[1], errors='coerce').dt.date  # second row contains dates
+        name_column = df.iloc[3:, 0].astype(str).str.strip().str.lower()  # names from row 5 onward
+ 
+        shift_map = {}  # result dictionary
+ 
+        for row_idx, name in enumerate(name_column, start=3):
+            name = str(name).strip().lower()
+ 
+            # Stop if we hit garbage footer data
+            if (
+                not name or
+                name == "nan" or
+                any(keyword in name for keyword in [
+                    "total staffing", "planned leave", "casual leave", "earned leave",
+                    "unplanned leave", "sick leave", "compensation off", "pl -", "cl -", "el -", "ul -", "sl -", "co -"
+                ]) or
+                name.startswith(('s1(', 's2(', 's3(', 's4(', 's6(', 'g(')) or
+                name.isdigit()
+            ):
+                continue
+ 
+            shift_map[name] = {}
+            for col_idx, date in enumerate(date_row):
+                if pd.isna(date):
+                    continue
+                if from_date <= date <= to_date:
+                    shift = str(df.iloc[row_idx, col_idx]).strip()
+                    if shift and shift.lower() != 'nan':
+                        shift_map[name][str(date)] = shift
+ 
+        return shift_map
+ 
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch shifts for date range: {e}")
+        return {}
+

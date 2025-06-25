@@ -18,7 +18,12 @@
   <!-- Ticket Rows -->
   <div class="ticket-table">
     {% for ticket in tickets %}
-        <div class="ticket-row2" data-ticket-id="{{ ticket.ticket_id }}" >
+        <div class="ticket-row2" 
+        data-ticket-id="{{ ticket.ticket_id }}" 
+        data-product="{{ticket.group}}"
+        data-priority="{{ticket.priority}}"
+        data-assignee-name="{{ticket.assignee_name}}"
+        data-manager="{{ user.repor_manager }}">
           <div class="info">
           <div style="flex: .7;"><a href="https://freewheel.zendesk.com/agent/tickets/{{ ticket.ticket_id }}" target="_blank">{{ ticket.ticket_id }}</a></div>
           <div style="flex: 5;">{{ ticket.subject|default:"N/A" }}</div>

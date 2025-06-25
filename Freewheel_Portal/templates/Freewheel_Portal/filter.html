@@ -21,9 +21,8 @@
  
           <select id="manager-filter">
             <option value="All">Manager Filter</option>
-            <option value="Sorna"> Ravi</option>
             {% for user in users %}
-            {% if user.assignee_name == Manager %}
+            {% if user.job_title == 'M1' %}
             <option value="{{user.assignee_name}}">{{user.assignee_name}}</option>
             {% endif %}
             {% endfor %}

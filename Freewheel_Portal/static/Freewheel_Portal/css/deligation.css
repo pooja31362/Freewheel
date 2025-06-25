@@ -6,6 +6,24 @@
       justify-content: center;
     }
 
+
+    .delegation-button button {
+    max-width: 21rem;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    height: 2.3rem;
+    box-shadow: 0 0 12px rgba(255, 255, 255, .5);
+    border: none;
+    cursor: pointer;
+    border-radius: 12px ;
+    }
+
+    .delegation-button {
+    display: flex;
+    /* gap: 14rem; */
+    justify-content: space-between;
+}
+
     .del {
         z-index: 100;
         position: fixed;

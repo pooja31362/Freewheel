@@ -1,37 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ticket Report Upload</title>
+    <meta charset="UTF-8">
+    <title>Bihourly Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+    <!-- Portal Styles -->
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+ 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ 
     <style>
-        /* Table styling to match shift end mail */
-        table {
-            border-collapse: collapse;
-            width: 100%;
+        .bi-hourly-form {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 1rem 1rem 4rem;  /* pushed to the right */
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            height: 90vh;
+            border: rgba(49, 32, 99, 1) solid 2px;
         }
+ 
+ 
+        .bi-hourly-form table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 14px;
+            font-weight: 600;
+        }
+ 
         th, td {
-            border: 1px solid black;
+            border: 1px solid #ccc;
             padding: 8px;
             text-align: center;
         }
-        .small-col { width: 10%; }
-        .medium-col { width: 20%; }
-        .large-col { width: 30%; }
  
-        /* Button styles */
+        th {
+            background-color: #f3f3f3;
+        }
+        td input[type="number"] {
+             width: 80px;
+             padding: 4px;
+             font-size: 14px;
+             text-align: center;
+             border: 1px solid #ccc;
+             border-radius: 4px;
+        }
+ 
         .btn {
             padding: 8px 16px;
             margin: 10px 5px;
-            background-color: #3b82f6;
+            background-color: #3b0a75;
             color: #fff;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
-            border-radius: 4px;
-        }
-        .btn:hover {
-            background-color: #2563eb;
+            transition: .2s ease-in-out;
         }
  
-        /* Copy confirmation message */
+        .btn:hover {
+            background-color:rgb(163, 163, 163);
+            color: black;
+        }
+ 
         #copiedMessage {
             color: green;
             font-size: 14px;
@@ -39,117 +76,143 @@
             margin-left: 10px;
         }
  
-        /* Readonly input appearance */
         input[disabled] {
-            background-color: #f3f3f3;
+            background-color: #f9f9f9;
             border: none;
+            text-align: center;
         }
     </style>
 </head>
 <body>
  
-<h2>Upload Ticket Excel</h2>
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn">Upload & Process</button>
-</form>
+    {% include 'Freewheel_Portal/navbar.html' %}
+    {% include 'Freewheel_Portal/deligation.html' %}
  
-{% if report_data %}
-    <div style="margin: 10px 0;">
-        <button id="editBtn" class="btn" onclick="enableEdit()">Edit</button>
-        <button id="saveBtn" class="btn" onclick="saveEdits()" style="display:none;">Save</button>
-        <button class="btn" onclick="copyTable()">📋 Copy All Tables</button>
-        <span id="copiedMessage">Copied!</span>
+    <div class="click">
+        <div class="whole-page" id="wholePage">
+            <div class="bi-hourly-form" id="bihourly-container">
+                <h2>Bihourly Report</h2>
+ 
+                <!-- Upload Form -->
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn">Upload & Process</button>
+                </form>
+ 
+                <hr style="margin: 20px 0;">
+ 
+                <!-- Summary Table -->
+                {% if report_data %}
+                    <div style="margin: 10px 0;">
+                        <button id="editBtn" class="btn" onclick="enableEdit()">✏️ Edit</button>
+                        <button id="saveBtn" class="btn" onclick="saveEdits()" style="display:none;">💾 Save</button>
+                        <button class="btn" onclick="copyTable()">📋 Copy All Tables</button>
+                        <span id="copiedMessage">Copied!</span>
+                    </div>
+ 
+                    <form method="POST" action="{% url 'save_bulk_report_updates' %}" id="editForm">
+                        {% csrf_token %}
+                        <table id="reportTable">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Product</th>
+                                    <th>Open</th>
+                                    <th>New</th>
+                                    <th>Urgent</th>
+                                    <th>High</th>
+                                    <th>Normal</th>
+                                    <th>Low</th>
+                                    <th>Being Worked</th>
+                                    <th>Unattended</th>
+                                    <th>Engineers</th>
+                                    <th>HO/Follow up</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in report_data %}
+                                <tr>
+                                    <td>{{ row.timestamp }}</td>
+                                    <td>{{ row.product }}</td>
+                                    <td>{{ row.open_count }}</td>
+                                    <td>{{ row.new_count }}</td>
+                                    <td>{{ row.urgent_count }}</td>
+                                    <td>{{ row.high_count }}</td>
+                                    <td>{{ row.normal_count }}</td>
+                                    <td>{{ row.low_count }}</td>
+                                    <td>{{ row.being_worked }}</td>
+                                    <td>{{ row.unattended }}</td>
+                                    <td>
+                                        <input type="number" name="engineers_{{ row.id }}" value="{{ row.engineers|default:0 }}" disabled>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="ho_followup_{{ row.id }}" value="{{ row.ho_followup|default:0 }}" disabled>
+                                        <input type="hidden" name="ids" value="{{ row.id }}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+                {% else %}
+                    <p>No bihourly data available.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
  
-    <form method="POST" action="{% url 'save_bulk_report_updates' %}" id="editForm">
-        {% csrf_token %}
-        <table id="reportTable">
-            <thead>
-                <tr>
-                    <th>Timestamp</th><th>Product</th><th>Open</th><th>New</th>
-                    <th>Urgent</th><th>High</th><th>Normal</th><th>Low</th>
-                    <th>Being Worked</th><th>Unattended</th><th>Engineers</th><th>HO/Follow up</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in report_data %}
-                <tr>
-                    <td>{{ row.timestamp }}</td>
-                    <td>{{ row.product }}</td>
-                    <td>{{ row.open_count }}</td>
-                    <td>{{ row.new_count }}</td>
-                    <td>{{ row.urgent_count }}</td>
-                    <td>{{ row.high_count }}</td>
-                    <td>{{ row.normal_count }}</td>
-                    <td>{{ row.low_count }}</td>
-                    <td>{{ row.being_worked }}</td>
-                    <td>{{ row.unattended }}</td>
-                    <td>
-                        <input type="number" name="engineers_{{ row.id }}" value="{{ row.engineers|default:0 }}" disabled>
-                    </td>
-                    <td>
-                        <input type="number" name="ho_followup_{{ row.id }}" value="{{ row.ho_followup|default:0 }}" disabled>
-                        <input type="hidden" name="ids" value="{{ row.id }}">
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </form>
-{% endif %}
+    <!-- Scripts -->
+    <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+    <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
  
-<script>
-    function enableEdit() {
-        document.querySelectorAll('#reportTable input[type="number"]').forEach(input => {
-            if (input.name.startsWith('engineers_') || input.name.startsWith('ho_followup_')) {
+    <script>
+        function enableEdit() {
+            document.querySelectorAll('#reportTable input[type="number"]').forEach(input => {
                 input.disabled = false;
-            }
-        });
-        document.getElementById('editBtn').style.display = 'none';
-        document.getElementById('saveBtn').style.display = 'inline-block';
-    }
+            });
+            document.getElementById('editBtn').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'inline-block';
+        }
  
-    function saveEdits() {
-        document.getElementById('editForm').submit();
-    }
+        function saveEdits() {
+            document.getElementById('editForm').submit();
+        }
  
-    function copyTable() {
-        const table = document.getElementById("reportTable");
-        const inputs = table.querySelectorAll("input[type='number']");
-        const originalStates = [];
+        function copyTable() {
+            const table = document.getElementById("reportTable");
+            const inputs = table.querySelectorAll("input[type='number']");
+            const originalStates = [];
  
-        inputs.forEach(input => {
-            const td = input.parentNode;
-            const span = document.createElement("span");
-            span.textContent = input.value || "0";
-            originalStates.push({ td, input, span });
+            inputs.forEach(input => {
+                const td = input.parentNode;
+                const span = document.createElement("span");
+                span.textContent = input.value || "0";
+                originalStates.push({ td, input, span });
  
-            td.removeChild(input);
-            td.appendChild(span);
-        });
+                td.removeChild(input);
+                td.appendChild(span);
+            });
  
-        const range = document.createRange();
-        range.selectNodeContents(table);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        document.execCommand("copy");
-        sel.removeAllRanges();
+            const range = document.createRange();
+            range.selectNodeContents(table);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand("copy");
+            sel.removeAllRanges();
  
-        originalStates.forEach(({ td, input, span }) => {
-            td.removeChild(span);
-            td.appendChild(input);
-        });
+            originalStates.forEach(({ td, input, span }) => {
+                td.removeChild(span);
+                td.appendChild(input);
+            });
  
-        const msg = document.getElementById("copiedMessage");
-        msg.style.display = "inline";
-        setTimeout(() => msg.style.display = "none", 2000);
-    }
-</script>
+            const msg = document.getElementById("copiedMessage");
+            msg.style.display = "inline";
+            setTimeout(() => msg.style.display = "none", 2000);
+        }
+    </script>
  
 </body>
 </html>
- 
- 

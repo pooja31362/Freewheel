@@ -19,6 +19,7 @@
   background-color: #3b0a75;
   color: white;
   padding: 10px;
+  gap: 1rem;
   border-radius: 10px;
   box-shadow: 0 0 .1rem rgba(0,0,0,0.4);
   margin-bottom: .2rem;
@@ -33,6 +34,7 @@
 
 .ticket-row2 .info {
   display: flex;
+  gap: 1rem;
 }
 
 .ticket-container .ticket-row2 {

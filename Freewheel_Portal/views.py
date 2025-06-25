@@ -12,7 +12,10 @@ from django.contrib.auth import logout
 from django.shortcuts import redirect
  
 def logout_view(request):
-    request.session.flush()  # clears session
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
+    current_user.status = "Offline"
+    current_user.save(update_fields=['status'])
+    request.session.flush()
     return redirect('login')
 
 
@@ -694,12 +697,17 @@ def do_login(request):
                 access = [a.lower().strip() for a in user.access]
                 request.session['emp_id'] = user.emp_id
                 request.session['access'] = access
-
+                current_user = User.objects.get(emp_id=request.session['emp_id'])
+                current_user.status = 'Available'
+                current_user.save(update_fields=['status'])
                 # 🔁 Run shift updater once per day
                 if user.last_shift_update != date.today():
                     get_today_shift_for_user(user.assignee_name)
                     user.last_shift_update = date.today()
                     user.save(update_fields=['last_shift_update'])
+
+                
+                    
 
                 return redirect('home')
             else:
@@ -856,7 +864,7 @@ def upload_excel(request):
             Ticket.objects.filter(ticket_id__in=to_delete).delete()
  
         for tid in Ticket.objects.values_list('ticket_id', flat=True):
-            return HttpResponse("✔️ Tickets uploaded and synced with database.")
+            return redirect('home')
    
     return redirect('home') 
  

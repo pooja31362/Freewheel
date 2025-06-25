@@ -203,11 +203,17 @@
                               <div class="assign-box hidden">                          
                                 <select class="assignee-dropdown" style="width: 100%;">
                                     <option value="">-- Select New Assignee --</option>
+                                    {% if current_user.user_type == 'tc' %}
                                     {% for usr in users %}
                                         {% if usr.assignee_name != ticket.assignee_name %}
                                             <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
+
                                         {% endif %}
                                     {% endfor %}
+                                    {% else %}
+                                      <option value="{{current_user.assignee_name}}" selected>{{current_user.assignee_name}}</option>
+                                    {% endif %}
+
                                 </select>
                               
                                 <button class="submit-assign">Assign</button>

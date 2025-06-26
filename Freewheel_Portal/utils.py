@@ -219,15 +219,13 @@ def get_shifts_for_date(date: datetime.date):
 
  
  
-def get_utc_half_hour_distribution(shift_data, date):
-    from datetime import datetime, timedelta
-    import pytz
+from datetime import datetime, timedelta
+import pytz
  
-    # IST to UTC conversion
+def get_utc_half_hour_distribution(shift_data_today, shift_data_prev, shift_data_next, date):
     IST = pytz.timezone('Asia/Kolkata')
     UTC = pytz.utc
  
-    # Shift timings in IST (24h format)
     shift_times = {
         'S1': ('06:30', '15:30'),
         'G':  ('09:30', '18:30'),
@@ -235,48 +233,56 @@ def get_utc_half_hour_distribution(shift_data, date):
         'S3': ('13:30', '22:30'),
         'S4': ('15:00', '00:00'),
         'S5': ('18:00', '03:00'),
-        'S6': ('22:00', '07:00')
+        'S6': ('22:00', '07:00'),
     }
  
-    # Count of engineers active in each 30-min UTC slot: key format 'HH:MM'
     slot_distribution = {}
- 
-    # Generate all 48 half-hour UTC slots for the given date
     utc_day_start = datetime.combine(date, datetime.min.time()).replace(tzinfo=UTC)
+ 
+    # Initialize 48 half-hour slots for the selected UTC day
     for i in range(48):
         slot_time = utc_day_start + timedelta(minutes=30 * i)
         label = slot_time.strftime('%H:%M')
         slot_distribution[label] = 0
  
-    for name, shift in shift_data.items():
-        shift = shift.upper().strip()
-        if shift not in shift_times:
-            continue
+    def add_shifts_to_distribution(shift_data, shift_day, allowed_shifts=None):
+        for name, shift in shift_data.items():
+            shift = shift.upper().strip()
+            if shift not in shift_times:
+                continue
  
-        start_str, end_str = shift_times[shift]
-        shift_start = IST.localize(datetime.strptime(f"{date} {start_str}", "%Y-%m-%d %H:%M"))
+            if allowed_shifts and shift not in allowed_shifts:
+                continue
  
-        if end_str == '00:00':
-            shift_end = IST.localize(datetime.strptime(f"{date + timedelta(days=1)} 00:00", "%Y-%m-%d %H:%M"))
-        else:
-            end_dt = datetime.strptime(end_str, "%H:%M")
-            if end_dt < datetime.strptime(start_str, "%H:%M"):
-                # crosses midnight
-                shift_end = IST.localize(datetime.strptime(f"{date + timedelta(days=1)} {end_str}", "%Y-%m-%d %H:%M"))
+            start_str, end_str = shift_times[shift]
+            start_time = datetime.strptime(start_str, "%H:%M").time()
+            end_time = datetime.strptime(end_str, "%H:%M").time()
+ 
+            shift_start = IST.localize(datetime.combine(shift_day, start_time))
+            # Handle shifts that end next day
+            if end_time <= start_time:
+                shift_end = IST.localize(datetime.combine(shift_day + timedelta(days=1), end_time))
             else:
-                shift_end = IST.localize(datetime.strptime(f"{date} {end_str}", "%Y-%m-%d %H:%M"))
+                shift_end = IST.localize(datetime.combine(shift_day, end_time))
  
-        start_utc = shift_start.astimezone(UTC)
-        end_utc = shift_end.astimezone(UTC)
+            start_utc = shift_start.astimezone(UTC)
+            end_utc = shift_end.astimezone(UTC)
  
-        for i in range(48):
-            slot_start = utc_day_start + timedelta(minutes=30 * i)
-            slot_end = slot_start + timedelta(minutes=30)
+            for i in range(48):
+                slot_start = utc_day_start + timedelta(minutes=30 * i)
+                slot_end = slot_start + timedelta(minutes=30)
+                if start_utc < slot_end and end_utc > slot_start:
+                    label = slot_start.strftime('%H:%M')
+                    slot_distribution[label] += 1
  
-            # Check if shift overlaps with the half-hour slot
-            if start_utc < slot_end and end_utc > slot_start:
-                label = slot_start.strftime('%H:%M')
-                slot_distribution[label] += 1
+    # Add previous day's S5/S6
+    add_shifts_to_distribution(shift_data_prev, date - timedelta(days=1), allowed_shifts=['S5', 'S6'])
+ 
+    # Add today's all shifts
+    add_shifts_to_distribution(shift_data_today, date)
+ 
+    # Add next day's S6
+    add_shifts_to_distribution(shift_data_next, date + timedelta(days=1), allowed_shifts=['S6'])
  
     return slot_distribution
  

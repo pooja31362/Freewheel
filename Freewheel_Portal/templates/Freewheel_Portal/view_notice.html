@@ -24,12 +24,10 @@
     <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
 </head>
 <body>
-    {% include 'Freewheel_Portal/navbar.html' %}
-    {% include 'Freewheel_Portal/deligation.html' %}
- 
+    {%include 'Freewheel_Portal/navbar.html' %}
     <div class="notice-board">
         <div class='heading'>
-            <h1>🗒️ Team Notice Board</h1>
+            <h1>🗒️ Team Notice Board (View Only)</h1>
         </div>
  
         <div class="notice-list">
@@ -52,50 +50,15 @@
                     {{ notice.posted_at|date:"d M Y, h:i A" }}
                     {% if notice.end_date %} | 🗓 Ends: {{ notice.end_date|date:"d M Y" }}{% endif %}
                 </span>
-                {% if notice.posted_by.emp_id == current_user.emp_id %}
-    <form method="POST" action="{% url 'delete_notice' notice.id %}" style="display:inline;">
-        {% csrf_token %}
-        <button type="submit" style="color: red; background: none; border: none; cursor: pointer;">
-            🗑️ Delete
-        </button>
-    </form>
- 
-    <form method="POST" action="{% url 'edit_notice' notice.id %}" style="display:inline;">
-        {% csrf_token %}
-        <input type="text" name="message" value="{{ notice.message }}" required>
-        <button type="submit" style="color: green; background: none; border: none; cursor: pointer;">
-            ✏️ Update
-        </button>
-    </form>
-{% endif %}
- 
             </div>
             {% endfor %}
         </div>
- 
-        <form method="POST" action="{% url 'notice_sub' %}">
-            {% csrf_token %}
-            <textarea rows="2" placeholder="Type something impactful..." name="message" required></textarea>
- 
-            <label for="end_date">End Date:</label>
-            <input type="date" id="end_date" name="end_date" required>
- 
-            <label for="priority">Priority:</label>
-            <select name="priority" id="priority" required>
-                <option value="Urgent">🚨 Urgent</option>
-                <option value="Important">⭐ Important</option>
-                <option value="Normal">📝 Normal</option>
-            </select>
- 
-            <div class="button">
-                <button class="glow-button" name="post_notice">🚀 Post Now</button>
-            </div>
-        </form>
     </div>
 </body>
 </html>
  
 <style>
+/* Paste same CSS styles from your notice.html here */
 .notice-board {
     background: white;
     border: 2px solid #3b0a75;
@@ -107,7 +70,6 @@
     width: 94.5%;
     overflow-y: auto;
 }
- 
 .heading {
     background-color: #3b0a75;
     border-radius: .7rem;
@@ -115,12 +77,10 @@
     padding: .7rem;
     margin-bottom: 1rem;
 }
- 
 .heading h1 {
     color: white;
     margin: 0;
 }
- 
 .notice-list {
     display: flex;
     flex-direction: column;
@@ -128,7 +88,6 @@
     max-height: 60vh;
     overflow-y: auto;
 }
- 
 .notice-msg {
     padding: 1rem;
     border-left: 5px solid #6366f1;
@@ -136,40 +95,12 @@
     border-radius: .75rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
- 
 .notice-msg h3 {
     font-weight: 600;
     margin: 0 0 .5rem 0;
     color: #3b0a75;
 }
- 
 .notice-msg p {
     margin-bottom: .5rem;
-}
- 
-textarea {
-    width: 100%;
-    padding: .75rem;
-    border-radius: .5rem;
-    border: 1px solid #ccc;
-    margin-top: 1rem;
-}
- 
-select, input[type="date"] {
-    padding: .5rem;
-    margin-right: .5rem;
-    margin-top: 1rem;
-    border-radius: .5rem;
-    border: 1px solid #ccc;
-}
- 
-.glow-button {
-    background: linear-gradient(90deg, #6366f1, #8b5cf6);
-    color: white;
-    padding: .75rem 1.5rem;
-    border-radius: .5rem;
-    border: none;
-    margin-top: 1rem;
-    cursor: pointer;
 }
 </style>

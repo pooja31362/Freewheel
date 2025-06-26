@@ -202,12 +202,13 @@ class PreviousShiftEndTable(models.Model):
  
    
 class Notice(models.Model):
-    message = models.TextField()
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    posted_at = models.DateTimeField(auto_now_add=True)
- 
-    def __str__(self):
-        return f"{self.posted_by.username} - {self.posted_at.strftime('%Y-%m-%d %H:%M')}"
+    message = models.TextField(null=True, blank=True)
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    posted_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    priority = models.CharField(    
+        max_length=10, null=True, blank=True,   
+        choices=[('Urgent', 'Urgent'), ('Important', 'Important'), ('Normal', 'Normal')], )    
+    end_date = models.DateField(null=True, blank=True)
  
  
 # Daily shift schedule

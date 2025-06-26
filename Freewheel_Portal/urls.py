@@ -28,7 +28,7 @@ urlpatterns = [
     path('upload_bihourly/', views.upload_excel_report, name='upload_excel_report'),
     path('update/<int:pk>/', views.update_report_row, name='update_report_row'),
     path('save-updates/', views.save_bulk_report_updates, name='save_bulk_report_updates'),
-    path('notice/', views.notice, name='notice'),
+    # path('notice/', views.notice, name='notice'),
     path('notice/submit/', views.notice_sub, name='notice_sub'),  # 👈 this name must match
     path('create-emp/', views.create_emp, name='create_emp'),
     path('create-employee/', views.create_employee, name='create_employee'),
@@ -36,6 +36,12 @@ urlpatterns = [
     path('view_shift_range/', views.view_shift_day, name='view_shift_range'),
     path('view_shift/', views.view_shift, name='view_shift'),  
     path('upload-profile-image/', views.upload_profile_image, name='upload_profile_image'),
+    path('view-notice/', views.notice_view, name='view_notice'),
+    path('add-notice/', views.notice_add, name='add_notice'),
+    path('notice/add/', views.notice_add, name='notice_add'),
+    path('notice/edit/<int:notice_id>/', views.edit_notice, name='edit_notice'),
+    path('notice/delete/<int:notice_id>/', views.delete_notice, name='delete_notice'),
+
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # edited

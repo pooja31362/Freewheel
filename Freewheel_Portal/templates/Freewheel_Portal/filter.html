@@ -62,9 +62,9 @@
           <select id = "ticket-group">
             <option value="" disabled selected>----Product Filter----</option>
 
-            {% for user in users %}
-              <option>{{ user.assignee_name }}</option>
-            {% endfor %}
+              <option value="Support Eng">Streaming Hub</option>
+              <option value="BW CIEC Onboarding">Beeswax</option>
+              <option value = "SFX Support"></option>
           </select>
           <select>
             <option value="" selected disabled>----Ticket Priority----</option>
@@ -74,7 +74,6 @@
             <option value="Low">Low</option>
 
           </select>
-          <select><option>Manager Based Drop Down</option></select>
 
           <div class="clear-filter"><p>Clear Filter</p></div>
         </div>
@@ -84,12 +83,26 @@
        
        
         <div class="notice-view">
-          {% for notice in latest_notice %}
-          <div class="notice_latest"><p><strong>{{notice.message}}</strong></p></div>
-          {% endfor %}
+          {% if latest_notice and latest_notice.priority|lower == "urgent" %}
+              <div class="notice_latest">
+                <p><strong>🚨 {{ latest_notice.message }}</strong></p>
+              </div>
+            {% endif %}
+          </div>
+         
+          <div id="notice-popup" style="display:none;" class="popup-banner">
+            <span id="popup-message"></span>
         </div>
+       
  
-        <a href="{% url 'notice' %}" style="text-decoration: none;">
+        <a href="{% url 'view_notice' %}" style="text-decoration: none;">
+          <div class="view-more" style="cursor: pointer; text-align: center;">
+            <div class="view-more-border"><p>Click To view your Notice</p></div>
+          </div>
+        </a> 
+
+
+        <a href="{% url 'add_notice' %}" style="text-decoration: none;">
           <div class="view-more" style="cursor: pointer; text-align: center;">
             <div class="view-more-border"><p>Click To Add your Notice</p></div>
           </div>
@@ -340,3 +353,53 @@
  
  
 <script src="../../static/Freewheel_Portal/js/filters.js" defer></script>
+
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const priority = "{{ latest_notice_priority|lower }}";
+ 
+      let message = "";
+      if (priority === "urgent") {
+          message = "🚨 Urgent notice has arrived!";
+      } else if (priority === "important") {
+          message = "⭐ Important notice has arrived!";
+      } else if (priority === "normal") {
+          message = "📝 A normal notice has been posted.";
+      }
+ 
+      if (message) {
+          const popup = document.getElementById("notice-popup");
+          const messageSpan = document.getElementById("popup-message");
+          messageSpan.textContent = message;
+          popup.style.display = "block";
+ 
+          // Auto-hide after 5 seconds
+          setTimeout(() => {
+              popup.style.display = "none";
+          }, 5000);
+      }
+  });
+</script>
+ 
+ 
+ 
+ 
+<style>
+  .popup-banner {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #3b0a75;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+  }
+  </style>

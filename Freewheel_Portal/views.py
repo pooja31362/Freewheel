@@ -443,7 +443,7 @@ def update_status(request):
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
  
 
- 
+
 
 from django.http import HttpResponse
 from django.utils.crypto import get_random_string
@@ -510,9 +510,8 @@ def upload_excel(request):
 
         column_field_map = {
             'Ticket ID': 'ticket_id',
-            'Ticket created - Timestamp': 'created_timestamp',
             'Ticket priority': 'priority',
-            'Ticket subject': 'subject',
+            'Ticket subject': 'subject',            
             'Requester organization name': 'requester_organization',
             'Requester name': 'requester',
             'Product Category': 'product_category',
@@ -520,6 +519,7 @@ def upload_excel(request):
             'JIRA Issue ID': 'jira_issue_id',
             'Assignee name': 'assignee_name',
             'Ticket status': 'status',
+            'Ticket created - Timestamp': 'created_timestamp',
             'Ticket solved - Timestamp': 'solved_timestamp',
             'Ticket assigned - Timestamp': 'assigned_timestamp',
             'Ticket updated - Timestamp': 'updated_timestamp',
@@ -564,15 +564,27 @@ def upload_excel(request):
 
                 for excel_col, model_field in column_field_map.items():
                     value = row.get(excel_col)
-                    if model_field == 'assignee_name' and pd.notnull(value):
-                        value = str(value).strip().lower()  # Normalize
-                    data[model_field] = value if pd.notnull(value) else None
 
-                existing_ticket = Ticket.objects.filter(ticket_id=ticket_id).first()
+                    if pd.notnull(value):
+                        value = str(value).strip()  # Apply to ALL fields
+                    else:
+                        value = None
+
+                    data[model_field] = value
+
+                existing_ticket = Ticket.objects.filter(ticket_id=ticket_id.strip()).first()
                 if existing_ticket:
+                    # Debug mismatches
+                    if existing_ticket.assignee_name and data['assignee_name'] and existing_ticket.assignee_name.strip() != data['assignee_name'].strip():
+                        print(f"⚠️ Assignee mismatch for ticket {ticket_id}: DB='{existing_ticket.assignee_name}' vs Excel='{data['assignee_name']}'")
+
                     has_changes = False
                     for field, new_value in data.items():
                         old_value = getattr(existing_ticket, field)
+                        if isinstance(old_value, str):
+                            old_value = old_value.strip()
+                        if isinstance(new_value, str):
+                            new_value = new_value.strip()
                         if old_value != new_value:
                             has_changes = True
                             break
@@ -1142,41 +1154,42 @@ from django.shortcuts import redirect
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.contrib import messages
-
+ 
 def upload_shift_excel(request):
     if 'emp_id' not in request.session:
         return redirect('login')
-
+ 
     print('[INFO] Upload_shift_excel called')
-
+ 
     if request.method == 'POST' and request.FILES.get('excel_file'):
         print('[INFO] POST request received with file')
-
+ 
         excel_file = request.FILES['excel_file']
-
+ 
         # Validate file extension
         if not excel_file.name.endswith(('.xls', '.xlsx')):
             messages.error(request, "Only Excel files (.xls, .xlsx) are allowed.")
             print('[ERROR] Invalid file type uploaded')
             return redirect('home')
-
+ 
         # Always save as 'shifts.xlsx'
         file_path = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
-
+ 
         # Delete old file if it exists
         if os.path.exists(file_path):
             os.remove(file_path)
             print('[INFO] Previous shifts.xlsx file removed')
-
+ 
         # Save new file
         with default_storage.open(file_path, 'wb+') as destination:
             for chunk in excel_file.chunks():
                 destination.write(chunk)
             print('[INFO] New shifts.xlsx file saved')
-
+ 
         messages.success(request, "Shift Excel uploaded successfully.")
-
+ 
     return redirect('home')
+
 
 
 
@@ -1228,6 +1241,8 @@ def upload_excel_report(request):
         return redirect('login')
     form = UploadExcelForm()
     report_data = TicketReport.objects.all().order_by('timestamp')  # default load
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
+
  
     if request.method == 'POST':
         form = UploadExcelForm(request.POST, request.FILES)
@@ -1288,7 +1303,9 @@ def upload_excel_report(request):
  
     return render(request, 'Freewheel_Portal/report_upload.html', {
         'form': form,
-        'report_data': report_data
+        'report_data': report_data,
+        
+
     })
  
 def update_report_row(request, pk):
@@ -1699,6 +1716,9 @@ def view_shift_day(request):
     shift_data = {}
     hour_distribution = {}
     selected_date_str = None
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
+
+    
  
     if request.method == 'POST':
         date_str = request.POST.get('selected_date')
@@ -1727,7 +1747,8 @@ def view_shift_day(request):
     return render(request, 'Freewheel_Portal/view_shift_range.html', {
         'shift_data': shift_data_today if shift_data else {},
         'hour_distribution': json.dumps(hour_distribution),
-        'selected_date': selected_date_str
+        'selected_date': selected_date_str,
+        'current_user': current_user
     })
 
 
@@ -1759,6 +1780,8 @@ def view_shift(request):
     shift_data = {}
     shift_counts_by_day = {code: defaultdict(int) for code in SHIFT_LABELS_ORDERED}
     all_dates = set()
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
+    
  
     if request.method == 'POST':
         from_date_str = request.POST.get('from_date')
@@ -1788,13 +1811,16 @@ def view_shift(request):
                 'shift_data': shift_data,
                 'shift_count_rows': shift_count_rows,
                 'date_headers': sorted_dates,
-                'shift_labels': SHIFT_LABELS_ORDERED  
+                'shift_labels': SHIFT_LABELS_ORDERED,
+                'current_user': current_user
             })
  
         except Exception as e:
             messages.error(request, f"Invalid date input: {str(e)}")
  
-    return render(request, 'Freewheel_Portal/view_shift.html', {})   
+    return render(request, 'Freewheel_Portal/view_shift.html', {
+        "current_user": current_user,
+    })   
 
 from django.http import JsonResponse
  

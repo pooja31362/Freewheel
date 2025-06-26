@@ -21,7 +21,7 @@
                 data-access="{{ user.user_type }}">
                 <div class="top-section">
                     <div class="user-info">
-                        <div class="user-img" style="position: relative; display: inline-block;">
+                        <div class="user-img" style="display: inline-block;">
                         <img src="{{ user.profile_image.url }}"
                              class="profile-img"
                              data-name="{{ user.assignee_name }}"
@@ -30,7 +30,7 @@
                              data-email="{{ user.email }}"
                              data-bu="{{ user.BussinessUnit }}"
                              data-workregion="{{ user.work_region }}"
-                             style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%;" />
+                             style="cursor: pointer;" />
                         </div>
                         <div style="width: 40vh;">
                             <div style="font-size: 14px; font-weight: bold;">
@@ -46,7 +46,7 @@
                                 {% elif user.status == 'Away' %}
                                 <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
                                 {% elif user.status == 'In-Meeting' %}
-                                <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
+                                <i class="fa-solid fa-phone" style="color: #F44336;"></i>
                                 {% elif user.status == 'Offline' %}
                                 <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
                                 {% elif user.status == 'Out Of Office' %}
@@ -55,8 +55,18 @@
                                 {{ user.status }}</div>
                         </div>
                     </div>
-                    {% if user.job_title != 'M1' %}
+                    {% if user.job_title == 'M1' %}
                     <div class="shift">
+
+                    </div>
+                    <div class="shift">
+
+                    </div>
+                    <div class="shift">
+
+                    </div>
+                    {% else %}
+                                        <div class="shift">
                         <div style="font-size: 14px; font-weight: bold;">Open :</div>
                         <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
                     </div>

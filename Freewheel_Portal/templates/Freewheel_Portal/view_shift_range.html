@@ -1,235 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-
-    <title>Ticket Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
-
-
-    <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
-    <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
-    <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
-    <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
-    <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token }}" />
+ 
+  <title>Ticket Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/stats.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-open.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/filters.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css" />
+  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css" />
+ 
+  <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
+  <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
+  <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
+  <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
+  <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
+ 
+  <!-- Chart.js + Datalabels Plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+ 
+  <!-- Toggle Switch Styling -->
+  <style>
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 28px;
+    }
+ 
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+ 
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 28px;
+    }
+ 
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+ 
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+ 
+    input:checked + .slider:before {
+      transform: translateX(32px);
+    }
+  </style>
 </head>
-<body style="overflow: hidden">
-    {%include 'Freewheel_Portal/navbar.html' %}
-    {%include 'Freewheel_Portal/deligation.html' %}
-
-  <div id="click" class="click" style=" padding:1rem 4rem;">
-    <div class="whole-page" id="wholePage" style="height: 90vh;">
-        <a href="{% url 'home' %}" style="
-display: inline-block;
-    margin: 10px;
-    padding: 6px 12px;
-    background-color: #3b0a75;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-">
-    &#8592; Back to Home
-</a>
+ 
+<body style="overflow: hidden;">
+  {% include 'Freewheel_Portal/navbar.html' %}
+  {% include 'Freewheel_Portal/deligation.html' %}
+ 
+  <div class="click" style="padding: 1rem 4rem;">
+    <div class="whole-page" style="height: 90vh;">
+      <a href="{% url 'home' %}" class="back-button">
+        &#8592; Back to Home
+      </a>
+ 
       <form method="POST">
-  {% csrf_token %}
-  <label for="selected_date">Select Date:</label>
-  <input type="date" name="selected_date" required value="{{ selected_date }}">
-  <button type="submit">View Shift</button>
-</form>
+        {% csrf_token %}
+        <label for="selected_date">Select Date:</label>
+        <input type="date" name="selected_date" required value="{{ selected_date }}">
+      </form>
+      <div style="display: flex;">
+              <div style="margin: 10px 0;flex:2;">
+        <label class="switch">
+          <input type="checkbox" id="chartToggle" onchange="toggleChartType()" />
+          <span class="slider round"></span>
+        </label>
+        <span id="chartTypeLabel">Bar Chart</span>
+      </div>
+      {% if selected_date %}
+        <div style="text-align: center; margin-top: 20px; font-size: 20px; font-weight: bold; flex: 8">
+          Shift Data for: {{ selected_date }}
+        </div>
+      {% endif %}
+      <div style="flex: 2;"></div>
+      </div>
  
-{% if selected_date %}
-  <div style="text-align: center; margin-top: 20px; font-size: 20px; font-weight: bold;">
-    Shift Data for: {{ selected_date }}
-  </div>
-{% endif %}
+      <!-- Chart Toggle -->
  
-<!-- Dropdown for chart type -->
-<label for="chartType">Select Chart Type:</label>
-<select id="chartType" onchange="updateChartType(this.value)">
-  <option value="bar">Bar Chart</option>
-  <option value="line">Line Chart</option>
-</select>
  
-<!-- Responsive Chart Container -->
-<div style="max-width: 100%; overflow-x: auto;">
-  <canvas id="shiftChart" style="width: 100%; height: 500px;"></canvas>
-</div>
- 
-<!-- Chart.js + Datalabels Plugin -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
- 
-<script>
-  const hourDistribution = {{ hour_distribution|safe }};
-  const labels = [];
-  for (let h = 0; h < 24; h++) {
-    labels.push(`${String(h).padStart(2, '0')}:00`);
-    labels.push(`${String(h).padStart(2, '0')}:30`);
-  }
- 
-  const dataPoints = labels.map(label => hourDistribution[label] || 0);
- 
-  const ctx = document.getElementById('shiftChart').getContext('2d');
-  let chartType = 'bar';
- 
-  let shiftChart = new Chart(ctx, {
-    type: chartType,
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Engineer Count (UTC - 30 min intervals)',
-        data: dataPoints,
-        backgroundColor: chartType === 'bar' ? 'rgba(75, 192, 192, 0.7)' : 'transparent',
-        borderColor: 'rgba(75, 192, 192, 1)',
-        borderWidth: 2,
-        fill: chartType === 'bar',
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true
-        },
-        datalabels: {
-          anchor: 'end',
-          align: 'top',
-          color: '#333',
-          font: {
-            weight: 'bold',
-            size: 10
-          },
-          formatter: value => value > 0 ? value : ''
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 50,   // ✅ Fixed Y-axis
-          ticks: {
-            stepSize: 5,
-            font: {
-              size: 10   // ✅ Smaller tick labels
-            }
-          },
-          title: {
-            display: true,
-            text: 'Engineer Count'
-          }
-        },
-        x: {
-          ticks: {
-            autoSkip: true,
-            maxRotation: 90,
-            minRotation: 45,
-            font: {
-              size: 9
-            }
-          },
-          title: {
-            display: true,
-            text: 'Time (UTC)'
-          }
-        }
-      }
-    },
-    plugins: [ChartDataLabels]
-  });
- 
-  function updateChartType(newType) {
-    shiftChart.destroy();
-    shiftChart = new Chart(ctx, {
-      type: newType,
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Engineer Count (UTC - 30 min intervals)',
-          data: dataPoints,
-          backgroundColor: newType === 'bar' ? 'rgba(75, 192, 192, 0.7)' : 'transparent',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 2,
-          fill: newType === 'bar',
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true
-          },
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            color: '#333',
-            font: {
-              weight: 'bold',
-              size: 10
-            },
-            formatter: value => value > 0 ? value : ''
-          },
-          tooltip: {
-            mode: 'index',
-            intersect: false
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 50,
-            ticks: {
-              stepSize: 5,
-              font: {
-                size: 10
-              }
-            },
-            title: {
-              display: true,
-              text: 'Engineer Count'
-            }
-          },
-          x: {
-            ticks: {
-              autoSkip: true,
-              maxRotation: 90,
-              minRotation: 45,
-              font: {
-                size: 9
-              }
-            },
-            title: {
-              display: true,
-              text: 'Time (UTC)'
-            }
-          }
-        }
-      },
-      plugins: [ChartDataLabels]
-    });
-  }
-</script>
+      <!-- Chart Container -->
+      <div style="max-width: 100%; overflow-x: auto;">
+        <canvas id="shiftChart" style="width: 100%; height: 500px;"></canvas>
+      </div>
     </div>
   </div>
-
+ 
+  <!-- Chart Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelector('input[name="selected_date"]').addEventListener("change", function () {
+        this.form.submit();
+      });
+    });
+ 
+    const hourDistribution = {{ hour_distribution|safe }};
+    const labels = [];
+    for (let h = 0; h < 24; h++) {
+      labels.push(`${String(h).padStart(2, '0')}:00`);
+      labels.push(`${String(h).padStart(2, '0')}:30`);
+    }
+ 
+    const dataPoints = labels.map(label => hourDistribution[label] || 0);
+    const ctx = document.getElementById('shiftChart').getContext('2d');
+    let chartType = 'bar';
+ 
+    let shiftChart = createChart(chartType);
+ 
+    function createChart(type) {
+      return new Chart(ctx, {
+        type: type,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Engineers Schedule',
+            data: dataPoints,
+            backgroundColor: type === 'bar' ? 'rgba(75, 192, 192, 0.7)' : 'transparent',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2,
+            fill: type === 'bar',
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              color: '#333',
+              font: { weight: 'bold', size: 10 },
+              formatter: value => value > 0 ? value : ''
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 50,
+              ticks: {
+                stepSize: 5,
+                font: { size: 10 }
+              },
+              title: {
+                display: true,
+                text: 'Engineers'
+              }
+            },
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxRotation: 90,
+                minRotation: 45,
+                font: { size: 9 }
+              },
+              title: {
+                display: true,
+                text: 'Time (UTC-30 min intervals)'
+              }
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }
+ 
+    function toggleChartType() {
+      chartType = chartType === 'bar' ? 'line' : 'bar';
+      document.getElementById('chartTypeLabel').innerText = chartType.charAt(0).toUpperCase() + chartType.slice(1) + ' Chart';
+      shiftChart.destroy();
+      shiftChart = createChart(chartType);
+    }
+  </script>
+ 
+  <!-- Optional: Add styles for back button -->
+  <style>
+    .back-button {
+      display: inline-block;
+      margin: 10px;
+      padding: 6px 12px;
+      background-color: #3b0a75;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
 </body>
 </html>

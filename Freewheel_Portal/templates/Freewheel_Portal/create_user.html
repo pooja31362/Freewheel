@@ -69,8 +69,17 @@
       </div>
       <div class="form-group">
         <label for="job_title">Job Title</label>
-        <input type="text" name="job_title" required>
-      </div>
+        <select type="text" name="job_title" required>
+            <option value="" disabled selected hidden>----Select Job Title----</option>
+
+            <option value="E1">Engineer 1</option>
+            <option value="E2">Engineer 2</option>
+            <option value="E3">Engineer 3</option>
+            <option value="E4">Engineer 4</option>
+            <option value="M1">Manager</option>
+
+
+        </select>      </div>
       <div class="form-group">
         <label for="business_unit">Business Unit</label>
         <input type="text" name="business_unit" required>
@@ -87,9 +96,16 @@
             {% endfor %}
         </select>      </div>
         <div class="form-group">
-        <label for="user_type">User Access</label>
-        <input type="text" name="user_type" required>
-      </div>
+        <label for="user_type">User Type</label>
+        <select type="text" name="user_type" required>
+            <option value="" disabled selected hidden>----Select User Type----</option>
+
+            <option value="admin">Admin</option>
+            <option value="tc">Triage Captain</option>
+            <option value="staff">Staff</option>
+            <option value="manager">Manager</option>
+
+        </select>      </div>
       <div class="full-width">
         <button type="submit">Create Employee</button>
       </div>

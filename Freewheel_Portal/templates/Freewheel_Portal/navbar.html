@@ -68,8 +68,9 @@
                   <div id="uploadStatus" style="margin-top: 10px;"></div>
                 </div>
                 <h3 style="margin: 10px 0 5px;">{{ current_user.assignee_name }}</h3>
-                <p style="margin: 2px 0;"><strong>Role:</strong> {{ current_user.job_title }}</p>
-                <p style="margin: 2px 0;"><strong>Availability:</strong> {{ current_user.status }}</p>
+                <div>
+                <div style="margin: 2px 0;"><strong>Role:</strong></div><div> {{ current_user.job_title }}</div>
+                <div style="margin: 2px 0;"><strong>Availability:</strong> </div><div>{{ current_user.status }}</div>
                 <p style="margin: 2px 0;"><strong>Email:</strong> {{ current_user.email }}</p>
                 <p style="margin: 2px 0;"><strong>Team:</strong> {{ current_user.BussinessUnit }}</p>
                 <p style="margin: 2px 0;">
@@ -80,6 +81,7 @@
                     {{ current_user.work_region|default:"N/A" }}
                   {% endif %}
                 </p>
+                </div>
                 <button id="resetPasswordBtn" style="margin-top: 15px; padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
                   Reset Password
               </button>

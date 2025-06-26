@@ -41,7 +41,7 @@ def home(request):
         return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
-    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
 
     users = list(User.objects.all())
@@ -1947,13 +1947,13 @@ def notice(request):
         return redirect('login')
    
     current_user = User.objects.get(emp_id=request.session['emp_id'])
-    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
     latest_notice = Notice.objects.filter(message__icontains='urgent').order_by('-posted_at')[:4]
     users = list(User.objects.exclude(emp_id=current_user.emp_id))
  
     for u in users:
-        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
         u.shift = dynamic_shift
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'

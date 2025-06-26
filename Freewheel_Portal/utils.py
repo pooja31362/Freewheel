@@ -41,6 +41,8 @@ def populate_summary_data():
 
 import pandas as pd
 import datetime
+from datetime import date
+
 import os
 from django.conf import settings
 from Freewheel_Portal.models import User
@@ -53,7 +55,7 @@ _cached_shift_timestamp = None
 def get_today_shift_for_user(emp_id):
     global _cached_shift_df, _cached_shift_col_index, _cached_shift_timestamp
  
-    today = datetime.date.today()
+    today = date.today()
  
     try:
         if not os.path.exists(SHIFT_EXCEL_PATH):

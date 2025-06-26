@@ -33,7 +33,7 @@ from django.db.models import Count
 ALLOWED_USERS = ['anibro', 'Nisha','Harikishore T', 'keerthana', 'kavya_akka']
 SHIFT1_TIMINGS = ["7:00 AM", "9:00 AM", "11:00 AM", "1:00 PM", "3:00 PM"]
 SHIFT3_TIMINGS = ["5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"]
-SHIFT6_TIMINGS = ["1:00 AM", "3:00 AM", "5:00 PM"]  # ✅ Add your Shift 6 timings
+SHIFT6_TIMINGS = ["1:00 AM", "3:00 AM", "5:00 AM"]  # ✅ Add your Shift 6 timings
 
 def home(request):
 
@@ -787,7 +787,7 @@ def shift_end_summary(request):
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
-    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+    users = list(User.objects.all())
 
     for u in users:
         dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
@@ -1023,7 +1023,7 @@ def shift_end_summary(request):
         "delegated_to_user": delegated_to_user,
         "user_assignments": assigned_tasks,
 
-        "today" : datetime.date.today,
+        "today" : datetime.today().date(),
 
         'current_status_summary': ShiftEndTicketDetails.objects.all(),
         'current_sla_breaches': SLABreachedTicket.objects.all(),
@@ -1347,7 +1347,7 @@ def create_emp(request):
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
-    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+    users = list(User.objects.all())
 
     for u in users:
         dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
@@ -1602,7 +1602,7 @@ def create_emp(request):
         "delegated_to_user": delegated_to_user,
         "user_assignments": assigned_tasks,
 
-        "today" : datetime.date.today,
+        "today" : datetime.today().date(),
 
         'pending_product_counts': pending_product_counts,
         'hold_product_counts': hold_product_counts,
@@ -1621,7 +1621,7 @@ def create_employee(request):
 
     if 'emp_id' not in request.session:
         return redirect('login')
-    users = User.objects.all()  # for manager dropdown
+    users = User.objects.all()
 
     if request.method == 'POST':
         print('Post')
@@ -1949,7 +1949,7 @@ def notice(request):
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
     latest_notice = Notice.objects.filter(message__icontains='urgent').order_by('-posted_at')[:4]
-    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+    users = list(User.objects.all())
  
     for u in users:
         dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift

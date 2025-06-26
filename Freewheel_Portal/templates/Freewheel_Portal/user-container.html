@@ -21,8 +21,16 @@
                 data-access="{{ user.user_type }}">
                 <div class="top-section">
                     <div class="user-info">
-                        <div class="user-img">
-                          <img src="{{ user.profile_image.url }}" alt="User" />
+                        <div class="user-img" style="position: relative; display: inline-block;">
+                        <img src="{{ user.profile_image.url }}"
+                             class="profile-img"
+                             data-name="{{ user.assignee_name }}"
+                             data-role="{{ user.job_title }}"
+                             data-status="{{ user.status }}"
+                             data-email="{{ user.email }}"
+                             data-bu="{{ user.BussinessUnit }}"
+                             data-workregion="{{ user.work_region }}"
+                             style="cursor: pointer; width: 30px; height: 30px; border-radius: 50%;" />
                         </div>
                         <div style="width: 40vh;">
                             <div style="font-size: 14px; font-weight: bold;">
@@ -67,7 +75,7 @@
                     </div>
 
                     <div class="manager">
-                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
+                        <div style="font-size: 14px; font-weight: bold;">Reports To:</div>
                         <div style="font-size: 12px;">{{ user.repor_manager }}</div>
                     </div>
 
@@ -616,3 +624,87 @@ document.querySelectorAll(".collapse").forEach(header => {
 
 </style>
 
+<script>
+  const ws = new WebSocket('ws://' + window.location.host + '/ws/status/');
+ 
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  const userCards = document.querySelectorAll('.user-card');
+ 
+  userCards.forEach(card => {
+    if (card.dataset.agent === data.assignee_name) {
+      const statusDiv = card.querySelector("div[style*='font-size: 12px;']");
+      if (statusDiv) statusDiv.innerHTML = `<i class="${getStatusIcon(data.new_status)}"></i> ${data.new_status}`;
+    }
+  });
+};
+ 
+function getStatusIcon(status) {
+  switch (status) {
+    case "Available":
+      return "fa-solid fa-circle-check\" style=\"color:#4CAF50";
+    case "Away":
+      return "fa-solid fa-clock\" style=\"color:#FFC107";
+    case "In-Meeting":
+      return "fa-solid fa-square-phone\" style=\"color:#F44336";
+    case "Offline":
+      return "fa-solid fa-circle-xmark\" style=\"color:#7f7f7f";
+    case "Out Of Office":
+      return "fa-solid fa-circle-arrow-right\" style=\"color:#c235e0";
+    default:
+      return "";
+  }
+}
+ 
+</script>
+ 
+<div id="floatingUserDetailPopup"
+     style="display: none; position: absolute; background: #fff; padding: 15px; box-shadow: 0 0 10px rgba(0,0,0,0.3); border-radius: 10px; z-index: 9999; min-width: 220px;">
+  <div style="text-align: center;">
+    <img id="popupImg" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;" />
+    <h3 id="popupName" style="margin: 10px 0 5px;"></h3>
+    <p style="margin: 2px 0;"><strong>Role:</strong> <span id="popupRole"></span></p>
+    <p style="margin: 2px 0;"><strong>Status:</strong> <span id="popupStatus"></span></p>
+    <p style="margin: 2px 0;"><strong>Email:</strong> <span id="popupEmail"></span></p>
+    <p style="margin: 2px 0;"><strong>Business Unit:</strong> <span id="popupBU"></span></p>
+    <p style="margin: 2px 0;"><strong>Work Region:</strong> <span id="popupWorkRegion"></span></p>
+ 
+  </div>
+</div>
+ 
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const popup = document.getElementById("floatingUserDetailPopup");
+    const profileImgs = document.querySelectorAll(".profile-img");
+ 
+    profileImgs.forEach(img => {
+      img.addEventListener("click", function (e) {
+  e.stopPropagation();
+ 
+  document.getElementById("popupImg").src = img.src;
+  document.getElementById("popupName").textContent = img.dataset.name;
+  document.getElementById("popupRole").textContent = img.dataset.role;
+  document.getElementById("popupStatus").textContent = img.dataset.status;
+  document.getElementById("popupEmail").textContent = img.dataset.email;
+  document.getElementById("popupBU").textContent = img.dataset.bu;
+ 
+  const region = img.dataset.workregion;
+  document.getElementById("popupWorkRegion").textContent = region === "ciec" ? "Comcast India Engineering Centre" : (region || "N/A");
+ 
+  const rect = img.getBoundingClientRect();
+  popup.style.top = `${window.scrollY + rect.top}px`;
+  popup.style.left = `${rect.right + 10}px`;
+  popup.style.display = "block";
+});
+ 
+ 
+    });
+ 
+    // Hide when clicking outside
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".profile-img") && !e.target.closest("#floatingUserDetailPopup")) {
+        popup.style.display = "none";
+      }
+    });
+  });
+  </script>

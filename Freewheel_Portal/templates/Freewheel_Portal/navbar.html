@@ -71,10 +71,10 @@
                 <p style="margin: 2px 0;"><strong>Role:</strong> {{ current_user.job_title }}</p>
                 <p style="margin: 2px 0;"><strong>Availability:</strong> {{ current_user.status }}</p>
                 <p style="margin: 2px 0;"><strong>Email:</strong> {{ current_user.email }}</p>
-                <p style="margin: 2px 0;"><strong>Bussiness Unit:</strong> {{ current_user.BussinessUnit }}</p>
+                <p style="margin: 2px 0;"><strong>Team:</strong> {{ current_user.BussinessUnit }}</p>
                 <p style="margin: 2px 0;">
                   <strong>Work Region:</strong>
-                  {% if current_user.work_region == "ciec" %}
+                  {% if current_user.work_region == "CIEC" %}
                     Comcast India Engineering Center
                   {% else %}
                     {{ current_user.work_region|default:"N/A" }}

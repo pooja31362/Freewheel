@@ -4,3 +4,4 @@ pandas
 Pillow
 gunicorn
 openpyxl
+channels

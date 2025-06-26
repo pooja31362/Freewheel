@@ -1,0 +1,248 @@
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #323232;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 9999;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  .toast.hidden {
+    display: none;
+  }
+
+
+                    .menu-wrapper {
+                      position: relative;
+                      display: inline-block;
+                    }
+                    .menu-wrapper1 {
+                      position: relative;
+                      display: inline-block;
+                    }
+                    .dropdown-section {
+                      position: fixed;
+                      right: 19.1rem;
+                      background: white;
+                      gap: .5rem;
+                      border: none;
+                      padding: 10px;
+                      z-index: 10;
+                      width: 4rem;
+                      box-shadow: 0 0 6px rgba(0,0,0,0.4);
+                      display: flex;
+                      flex-direction: column;
+                      transform: translateY(-34px);                      border-radius: 12px;
+                    }
+
+                    .dropdown-section1 {
+                      position: fixed;
+                      right: 19.1rem;
+                      background: white;
+                      gap: .5rem;
+                      border: none;
+                      padding: 10px;
+                      z-index: 10;
+                      width: 4rem;
+                      box-shadow: 0 0 6px rgba(0,0,0,0.4);
+                      display: flex;
+                      flex-direction: column;
+                      transform: translateY(-34px);                      border-radius: 12px;
+                    }
+
+                    .dropdown-section button {
+                      background: none;
+                      border: none;
+                      cursor: pointer;
+                      padding: 5px;
+                      font-size: 16px;
+                      color: black;
+                    }
+
+                    .dropdown-section1 button {
+                      background: none;
+                      border: none;
+                      cursor: pointer;
+                      padding: 5px;
+                      font-size: 16px;
+                      color: black;
+                    }
+
+                    .hidden { display: none !important; }
+
+
+                    .menu-wrapper .ticket-row {
+                      position: relative;
+                      margin-bottom: 10px;
+                      padding: 10px;
+                      background: #f7f7f7;
+                      border: 1px solid #ddd;
+                    }
+
+                    .menu-wrapper1 .ticket-row1 {
+                      position: relative;
+                      margin-bottom: 10px;
+                      padding: 10px;
+                      background: #f7f7f7;
+                      border: 1px solid #ddd;
+                    }
+
+                    .ticket-info{
+                      display: grid
+                      ;
+                          grid-template-columns: 1fr 2fr 1fr 1fr 2fr auto;
+                          gap: 10px;
+                          align-items: center;
+                          background: #f9f9f9;
+                          padding: .1rem;
+                          border-radius: 10px;
+                          font-weight: bold;
+                          margin-bottom: 0.1rem;
+                    }
+                    
+                    .ticket-info1{
+                      display: grid
+                      ;
+                          grid-template-columns: 1fr 2fr 1fr 1fr 2fr auto;
+                          gap: 10px;
+                          align-items: center;
+                          background: #f9f9f9;
+                          padding: .1rem;
+                          border-radius: 10px;
+                          font-weight: bold;
+                          margin-bottom: 0.1rem;
+                    }
+
+                    .ticket-row .comment-box {
+                      display: flex;
+                      gap: 10px;
+                    }
+
+                    .ticket-row1 .comment-box1 {
+                      display: flex;
+                      gap: 10px;
+                    }
+
+                    .ticket-row .assign-box {
+                      display: flex;
+                      gap: 10px;
+                    }
+
+                    .ticket-row1 .assign-box1 {
+                      display: flex;
+                      gap: 10px;
+                    }
+
+                    .comment-box input{
+                      margin: .2rem .1rem;
+                      width: 80%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+                    .comment-box select{
+                      margin: .2rem .1rem;
+                      width: 20%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+                    .comment-box1 input{
+                      margin: .2rem .1rem;
+                      width: 80%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+                    .comment-box1 input:focus-visible {
+                      border: none;
+                      outline: none;
+                      box-shadow: 0 0 9px rgba(32,20,63, 1);
+                    }
+
+                    .comment-box1 select{
+                      margin: .2rem .1rem;
+                      width: 20%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+                    .comment-box button {
+                      padding:.4rem;
+                      border: none;
+                      border-radius: 10px;
+                      color: white;
+                      background-color: #3b0a75;
+                      font-weight: bold;
+                      margin: .2rem .1rem;
+                    }
+
+                    .comment-box1 button {
+                      padding:.4rem;
+                      border: none;
+                      border-radius: 10px;
+                      color: white;
+                      background-color: #3b0a75;
+                      font-weight: bold;
+                      margin: .2rem .1rem;
+                    }
+
+                    .assign-box select{
+                      margin: .2rem .1rem;
+                      width: 100%;
+                      border-radius: 10px;
+                      padding: 0 .4rem;
+                      box-shadow: 0px 0px 5px rgba(0, 0, 0, .5);
+                      border: none;
+                    }
+
+
+
+                    .assign-box button {
+                      padding:.4rem;
+                      border: none;
+                      border-radius: 10px;
+                      color: white;
+                      background-color: #3b0a75;
+                      font-weight: bold;
+                      margin: .2rem .1rem;
+                    }
+
+                    .menu-btn {
+                      background: transparent;
+                      border: none;
+                      font-size: 23px;
+                      font-weight: bolder;
+                    }
+
+                    .menu-btn-cmt {
+                      background: transparent;
+                      border: none;
+                      font-size: 23px;
+                      font-weight: bolder;
+                    }
+
+                    .cnge-btn-cmt {
+                      background: transparent;
+                      border: none;
+                      font-size: 23px;
+                      font-weight: bolder;
+                    }

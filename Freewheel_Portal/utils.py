@@ -44,74 +44,77 @@ import datetime
 import os
 from django.conf import settings
 from Freewheel_Portal.models import User
-
+ 
 SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
-
+ 
 _cached_shift_df = None
 _cached_shift_col_index = None
-_cached_shift_timestamp = None  # ← use file modified time as cache key
-
-def get_today_shift_for_user(name):
+_cached_shift_timestamp = None
+def get_today_shift_for_user(emp_id):
     global _cached_shift_df, _cached_shift_col_index, _cached_shift_timestamp
-
+ 
     today = datetime.date.today()
-
+ 
     try:
         if not os.path.exists(SHIFT_EXCEL_PATH):
             print(f"[ERROR] Shift Excel file not found at: {SHIFT_EXCEL_PATH}")
             return None
-
+ 
         file_timestamp = os.path.getmtime(SHIFT_EXCEL_PATH)
-
+ 
         if _cached_shift_df is None or _cached_shift_timestamp != file_timestamp:
-            print(f"[INFO] Reloading Excel file (modified: {file_timestamp})")
+            # print(f"[INFO] Reloading Excel file (modified: {file_timestamp})")
             _cached_shift_df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
             _cached_shift_timestamp = file_timestamp
-
+ 
             date_row = _cached_shift_df.iloc[1]
-            dates = pd.to_datetime(date_row, errors='coerce').dt.date
-
+            # print(f"[DEBUG] Raw date row: {list(date_row.values)}")
+            dates = pd.to_datetime(date_row, format="%d-%m-%Y",dayfirst=True, errors='coerce').dt.date
+ 
             try:
                 _cached_shift_col_index = dates[dates == today].index[0]
             except IndexError:
-                print(f"[ERROR] Today's date ({today}) not found in Excel.")
-                return None
-
+                # print(f"[ERROR] Today's date ({today}) not found in Excel.")
+                _cached_shift_col_index = None
+ 
         df = _cached_shift_df
         shift_col_index = _cached_shift_col_index
-
-        user_names = df.iloc[4:, 0].astype(str).str.strip().str.lower()
-        name = name.strip().lower()
-
-        if name in user_names.values:
-            row_index = user_names[user_names == name].index[0]
+ 
+        if shift_col_index is None:
+            return None  # avoid accessing invalid column
+ 
+        # Fetch PERNR IDs from Excel
+        excel_emp_ids = df.iloc[3:, 1].astype(str).str.strip().str.lower()
+        emp_id = emp_id.strip().lower()
+        print('-----------------------------------------',emp_id)
+ 
+        if emp_id in excel_emp_ids.values:
+            row_index = excel_emp_ids[excel_emp_ids == emp_id].index[0]
             shift_value = str(df.iloc[row_index, shift_col_index]).strip()
-
+ 
             if not shift_value or shift_value.lower() == 'nan':
-                print(f"[WARN] No shift value found for {name} on {today}")
+                print(f"[WARN] No shift value found for EMP ID {emp_id} on {today}")
                 return None
-
+ 
             try:
-                user_obj = User.objects.get(assignee_name__iexact=name)
+                user_obj = User.objects.get(emp_id__iexact=emp_id)
                 if user_obj.shift != shift_value:
                     user_obj.shift = shift_value
                     user_obj.save(update_fields=['shift'])
-                    print(f"[INFO] Updated shift for {name} to '{shift_value}' in User model.")
+                    print(f"[INFO] Updated shift for EMP ID {emp_id} to '{shift_value}' in User model.")
                 else:
-                    print(f"[INFO] Shift for {name} already up to date.")
+                    print(f"[INFO] Shift for EMP ID {emp_id} already up to date.")
             except User.DoesNotExist:
-                print(f"[WARN] User with assignee_name '{name}' not found in database.")
-
+                print(f"[WARN] User with employee_id '{emp_id}' not found in database.")
+ 
             return shift_value
-
-        print(f"[WARN] No matching user found in Excel for name: {name}")
+ 
+        print(f"[WARN] EMP ID {emp_id} not found in Excel.")
         return None
-
+ 
     except Exception as e:
-        print(f"[ERROR] Failed to fetch shift for {name}: {e}")
+        print(f"[ERROR] Failed to fetch shift for EMP ID {emp_id}: {e}")
         return None
-
-
 
 
 from django.utils.timezone import localtime

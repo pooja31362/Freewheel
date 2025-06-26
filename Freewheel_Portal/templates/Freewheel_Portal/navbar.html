@@ -7,7 +7,9 @@
     <div class="sidebar">
         <i class="fa-solid fa-bars"></i>
         <a href="{% url 'home' %}"><i class="fa-solid fa-house" title="Home"></i></a>
+        {% if current_user.user_type == 'tc' or current_user.user_type == 'manager' %}
         <i class="fa-solid fa-people-group" id="delBtn" title="Delegation"></i>
+        {% endif %}
         <a href="{% url 'upload_excel_report' %}"><i class="fa-solid fa-table" title="Upload Bihourly Report" style="cursor: pointer;"></i></a>
         <a href="{% url 'view_shift' %}"><i class="fa-solid fa-calendar" style="color: #ffffff;" title="Shift Summary"></i></a>
         <a href="{% url 'view_shift_range' %}"><i class="fa-solid fa-chart-simple" style="color: #ffffff;" title="Shift Analysis"></i></a>
@@ -36,9 +38,11 @@
         <a href="{% url 'logout' %}">
           <i class="fa-solid fa-right-from-bracket" title="Logout" style="cursor: pointer;"></i>
         </a>
+{% if current_user.user_type == 'tc' or current_user.user_type == 'manager' %}
         <a href="{% url 'create_emp' %}">
           <i class="fa-solid fa-user-plus" title="Create Employee" style="cursor: pointer;"></i>
         </a>
+        {% endif %}
     </div>
  
     <div class="check">
@@ -390,41 +394,70 @@
   document.addEventListener('DOMContentLoaded', function () {
     const statusBoxes = document.querySelectorAll('.status-box');
     const currentStatus = "{{ current_user.status }}";
- 
+
+    // Setup WebSocket connection once (outside click handler)
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/status/');
+socket.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  const empId = data.user;
+  const status = data.status;
+
+  // Skip self
+  if (empId === '{{ request.session.emp_id }}') return;
+
+  const target = document.getElementById(`user-status-display-${empId}`);
+  if (!target) return;
+
+  let iconHTML = '';
+  if (status === 'Available') {
+    iconHTML = `<i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>`;
+  } else if (status === 'Away') {
+    iconHTML = `<i class="fa-solid fa-clock" style="color: #FFC107;"></i>`;
+  } else if (status === 'In-Meeting') {
+    iconHTML = `<i class="fa-solid fa-square-phone" style="color: #F44336;"></i>`;
+  } else if (status === 'Offline') {
+    iconHTML = `<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>`;
+  } else if (status === 'Out Of Office') {
+    iconHTML = `<i class="fa-solid fa-circle-arrow-right" style="color: #c235e0;"></i>`;
+  }
+
+  target.innerHTML = `${iconHTML} ${status}`;
+};
+
+
     // Highlight current status on load
     statusBoxes.forEach(box => {
       const status = box.getAttribute('title');
       const color = box.getAttribute('data-color');
- 
+
       if (status === currentStatus) {
         box.classList.add('active');
         box.style.backgroundColor = color;
         box.style.color = 'white';
       }
- 
+
       // Click event
       box.addEventListener('click', () => {
         const selectedStatus = box.getAttribute('title');
- 
-        // ✅ Only trigger form for "Out Of Office"
+
         if (selectedStatus === 'Out Of Office') {
           document.getElementById('leave-period').style.display = 'flex';
-          return;  // 🔒 Don't send update yet
+          return;
         }
- 
+
         // Reset all boxes
         statusBoxes.forEach(b => {
           b.classList.remove('active');
           b.style.backgroundColor = 'white';
           b.style.color = 'black';
         });
- 
+
         // Highlight selected
         box.classList.add('active');
         box.style.backgroundColor = color;
         box.style.color = 'white';
- 
-        // Send AJAX to update backend for non-Out Of Office
+
+        // Send AJAX to backend
         fetch("{% url 'status_update' %}", {
           method: 'POST',
           headers: {
@@ -438,7 +471,7 @@
           if (data.success) {
             const statusDisplay = document.getElementById('user-status-display');
             let iconHTML = '';
- 
+
             if (selectedStatus === 'Available') {
               iconHTML = `<i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>`;
             } else if (selectedStatus === 'Away') {
@@ -448,8 +481,7 @@
             } else if (selectedStatus === 'Offline') {
               iconHTML = `<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>`;
             }
- 
-            // Update status display
+
             statusDisplay.innerHTML = `${iconHTML} ${selectedStatus}`;
           } else {
             console.error("Update failed:", data.error);
@@ -460,6 +492,7 @@
     });
   });
 </script>
+
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {

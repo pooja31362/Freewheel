@@ -33,7 +33,7 @@ from django.db.models import Count
 ALLOWED_USERS = ['anibro', 'Nisha','Harikishore T', 'keerthana', 'kavya_akka']
 SHIFT1_TIMINGS = ["7:00 AM", "9:00 AM", "11:00 AM", "1:00 PM", "3:00 PM"]
 SHIFT3_TIMINGS = ["5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"]
-SHIFT6_TIMINGS = ["7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"]  # ✅ Add your Shift 6 timings
+SHIFT6_TIMINGS = ["1:00 AM", "3:00 AM", "5:00 PM"]  # ✅ Add your Shift 6 timings
 
 def home(request):
 
@@ -44,10 +44,10 @@ def home(request):
     current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
     dynamic_shift = None
     latest_notice = list(Notice.objects.order_by('-posted_at')[:4].values())
-    users = list(User.objects.exclude(emp_id=current_user.emp_id))
+    users = list(User.objects.all())
 
     for u in users:
-        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
         u.shift = dynamic_shift
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
@@ -261,9 +261,20 @@ def home(request):
 # Pass it to the template
     delegated_to_user = bool(assigned_tasks)
 
+    
+
     # ✅ Sort users by status
     status_priority = {'Available': 0, 'In-Meeting': 1, 'Away': 2, 'Offline': 3, 'Out Of Office': 4}
-    users.sort(key=lambda user: status_priority.get(user.status, 99))
+    logged_in_user_id = current_user.emp_id  # or use current_user.emp_id or current_user.username as needed
+
+# Custom sort function
+    def sort_key(user):
+        if user.emp_id == logged_in_user_id:
+            return (-1, 0)  # Logged-in user comes first
+        return (0, status_priority.get(user.status, 99))  # Then by status priority
+
+# Sort users
+    users.sort(key=sort_key)
 
     hold_product_counts = (
         Ticket.objects.filter(status='Hold')
@@ -341,13 +352,13 @@ def notice(request):
         return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
-    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
     latest_notice = list(Notice.objects.order_by('-posted_at')[:4].values())
     users = list(User.objects.exclude(emp_id=current_user.emp_id))
 
     for u in users:
-        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
         u.shift = dynamic_shift
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
@@ -701,7 +712,7 @@ def do_login(request):
                 current_user.save(update_fields=['status'])
                 # 🔁 Run shift updater once per day
                 if user.last_shift_update != date.today():
-                    get_today_shift_for_user(user.assignee_name)
+                    get_today_shift_for_user(user.emp_id)
                     user.last_shift_update = date.today()
                     user.save(update_fields=['last_shift_update'])
 
@@ -719,24 +730,43 @@ def do_login(request):
 
 
 
-from django.http import JsonResponse
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 def update_status(request):
+    print("✅ View triggered!")
+
     if 'emp_id' not in request.session:
+        print("❌ No session!")
+
         return redirect('login')
 
-    print("Request method:", request.method)
-    print("Request POST data:", request.POST)
     if request.method == 'POST':
         status = request.POST.get('status')
+        print(f"🔁 Received status: {status}")
         user = User.objects.get(emp_id=request.session['emp_id'])
 
         if status in dict(User.STATUS_CHOICES):
             user.status = status
             user.save()
+            print("✅ Status saved!")
+
+            # Broadcast via WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                "status_group",
+                {
+                    "type": "status_update",
+                    "user": user.emp_id,
+                    "status": status,
+                }
+            )
+
             return JsonResponse({'success': True, 'status': status})
         else:
+            print("❌ Invalid status!")
             return JsonResponse({'success': False, 'error': 'Invalid status'})
+
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 
@@ -780,30 +810,35 @@ def forgot_password(request):
 
  
 import pandas as pd
-from django.shortcuts import render
+from django.shortcuts import redirect
 from django.http import HttpResponse
 from .models import Ticket
 from django.utils.timezone import make_aware
- 
-def upload_excel(request):
 
+def upload_excel(request):
     if 'emp_id' not in request.session:
+        print("No emp_id in session — redirecting to login.")
         return redirect('login')
+
     if request.method == 'POST' and request.FILES.get('file'):
-        print('accessing dump')
+        print("✅ Excel file received.")
         excel_file = request.FILES['file']
-        df = pd.read_excel(excel_file)
- 
-        # Clean DataFrame
+
+        try:
+            df = pd.read_excel(excel_file)
+        except Exception as e:
+            print(f"❌ Error reading Excel: {e}")
+            return HttpResponse(f"Failed to read Excel file: {e}")
+
+        df.columns = df.columns.str.strip()
         df = df.where(pd.notnull(df), None)
- 
- 
+
         column_field_map = {
             'Ticket ID': 'ticket_id',
             'Ticket created - Timestamp': 'created_timestamp',
             'Ticket priority': 'priority',
             'Ticket subject': 'subject',
-            'Requester organization name' : 'requester_organization',
+            'Requester organization name': 'requester_organization',
             'Requester name': 'requester',
             'Product Category': 'product_category',
             'Ticket type': 'ticket_type',
@@ -818,7 +853,7 @@ def upload_excel(request):
             'Ticket form': 'form',
             'Comment': 'comment',
         }
- 
+
         timestamp_columns = [
             'Ticket created - Timestamp',
             'Ticket solved - Timestamp',
@@ -826,48 +861,78 @@ def upload_excel(request):
             'Ticket updated - Timestamp',
             'Ticket due - Timestamp',
         ]
- 
+
         for col in timestamp_columns:
             if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors='coerce')
+                df[col] = df[col].apply(lambda x: x.strip() if isinstance(x, str) else x)
+                df[col] = df[col].replace('', pd.NA)
+                try:
+                    df[col] = pd.to_datetime(df[col], format="%Y-%m-%dT%H:%M:%S", errors='raise')
+                except Exception as e:
+                    print(f"⚠️ Failed parsing '{col}' with format: {e}")
+                    df[col] = pd.to_datetime(df[col], errors='coerce')
+
                 df[col] = df[col].apply(lambda x: make_aware(x) if pd.notnull(x) and x.tzinfo is None else x)
- 
+
         uploaded_ticket_ids = set()
-       
-        for _, row in df.iterrows():
-            raw_id = row.get('Ticket ID')
-            if raw_id is None:
-                continue
- 
-            ticket_id = str(raw_id).strip()
-            uploaded_ticket_ids.add(ticket_id)
-            data = {}
- 
-            for excel_col, model_field in column_field_map.items():
-                if excel_col in df.columns:
-                    value = row[excel_col]
+
+        for index, row in df.iterrows():
+            try:
+                raw_id = row.get('Ticket ID')
+                if raw_id is None:
+                    print(f"⚠️ Row {index} missing Ticket ID — skipping.")
+                    continue
+
+                ticket_id = str(raw_id).strip()
+                uploaded_ticket_ids.add(ticket_id)
+                data = {}
+
+                for excel_col, model_field in column_field_map.items():
+                    value = row.get(excel_col)
+                    if model_field == 'assignee_name' and pd.notnull(value):
+                        value = str(value).strip().lower()  # Normalize
                     data[model_field] = value if pd.notnull(value) else None
+
+                existing_ticket = Ticket.objects.filter(ticket_id=ticket_id).first()
+                if existing_ticket:
+                    has_changes = False
+                    for field, new_value in data.items():
+                        old_value = getattr(existing_ticket, field)
+                        if old_value != new_value:
+                            has_changes = True
+                            break
+
+                    if has_changes:
+                        for field, new_value in data.items():
+                            setattr(existing_ticket, field, new_value)
+                        existing_ticket.save()
+                        print(f"🔁 Updated ticket ID: {ticket_id}")
+                    else:
+                        print(f"✅ No changes for ticket ID: {ticket_id}")
                 else:
-                    data[model_field] = None
- 
-            ticket, created = Ticket.objects.update_or_create(
-                ticket_id=ticket_id,
-                defaults=data
-            )
- 
- 
-        # 🔥 Delete tickets that are not in Excel
+                    Ticket.objects.create(**data)
+                    print(f"➕ Created new ticket ID: {ticket_id}")
+
+            except Exception as e:
+                print(f"❌ Error processing ticket ID {ticket_id}: {e}")
+
+        # 🔥 Delete tickets not present in Excel
         db_ticket_ids = set(Ticket.objects.values_list('ticket_id', flat=True))
         to_delete = db_ticket_ids - uploaded_ticket_ids
- 
         if to_delete:
             Ticket.objects.filter(ticket_id__in=to_delete).delete()
- 
-        for tid in Ticket.objects.values_list('ticket_id', flat=True):
-            return redirect('home')
-   
-    return redirect('home') 
- 
+            print(f"🗑️ Deleted {len(to_delete)} tickets not found in Excel: {to_delete}")
+        else:
+            print("✅ No tickets to delete.")
+
+        print("✅ Ticket upload completed.")
+        return redirect('home')
+
+    return redirect('home')
+
+
+
+
 from django.shortcuts import render
 from .models import Ticket
  
@@ -1028,12 +1093,12 @@ def shift_end_summary(request):
         return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
-    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
     users = list(User.objects.exclude(emp_id=current_user.emp_id))
 
     for u in users:
-        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
         u.shift = dynamic_shift
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
@@ -1333,25 +1398,29 @@ def new_tickets_view(request):
     users = User.objects.all()
     return render(request, 'portal_app/new_tickets.html', {'tickets': tickets, 'users': users})
 
-from django.shortcuts import render, redirect
+ 
+from django.shortcuts import render, redirect  
 import pandas as pd
 import datetime
 import os
 from django.conf import settings
-from django.urls import reverse
+from django.core.files.storage import default_storage
+from Freewheel_Portal.models import User
  
-SHIFT_EXCEL_PATH = os.path.join(settings.BASE_DIR, 'media', 'shifts.xlsx')
+SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
+ 
+ 
 def filter_by_shift(request):
     if 'emp_id' not in request.session:
         return redirect('login')
-
+ 
     employees = []
     selected_shift = request.GET.get('shift', '').strip()
-    today_day = datetime.datetime.now().day  # just day number, e.g., 19
+    today_day = datetime.datetime.now().day
  
     try:
         df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
-        date_row = df.iloc[1]  # Row 2 in Excel (index 1)
+        date_row = df.iloc[1]  # second row (index 1)
  
         shift_col_index = None
         for col_index, cell in enumerate(date_row):
@@ -1364,15 +1433,19 @@ def filter_by_shift(request):
                 continue
  
         if shift_col_index is None:
-            raise KeyError(f"Today's date ({today_day}) not found in Excel header row.")
+            raise KeyError(f"Today's date ({today_day}) not found in Excel.")
  
-        # Extract employees for selected shift
-        if selected_shift:
-            for i in range(4, len(df)):  # data starts from 5th row (index 4)
-                name = str(df.iloc[i, 0]).strip()
-                shift = str(df.iloc[i, shift_col_index]).strip()
-                if shift == selected_shift:
-                    employees.append(name)
+        # Loop through employee rows starting from row index 4
+        for i in range(4, len(df)):
+            emp_id_excel = str(df.iloc[i, 1]).strip().lower()  # Column 1 = PERNR ID
+            shift = str(df.iloc[i, shift_col_index]).strip()
+ 
+            if shift == selected_shift:
+                try:
+                    user = User.objects.get(emp_id__iexact=emp_id_excel)
+                    employees.append(user.name)
+                except User.DoesNotExist:
+                    employees.append(f"Unknown (ID: {emp_id_excel})")
  
     except Exception as e:
         return render(request, 'Freewheel_Portal/filter_shift.html', {
@@ -1384,36 +1457,51 @@ def filter_by_shift(request):
         'selected_shift': selected_shift
     })
  
+
+
+
+
  
 import os
-from django.conf import settings
 from django.shortcuts import redirect
+from django.conf import settings
 from django.core.files.storage import default_storage
+from django.contrib import messages
 
 def upload_shift_excel(request):
-
-
     if 'emp_id' not in request.session:
         return redirect('login')
-    print('called Upload_shift_excel')
+
+    print('[INFO] Upload_shift_excel called')
+
     if request.method == 'POST' and request.FILES.get('excel_file'):
-        print('upload_shift_excel POST')
+        print('[INFO] POST request received with file')
+
         excel_file = request.FILES['excel_file']
+
+        # Validate file extension
+        if not excel_file.name.endswith(('.xls', '.xlsx')):
+            messages.error(request, "Only Excel files (.xls, .xlsx) are allowed.")
+            print('[ERROR] Invalid file type uploaded')
+            return redirect('home')
+
+        # Always save as 'shifts.xlsx'
         file_path = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
 
-        # Delete the old file if it exists
+        # Delete old file if it exists
         if os.path.exists(file_path):
             os.remove(file_path)
-            print('removed Success')
+            print('[INFO] Previous shifts.xlsx file removed')
 
-        # Save the new uploaded file
+        # Save new file
         with default_storage.open(file_path, 'wb+') as destination:
             for chunk in excel_file.chunks():
                 destination.write(chunk)
-                print('saved Success')
+            print('[INFO] New shifts.xlsx file saved')
+
+        messages.success(request, "Shift Excel uploaded successfully.")
 
     return redirect('home')
-
 
 
 
@@ -1565,13 +1653,13 @@ def create_emp(request):
         return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
-    current_user.dynamic_shift = get_today_shift_for_user(current_user.assignee_name) or current_user.shift
+    current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
     latest_notice = list(Notice.objects.order_by('-posted_at')[:4].values())
     users = list(User.objects.exclude(emp_id=current_user.emp_id))
 
     for u in users:
-        dynamic_shift = get_today_shift_for_user(u.assignee_name) or u.shift
+        dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
         u.shift = dynamic_shift
         if u.shift in ['WO', 'CO', 'UL', 'PL']:
             u.status = 'Out Of Office'
@@ -1956,13 +2044,12 @@ def view_shift_day(request):
     })
 
 
-from Freewheel_Portal.utils import get_shifts_for_date_range
-from datetime import datetime
 from collections import defaultdict, OrderedDict
-from django.contrib import messages
 from django.shortcuts import render
+from django.contrib import messages
+from datetime import datetime
+from Freewheel_Portal.utils import get_shifts_for_date_range
  
-# Friendly labels for shifts (in your desired order)
 SHIFT_LABELS_ORDERED = OrderedDict([
     ("S1", "S1 (6:30am - 3:30pm)"),
     ("S2", "S2 (11am - 8pm)"),
@@ -1978,7 +2065,8 @@ SHIFT_LABELS_ORDERED = OrderedDict([
  
 def view_shift(request):
     shift_data = {}
-    shift_counts = defaultdict(int)
+    shift_counts_by_day = {code: defaultdict(int) for code in SHIFT_LABELS_ORDERED}
+    all_dates = set()
  
     if request.method == 'POST':
         from_date_str = request.POST.get('from_date')
@@ -1987,32 +2075,34 @@ def view_shift(request):
         try:
             from_date = datetime.strptime(from_date_str, '%Y-%m-%d').date()
             to_date = datetime.strptime(to_date_str, '%Y-%m-%d').date()
- 
             shift_data = get_shifts_for_date_range(from_date, to_date)
  
-            # Count shifts
             for user, shifts in shift_data.items():
                 for date, shift in shifts.items():
-                    shift = shift.upper().strip()
+                    shift = shift.strip().upper()
                     if shift in SHIFT_LABELS_ORDERED:
-                        shift_counts[shift] += 1
+                        shift_counts_by_day[shift][date] += 1
+                        all_dates.add(date)
+ 
+            sorted_dates = sorted(all_dates)
+ 
+            # Prepare rows for template
+            shift_count_rows = []
+            for code, label in SHIFT_LABELS_ORDERED.items():
+                row = {"label": label, "counts": [shift_counts_by_day[code].get(str(dt), 0) for dt in sorted_dates]}
+                shift_count_rows.append(row)
+ 
+            return render(request, 'Freewheel_Portal/view_shift_range.html', {
+                'shift_data': shift_data,
+                'shift_count_rows': shift_count_rows,
+                'date_headers': sorted_dates,
+                'shift_labels': SHIFT_LABELS_ORDERED
+            })
  
         except Exception as e:
-            shift_data = {}
             messages.error(request, f"Invalid date input: {str(e)}")
  
-    # Prepare shift summary in required display format and order
-    ordered_shift_summary = []
-    for code, label in SHIFT_LABELS_ORDERED.items():
-        count = shift_counts.get(code, 0)
-        ordered_shift_summary.append({"label": label, "count": count})
- 
-    return render(request, 'Freewheel_Portal/view_shift.html', {
-        'shift_data': shift_data,
-        'shift_summary': ordered_shift_summary,
-        'shift_labels': dict(SHIFT_LABELS_ORDERED)
-    })
- 
+    return render(request, 'Freewheel_Portal/view_shift.html', {})
     
 
 from django.http import JsonResponse

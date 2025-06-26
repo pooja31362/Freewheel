@@ -1,0 +1,236 @@
+/* Without Ticket View */
+.user-container {
+    margin: .5rem 0 0 4rem;
+    box-shadow: rgba(0,0,0,0.5) 0px 2px 5px;
+    border-radius: 10px;
+    padding: .3rem .3rem .3rem .8rem;
+    max-width: 73rem;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    height: 82.5vh;
+    width: 100%;
+    }
+.user {
+    padding-left: .5rem;
+    padding-bottom: .5rem;
+    scroll-behavior: smooth;
+    flex: 3;
+    overflow-y: auto;
+    }
+
+    .notice_latest p{
+      margin: 0;
+    }
+
+.ticket {
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+    max-height: 0;
+    width: 100%;
+    margin-top: .4rem;
+
+}
+
+.status-section.active {
+    box-shadow: -0.5rem 0 0 rgba(59, 10, 117, 1);
+    background-color: rgba(59, 10, 117, 1);
+    border-radius: 10px;
+}
+
+.ticket.active {
+    max-height: 100%;
+}
+
+.user-container::-webkit-scrollbar {
+display: none;
+}
+
+
+.user-card {
+    background: white;
+    border: 2px solid #3b0a75;
+    box-shadow: rgba(59,10,117,1) -.5rem 0rem 0rem;
+    max-height: 2.6rem;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 0 0 0 .5rem;
+    display: flex;
+    overflow: hidden;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    transition: 0.3s ease-in-out;
+}
+.user-card.active {
+  max-height: max-content; /* Adjust to expected full height */
+}
+  
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-info .user-img {
+    max-width: 2.1rem;
+    max-height: 2.1rem;
+}
+
+.user-img img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.user-stats {
+  display: flex;
+  gap: 20px;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.user-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.user-actions button {
+  border-radius: 10px;
+  font-weight: bold;
+  border: none;
+  color: white;
+  background: #3b0a75;
+  cursor: pointer;
+  margin: 0.2rem 0;
+}
+
+.user-actions img {
+  width: 2rem;
+}
+
+.user-card .top-section{
+    width: 100%;
+    margin-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+
+.title {
+  width: 20vh;
+}
+
+.manager {
+  width: 27vh;
+}
+
+.shift {
+  width: 10vh;
+}
+
+
+
+    .userCard-ticketList {
+    background: white;
+    border: 2px solid #3b0a75;
+    box-shadow: rgba(59,10,117,1) -.5rem 0rem 0rem;
+    border-radius: 10px;
+    padding: 10px;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-bottom: .5rem;
+    height: 80vh;
+    }
+
+    .hidden{
+        display: none;
+    }
+
+.users .top-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.users{
+    padding-left: .5rem;
+    padding-bottom: .5rem;
+    scroll-behavior: smooth;
+    flex: 3;
+    max-height: 80.1vh;
+    padding-right: 0.5rem;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ticket-tabs {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.ticket-tabs .tab {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  background: #f2f2f2;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ticket-tabs .tab.active {
+  background: #9a9a9a;
+  color: white;
+}
+
+.ticket-row1 {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-row {
+      display: flex;
+    flex-direction: column;
+}
+
+.user-container .ticket-table {
+    font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.comment-btn {
+    background: transparent;
+    border: none;
+    font-size: 23px;
+    font-weight: bolder;
+    cursor: pointer;
+}
+
+.assign-btn {
+    background: transparent;
+    border: none;
+    font-size: 23px;
+    font-weight: bolder;
+    cursor: pointer;
+}

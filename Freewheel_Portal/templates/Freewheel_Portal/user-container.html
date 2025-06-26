@@ -4,100 +4,7 @@
       <div id="toast" class="toast hidden"></div>
 
       <div class="user"> <!-- add user -->
-        <div class="user-card">
-            <div class="top-section">
-                <div class="user-info">
-                    <div class="user-img">
-                        <img src="{{ current_user.profile_image.url }}" alt="User">
-                    </div>
-                    <div style="width: 40vh;">
-                        <div style="font-size: 14px; font-weight: bold;">You</div>
-                        <div id="user-status-display" style="font-size: 12px;">
-                            {% if current_user.status == 'Available' %}
-                            <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
-                            {% elif current_user.status == 'Away' %}
-                            <i class="fa-solid fa-clock" style="color: #FFC107;"></i>
-                            {% elif current_user.status == 'In-Meeting' %}
-                            <i class="fa-solid fa-square-phone" style="color: #F44336;"></i>
-                            {% elif current_user.status == 'Offline' %}
-                            <i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>
-                            {% elif current_user.status == 'Out Of Office' %}
-                            <i class="fa-solid fa-circle-arrow-right" style="color: #c235e0 ;"></i>
-                            {% endif %}
-                           
-                           
-                            {{ current_user.status }}</div>
-                    </div>
-                </div>
 
-                <div class="shift">
-                    <div style="font-size: 14px; font-weight: bold;">Open :</div>
-                    <div style="font-size: 12px;">{{ current_user.open_ticket_count }}</div>
-                </div>
-                <div class="shift">
-                    <div style="font-size: 14px; font-weight: bold;">Pending :</div>
-                    <div style="font-size: 12px;">{{ current_user.pending_ticket_count }}</div>
-                </div>
-                    <div class="shift">
-                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
-                        <div style="font-size: 12px;">{{ current_user.shift }}</div>
-                    </div>
-                    <div class="title">
-                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
-                        <div style="font-size: 12px;">{{ current_user.job_title }}</div>
-                    </div>
- 
-                    <div class="manager">
-                        <div style="font-size: 14px; font-weight: bold;">Reporting Manager:</div>
-                        <div style="font-size: 12px;">{{ current_user.repor_manager }}</div>
-                    </div>
- 
-                <div class="user-actions">
-                    <button class="ticketsList">Tickets</button>
-                </div>
-            </div>
-            <div class="ticket" >
-            <div class="ticket-tabs">
-                <button class="tab" data-status="open">Open Tickets</button>
-                <button class="tab" data-status="pending">Pending Tickets</button>
-                <button class="tab" data-status="hold">On-Hold Ticket</button>
-                <button class="tab" data-status="solved">Solved Ticket</button>
-            </div>
- 
-            <div class="ticket-table">
- 
-                {% for ticket in tickets %}
-                {% if ticket.assignee_name == current_user.assignee_name%}
-                <div class="ticket-row1" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
-                  <div class="ticket-info1">
-                    <a href="https://freewheel.zendesk.com/agent/tickets/{{ ticket.ticket_id }}" target="_blank">
-                            {{ ticket.ticket_id }}
-                        </a>
-                    <div>{{ ticket.subject|default:"N/A" }}</div>
-                    <div>{{ ticket.priority|default:"Normal" }}</div>
-                    <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
-                    <div><button type="button" class="menu-btn-cmt"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
-                    <div><button type="button" class="cnge-btn-cmt"><i class="fa-solid fa-shuffle" style="color: black;"></i></button></div>
-
-                  </div>
-                
-                  <div class="comment-box1 hidden">
-                    <select name="status" id="status-drop">
-                      <option value="Open">Open</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Hold">On-Hold</option>
-                      <option value="Solved">Solved</option>
-                    </select>
-                    <input type="text" placeholder="Enter comment..." style="width:100%">
-                    <button class="submit-comment1">Comment</button>
-                  </div>
-                </div>
-                
-                {% endif %}
-                {% endfor %}
-            </div>
-            </div>
-        </div>
 
 
 
@@ -110,15 +17,22 @@
                 data-shift="{{ user.shift }}"
                 data-manager="{{ user.repor_manager }}"
                 data-role="{{ user.job_title }}"
-                data-status="{{ user.status }}">
+                data-status="{{ user.status }}"
+                data-access="{{ user.user_type }}">
                 <div class="top-section">
                     <div class="user-info">
                         <div class="user-img">
                           <img src="{{ user.profile_image.url }}" alt="User" />
                         </div>
                         <div style="width: 40vh;">
-                            <div style="font-size: 14px; font-weight: bold;">{{ user.assignee_name }}</div>
-                            <div style="font-size: 12px;">
+                            <div style="font-size: 14px; font-weight: bold;">
+                              {% if user.assignee_name == current_user.assignee_name %}
+                              You
+                              {% else %}
+                              {{ user.assignee_name }}
+                              {% endif %}
+                            </div>
+                            <div {% if user.emp_id|stringformat:"s" == current_user.emp_id|stringformat:"s" %}id="user-status-display"{% endif %} style="font-size: 12px;">
                                 {% if user.status == 'Available' %}
                                 <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
                                 {% elif user.status == 'Away' %}
@@ -133,6 +47,7 @@
                                 {{ user.status }}</div>
                         </div>
                     </div>
+                    {% if user.job_title != 'M1' %}
                     <div class="shift">
                         <div style="font-size: 14px; font-weight: bold;">Open :</div>
                         <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
@@ -145,7 +60,7 @@
                         <div style="font-size: 14px; font-weight: bold;">Shift:</div>
                         <div style="font-size: 12px;">{{ user.shift }}</div>
                     </div>
-
+                    {% endif %}
                     <div class="title">
                         <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
                         <div style="font-size: 12px;">{{ user.job_title }}</div>

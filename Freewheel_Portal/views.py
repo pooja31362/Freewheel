@@ -1805,14 +1805,13 @@ def view_shift(request):
                 'shift_data': shift_data,
                 'shift_count_rows': shift_count_rows,
                 'date_headers': sorted_dates,
-                'shift_labels': SHIFT_LABELS_ORDERED
+                'shift_labels': SHIFT_LABELS_ORDERED  
             })
  
         except Exception as e:
             messages.error(request, f"Invalid date input: {str(e)}")
  
-    return render(request, 'Freewheel_Portal/view_shift.html', {})
-    
+    return render(request, 'Freewheel_Portal/view_shift.html', {})   
 
 from django.http import JsonResponse
  

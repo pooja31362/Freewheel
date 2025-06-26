@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Shift Summary</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Shift Summary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
  
     <!-- Portal Styles -->
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
-    <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
+<link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
+<link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
+<link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
+<link rel="stylesheet" href="../../static/Freewheel_Portal/css/deligation.css">
+<link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
  
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
  
     <style>
         .shift-mail-form {
@@ -34,6 +34,7 @@
             border: 1px solid #ccc;
             padding: 8px;
             text-align: center;
+            font-size: 15px;
         }
  
         th {
@@ -49,7 +50,11 @@
             border-radius: 4px;
             cursor: pointer;
         }
- 
+        .highlight-shift {
+        background-color: #dbeafe !important; /* Light blue */
+        font-weight: bold;
+        color: #1d4ed8;
+        }
         .btn:hover {
             background-color: #2563eb;
         }
@@ -57,7 +62,7 @@
         .filter-buttons {
             margin-top: 1rem;
         }
-    </style>
+</style>
 </head>
 <body>
  
@@ -65,93 +70,106 @@
 {% include 'Freewheel_Portal/deligation.html' %}
  
 <div class="click">
-    <div class="whole-page" id="wholePage">
-        <div class="shift-mail-form">
-            <h2>View Shift Summary</h2>
+<div class="whole-page" id="wholePage">
+<div class="shift-mail-form">
+<h2>Shift Summary</h2>
  
             <form method="POST">
                 {% csrf_token %}
-                <label>From Date: <input type="date" name="from_date" required></label>
-                <label>To Date: <input type="date" name="to_date" required></label>
-                <button type="submit" class="btn">View Shifts</button>
-            </form>
+<label>From Date: <input type="date" name="from_date" required></label>
+<label>To Date: <input type="date" name="to_date" required></label>
+<button type="submit" class="btn">View Shifts</button>
+</form>
  
-            {% if shift_summary %}
-                <h3>Shift Count Summary</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Shift</th>
-                            <th>Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in shift_summary %}
-                            {% if item.count > 0 %}
-                                <tr>
-                                    <td>{{ item.label }}</td>
-                                    <td>{{ item.count }}</td>
-                                </tr>
-                            {% endif %}
-                        {% endfor %}
-                    </tbody>
-                </table>
+            {% if shift_count_rows %}
+<h3>Shift Count Per Day</h3>
+<div style="overflow-x: auto;">
+<table>
+<thead>
+<tr>
+<th>Shift</th>
+                                {% for d in date_headers %}
+<th>{{ d }}</th>
+                                {% endfor %}
+</tr>
+</thead>
+<tbody>
+                            {% for row in shift_count_rows %}
+<tr>
+<td>{{ row.label }}</td>
+                                    {% for count in row.counts %}
+<td>{{ count }}</td>
+                                    {% endfor %}
+</tr>
+                            {% endfor %}
+</tbody>
+</table>
+</div>
             {% endif %}
  
             {% if shift_data %}
-                <div class="filter-buttons">
-                    <h3>Filter by Shift</h3>
+<div class="filter-buttons">
+<h3>Filter by Shift</h3>
                     {% for code, label in shift_labels.items %}
-                        <button class="btn" onclick="filterShift('{{ code }}')">{{ code }}</button>
+<button class="btn" onclick="filterShift('{{ code }}')">{{ code }}</button>
                     {% endfor %}
-                    <button class="btn" onclick="filterShift('ALL')">Show All</button>
-                </div>
+<button class="btn" onclick="filterShift('ALL')">Show All</button>
+</div>
  
                 <div style="overflow-x:auto;">
-                    <table id="shiftTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
+<table id="shiftTable">
+<thead>
+<tr>
+<th>Name</th>
                                 {% for name, shifts in shift_data.items %}
                                     {% if forloop.first %}
                                         {% for date_key in shifts.keys %}
-                                            <th>{{ date_key }}</th>
+<th>{{ date_key }}</th>
                                         {% endfor %}
                                     {% endif %}
                                 {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
+</tr>
+</thead>
+<tbody>
                             {% for name, shifts in shift_data.items %}
-                                <tr>
-                                    <td class="emp-name">{{ name }}</td>
+<tr>
+<td class="emp-name">{{ name }}</td>
                                     {% for date, shift in shifts.items %}
-                                        <td class="shift-cell" data-shift="{{ shift|upper }}">{{ shift }}</td>
+<td class="shift-cell" data-shift="{{ shift|upper }}">{{ shift }}</td>
                                     {% endfor %}
-                                </tr>
+</tr>
                             {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+</tbody>
+</table>
+</div>
             {% else %}
-                <p style="margin-top: 20px;">No shift data available for the selected date range.</p>
+<p style="margin-top: 20px;">No shift data available for the selected date range.</p>
             {% endif %}
-        </div>
-    </div>
+</div>
+</div>
 </div>
  
 <script>
     function filterShift(shiftCode) {
         const rows = document.querySelectorAll("#shiftTable tbody tr");
+        const cells = document.querySelectorAll(".shift-cell");
+ 
+        // Reset all highlights
+        cells.forEach(cell => {
+            cell.classList.remove("highlight-shift");
+        });
  
         rows.forEach(row => {
             let showRow = false;
-            const cells = row.querySelectorAll(".shift-cell");
+            const shiftCells = row.querySelectorAll(".shift-cell");
  
-            cells.forEach(cell => {
+            shiftCells.forEach(cell => {
                 const cellShift = cell.getAttribute("data-shift");
-                if (shiftCode === "ALL" || cellShift === shiftCode) {
+                if (shiftCode === "ALL") {
                     showRow = true;
+                } else if (cellShift === shiftCode) {
+                    showRow = true;
+                    cell.classList.add("highlight-shift");  // <-- highlight this cell
                 }
             });
  

@@ -291,46 +291,43 @@ def get_utc_half_hour_distribution(shift_data_today, shift_data_prev, shift_data
 
 
 def get_shifts_for_date_range(from_date: datetime.date, to_date: datetime.date):
-    """
-    Returns a dictionary of shifts for each user between from_date and to_date.
-    {
-        'john': {'2025-06-20': 'S1', '2025-06-21': 'S2'},
-        ...
-    }
-    """
     try:
         if not os.path.exists(SHIFT_EXCEL_PATH):
             print(f"[ERROR] Shift Excel not found at: {SHIFT_EXCEL_PATH}")
             return {}
  
         df = pd.read_excel(SHIFT_EXCEL_PATH, header=None)
-        date_row = pd.to_datetime(df.iloc[1], errors='coerce').dt.date  # second row contains dates
-        name_column = df.iloc[3:, 0].astype(str).str.strip().str.lower()  # names from row 5 onward
  
-        shift_map = {}  # result dictionary
+        # Step 1: Parse date row properly
+        raw_date_row = df.iloc[1]
+        parsed_dates = pd.to_datetime(raw_date_row, errors='coerce', dayfirst=True)
+        valid_date_indices = [i for i, d in enumerate(parsed_dates) if pd.notna(d)]
+        valid_dates = [parsed_dates[i].date() for i in valid_date_indices]
+ 
+        name_column = df.iloc[3:, 0].astype(str).str.strip()
+        shift_map = {}
  
         for row_idx, name in enumerate(name_column, start=3):
-            name = str(name).strip().lower()
- 
-            # Stop if we hit garbage footer data
+            name = str(name).strip()
+            lower_name = name.lower()
             if (
                 not name or
                 name == "nan" or
-                any(keyword in name for keyword in [
-                    "total staffing", "planned leave", "casual leave", "earned leave",
-                    "unplanned leave", "sick leave", "compensation off", "pl -", "cl -", "el -", "ul -", "sl -", "co -"
+                any(keyword in lower_name for keyword in [
+                    "total staffing", "planned leave", "casual leave", "earned leave", 
+                    "unplanned leave", "sick leave", "compensation off", 
+                    "pl -", "cl -", "el -", "ul -", "sl -", "co -",
+                    "dinesh babu r", "rama sai suneetha k",
                 ]) or
-                name.startswith(('s1(', 's2(', 's3(', 's4(', 's6(', 'g(')) or
-                name.isdigit()
+                lower_name.startswith(('s1(', 's2(', 's3(', 's4(', 's6(','g(')) or
+                lower_name in ("s1", "s2", "s3", "s4", "s6", "g")
             ):
                 continue
  
             shift_map[name] = {}
-            for col_idx, date in enumerate(date_row):
-                if pd.isna(date):
-                    continue
+            for idx, date in zip(valid_date_indices, valid_dates):
                 if from_date <= date <= to_date:
-                    shift = str(df.iloc[row_idx, col_idx]).strip()
+                    shift = str(df.iloc[row_idx, idx]).strip()
                     if shift and shift.lower() != 'nan':
                         shift_map[name][str(date)] = shift
  
@@ -339,4 +336,3 @@ def get_shifts_for_date_range(from_date: datetime.date, to_date: datetime.date):
     except Exception as e:
         print(f"[ERROR] Failed to fetch shifts for date range: {e}")
         return {}
-

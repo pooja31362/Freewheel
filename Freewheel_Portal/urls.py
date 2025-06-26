@@ -41,7 +41,7 @@ urlpatterns = [
     path('notice/add/', views.notice_add, name='notice_add'),
     path('notice/edit/<int:notice_id>/', views.edit_notice, name='edit_notice'),
     path('notice/delete/<int:notice_id>/', views.delete_notice, name='delete_notice'),
-
+    path('reset-password/', views.reset_password, name='reset_password'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # edited

@@ -71,6 +71,59 @@
                 <p style="margin: 2px 0;"><strong>Role:</strong> {{ current_user.job_title }}</p>
                 <p style="margin: 2px 0;"><strong>Availability:</strong> {{ current_user.status }}</p>
                 <p style="margin: 2px 0;"><strong>Email:</strong> {{ current_user.email }}</p>
+                <p style="margin: 2px 0;"><strong>Bussiness Unit:</strong> {{ current_user.BussinessUnit }}</p>
+                <p style="margin: 2px 0;">
+                  <strong>Work Region:</strong>
+                  {% if current_user.work_region == "ciec" %}
+                    Comcast India Engineering Center
+                  {% else %}
+                    {{ current_user.work_region|default:"N/A" }}
+                  {% endif %}
+                </p>
+                <button id="resetPasswordBtn" style="margin-top: 15px; padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                  Reset Password
+              </button>
+               
+              </div>
+            </div>    
+            <div id="passwordResetModal" style="
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+">
+    <div style="
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+        position: relative;
+        text-align: center;
+    ">
+        <button style="position: absolute; top: 8px; right: 10px; background: transparent; border: none; font-size: 16px; cursor: pointer;" onclick="document.getElementById('passwordResetModal').style.display='none';">&times;</button>
+       
+        <h1 style="color: #3b0a75 ">Reset Password</h1>
+        <form method="POST" action="/reset-password/">
+         
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+           
+            <input type="password" name="current_password" placeholder="Current Password" required
+style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; border-radius: 4px;" >
+ 
+<input type="password" name="new_password" placeholder="New Password" required
+style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; border-radius: 4px;" >
+ 
+           
+            <button type="submit" style="padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Update Password
+            </button>
+        </form>
               </div>
             </div>               
                 <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
@@ -508,5 +561,13 @@ socket.onmessage = function(event) {
         dropdown.style.display = "none";
       }
     });
+  });
+</script>
+
+
+
+<script>
+  document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+      document.getElementById('passwordResetModal').style.display = 'flex';
   });
 </script>

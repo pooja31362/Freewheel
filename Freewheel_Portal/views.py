@@ -1801,7 +1801,7 @@ def view_shift(request):
                 row = {"label": label, "counts": [shift_counts_by_day[code].get(str(dt), 0) for dt in sorted_dates]}
                 shift_count_rows.append(row)
  
-            return render(request, 'Freewheel_Portal/view_shift_range.html', {
+            return render(request, 'Freewheel_Portal/view_shift.html', {
                 'shift_data': shift_data,
                 'shift_count_rows': shift_count_rows,
                 'date_headers': sorted_dates,
@@ -2233,3 +2233,37 @@ def notice_board(request):
     return render(request, 'Freewheel_Portal/notice.html', {
         'all_notices': notice,
     })
+
+
+from django.shortcuts import redirect
+from django.contrib import messages
+from .models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect, get_object_or_404
+from Freewheel_Portal.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+ 
+@csrf_exempt
+def reset_password(request):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+       
+        # Assuming session stores emp_id of logged-in user
+        emp_id = request.session.get("emp_id")
+       
+        if not emp_id:
+            return HttpResponse("Unauthorized", status=401)
+       
+        user = get_object_or_404(User, emp_id=emp_id)
+       
+        if user.password != current_password:
+            return HttpResponse("Incorrect current password", status=400)
+       
+        user.password = new_password
+        user.save()
+       
+        return redirect("home")  # Or return HttpResponse("Password updated successfully")
+   
+    return HttpResponse("Invalid Request", status=400)

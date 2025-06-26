@@ -422,45 +422,28 @@ def do_login(request):
 
 
 
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-
+from django.http import JsonResponse
+ 
 def update_status(request):
-    print("✅ View triggered!")
-
     if 'emp_id' not in request.session:
-        print("❌ No session!")
-
         return redirect('login')
-
+ 
+    print("Request method:", request.method)
+    print("Request POST data:", request.POST)
     if request.method == 'POST':
         status = request.POST.get('status')
-        print(f"🔁 Received status: {status}")
         user = User.objects.get(emp_id=request.session['emp_id'])
-
+ 
         if status in dict(User.STATUS_CHOICES):
             user.status = status
             user.save()
-            print("✅ Status saved!")
-
-            # Broadcast via WebSocket
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                "status_group",
-                {
-                    "type": "status_update",
-                    "user": user.emp_id,
-                    "status": status,
-                }
-            )
-
             return JsonResponse({'success': True, 'status': status})
         else:
-            print("❌ Invalid status!")
             return JsonResponse({'success': False, 'error': 'Invalid status'})
-
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
+ 
 
+ 
 
 from django.http import HttpResponse
 from django.utils.crypto import get_random_string

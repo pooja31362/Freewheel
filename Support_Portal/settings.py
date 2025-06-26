@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',    
-    'channels',
 
 ]
 
@@ -161,12 +160,3 @@ SESSION_COOKIE_SECURE = True
  
 # Cross-browser compatibility
 CSRF_COOKIE_SAMESITE = 'Lax'
-
-
-ASGI_APPLICATION = 'Support_Portal.asgi.application'
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    },
-}

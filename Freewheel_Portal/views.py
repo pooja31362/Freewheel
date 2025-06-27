@@ -1150,46 +1150,38 @@ def filter_by_shift(request):
 
  
 import os
-from django.shortcuts import redirect
+import pandas as pd
 from django.conf import settings
-from django.core.files.storage import default_storage
-from django.contrib import messages
- 
-def upload_shift_excel(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
- 
-    print('[INFO] Upload_shift_excel called')
- 
-    if request.method == 'POST' and request.FILES.get('excel_file'):
-        print('[INFO] POST request received with file')
- 
-        excel_file = request.FILES['excel_file']
- 
-        # Validate file extension
-        if not excel_file.name.endswith(('.xls', '.xlsx')):
-            messages.error(request, "Only Excel files (.xls, .xlsx) are allowed.")
-            print('[ERROR] Invalid file type uploaded')
-            return redirect('home')
- 
-        # Always save as 'shifts.xlsx'
-        file_path = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
- 
-        # Delete old file if it exists
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            print('[INFO] Previous shifts.xlsx file removed')
- 
-        # Save new file
-        with default_storage.open(file_path, 'wb+') as destination:
-            for chunk in excel_file.chunks():
-                destination.write(chunk)
-            print('[INFO] New shifts.xlsx file saved')
- 
-        messages.success(request, "Shift Excel uploaded successfully.")
- 
-    return redirect('home')
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 
+@csrf_exempt
+def upload_shift_excel(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        uploaded_file = request.FILES['excel_file']
+        folder_path = os.path.join(settings.MEDIA_ROOT, 'shift_roster')
+        os.makedirs(folder_path, exist_ok=True)
+
+        # Find the next index
+        existing_files = [f for f in os.listdir(folder_path) if f.startswith('shift_roster_') and f.endswith('.xlsx')]
+        indices = []
+        for f in existing_files:
+            try:
+                indices.append(int(f.split('_')[-1].split('.')[0]))
+            except:
+                continue
+        next_index = max(indices + [0]) + 1
+        new_filename = f"shift_roster_{next_index}.xlsx"
+        file_path = os.path.join(folder_path, new_filename)
+
+        # Save the file
+        with open(file_path, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        return JsonResponse({'status': 'success', 'filename': new_filename})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 
 
@@ -1705,54 +1697,44 @@ def health_check(request):              # edited
 
 
 
+ 
 from django.shortcuts import render
 from django.contrib import messages
 from datetime import datetime, timedelta
 import json
  
 from Freewheel_Portal.utils import get_utc_half_hour_distribution, get_shifts_for_date
- 
 def view_shift_day(request):
-    shift_data = {}
     hour_distribution = {}
-    selected_date_str = None
-    current_user = User.objects.get(emp_id=request.session['emp_id'])
-
-    
- 
-    if request.method == 'POST':
-        date_str = request.POST.get('selected_date')
-        selected_date_str = date_str
- 
-        try:
+    try:
+        if request.method == 'POST':
+            date_str = request.POST.get('selected_date')
             selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        else:
+            selected_date = datetime.today().date()
  
-            # Get previous, selected, and next day shift data
-            prev_day = selected_date - timedelta(days=1)
-            next_day = selected_date + timedelta(days=1)
+        selected_date_str = selected_date.strftime('%Y-%m-%d')
+        prev_day = selected_date - timedelta(days=1)
+        next_day = selected_date + timedelta(days=1)
  
-            shift_data_today = get_shifts_for_date(selected_date)
-            shift_data_prev = get_shifts_for_date(prev_day)
-            shift_data_next = get_shifts_for_date(next_day)
+        shift_data_today = get_shifts_for_date(selected_date)
+        shift_data_prev = get_shifts_for_date(prev_day)
+        shift_data_next = get_shifts_for_date(next_day)
  
-            # Generate hour distribution using new logic
-            hour_distribution = get_utc_half_hour_distribution(
-                shift_data_today, shift_data_prev, shift_data_next, selected_date
-            )
-            print("[DEBUG] UTC Hour Distribution:", hour_distribution)
+        hour_distribution = get_utc_half_hour_distribution(
+            shift_data_today, shift_data_prev, shift_data_next, selected_date
+        )
+        print("[DEBUG] UTC Hour Distribution:", hour_distribution)
  
-        except Exception as e:
-            messages.error(request, f"Invalid date input: {str(e)}")
+    except Exception as e:
+        messages.error(request, f"Invalid date input: {str(e)}")
+        selected_date_str = ''
  
     return render(request, 'Freewheel_Portal/view_shift_range.html', {
-        'shift_data': shift_data_today if shift_data else {},
+        'shift_data': shift_data_today if hour_distribution else {},
         'hour_distribution': json.dumps(hour_distribution),
-        'selected_date': selected_date_str,
-        'current_user': current_user
+        'selected_date': selected_date_str
     })
-
-
-
 
 
 
@@ -1780,16 +1762,15 @@ def view_shift(request):
     shift_data = {}
     shift_counts_by_day = {code: defaultdict(int) for code in SHIFT_LABELS_ORDERED}
     all_dates = set()
-    current_user = User.objects.get(emp_id=request.session['emp_id'])
-    
  
-    if request.method == 'POST':
-        from_date_str = request.POST.get('from_date')
-        to_date_str = request.POST.get('to_date')
+    from_date_str = request.POST.get('from_date', '')
+    to_date_str = request.POST.get('to_date', '')
  
+    if request.method == 'POST' and from_date_str and to_date_str:
         try:
             from_date = datetime.strptime(from_date_str, '%Y-%m-%d').date()
             to_date = datetime.strptime(to_date_str, '%Y-%m-%d').date()
+ 
             shift_data = get_shifts_for_date_range(from_date, to_date)
  
             for user, shifts in shift_data.items():
@@ -1801,7 +1782,6 @@ def view_shift(request):
  
             sorted_dates = sorted(all_dates)
  
-            # Prepare rows for template
             shift_count_rows = []
             for code, label in SHIFT_LABELS_ORDERED.items():
                 row = {"label": label, "counts": [shift_counts_by_day[code].get(str(dt), 0) for dt in sorted_dates]}
@@ -1812,15 +1792,21 @@ def view_shift(request):
                 'shift_count_rows': shift_count_rows,
                 'date_headers': sorted_dates,
                 'shift_labels': SHIFT_LABELS_ORDERED,
-                'current_user': current_user
+                'from_date': from_date_str,
+                'to_date': to_date_str,
             })
  
         except Exception as e:
             messages.error(request, f"Invalid date input: {str(e)}")
  
     return render(request, 'Freewheel_Portal/view_shift.html', {
-        "current_user": current_user,
-    })   
+        'from_date': from_date_str,
+        'to_date': to_date_str,
+    })
+
+
+
+
 
 from django.http import JsonResponse
  

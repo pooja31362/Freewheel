@@ -22,6 +22,7 @@
             border-radius: 10px;
             margin: 1rem 1rem 1rem 4rem;
             box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            max-height: 90vh;
         }
  
         table {
@@ -76,8 +77,8 @@
  
             <form method="POST">
                 {% csrf_token %}
-<label>From Date: <input type="date" name="from_date" required></label>
-<label>To Date: <input type="date" name="to_date" required></label>
+<label>From Date: <input type="date" name="from_date" value="{{ from_date }}" required></label>
+<label>To Date: <input type="date" name="to_date" value="{{ to_date }}" required></label>
 <button type="submit" class="btn">View Shifts</button>
 </form>
  

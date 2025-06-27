@@ -23,11 +23,9 @@
   <script src="../../static/Freewheel_Portal/js/ticket-open.js" defer></script>
   <script src="../../static/Freewheel_Portal/js/shift-end-mail.js" defer></script>
  
-  <!-- Chart.js + Datalabels Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
  
-  <!-- Toggle Switch Styling -->
   <style>
     .switch {
       position: relative;
@@ -35,43 +33,37 @@
       width: 60px;
       height: 28px;
     }
- 
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
- 
+    .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #ccc;
       transition: 0.4s;
       border-radius: 28px;
     }
- 
     .slider:before {
       position: absolute;
       content: "";
-      height: 20px;
-      width: 20px;
-      left: 4px;
-      bottom: 4px;
+      height: 20px; width: 20px;
+      left: 4px; bottom: 4px;
       background-color: white;
       transition: 0.4s;
       border-radius: 50%;
     }
+    input:checked + .slider { background-color: #2196F3; }
+    input:checked + .slider:before { transform: translateX(32px); }
  
-    input:checked + .slider {
-      background-color: #2196F3;
-    }
- 
-    input:checked + .slider:before {
-      transform: translateX(32px);
+    .back-button {
+      display: inline-block;
+      margin: 10px;
+      padding: 6px 12px;
+      background-color: #3b0a75;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -82,42 +74,37 @@
  
   <div class="click" style="padding: 1rem 4rem;">
     <div class="whole-page" style="height: 90vh;">
-      <a href="{% url 'home' %}" class="back-button">
-        &#8592; Back to Home
-      </a>
+      <a href="{% url 'home' %}" class="back-button">&#8592; Back to Home</a>
  
       <form method="POST">
         {% csrf_token %}
         <label for="selected_date">Select Date:</label>
         <input type="date" name="selected_date" required value="{{ selected_date }}">
       </form>
+ 
       <div style="display: flex;">
-              <div style="margin: 10px 0;flex:2;">
-        <label class="switch">
-          <input type="checkbox" id="chartToggle" onchange="toggleChartType()" />
-          <span class="slider round"></span>
-        </label>
-        <span id="chartTypeLabel">Bar Chart</span>
-      </div>
-      {% if selected_date %}
-        <div style="text-align: center; margin-top: 20px; font-size: 20px; font-weight: bold; flex: 8">
-          Shift Data for: {{ selected_date }}
+        <div style="margin: 10px 0; flex: 2;">
+          <label class="switch">
+            <input type="checkbox" id="chartToggle" onchange="toggleChartType()" />
+            <span class="slider round"></span>
+          </label>
+          <span id="chartTypeLabel">Bar Chart</span>
         </div>
-      {% endif %}
-      <div style="flex: 2;"></div>
+ 
+        {% if selected_date %}
+          <div style="text-align: center; margin-top: 20px; font-size: 20px; font-weight: bold; flex: 8">
+            Shift Data for: {{ selected_date }}
+          </div>
+        {% endif %}
+        <div style="flex: 2;"></div>
       </div>
  
-      <!-- Chart Toggle -->
- 
- 
-      <!-- Chart Container -->
       <div style="max-width: 100%; overflow-x: auto;">
         <canvas id="shiftChart" style="width: 100%; height: 500px;"></canvas>
       </div>
     </div>
   </div>
  
-  <!-- Chart Script -->
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       document.querySelector('input[name="selected_date"]').addEventListener("change", function () {
@@ -126,19 +113,34 @@
     });
  
     const hourDistribution = {{ hour_distribution|safe }};
-    const labels = [];
-    for (let h = 0; h < 24; h++) {
-      labels.push(`${String(h).padStart(2, '0')}:00`);
-      labels.push(`${String(h).padStart(2, '0')}:30`);
-    }
- 
-    const dataPoints = labels.map(label => hourDistribution[label] || 0);
     const ctx = document.getElementById('shiftChart').getContext('2d');
     let chartType = 'bar';
- 
     let shiftChart = createChart(chartType);
  
     function createChart(type) {
+      const labels = [];
+      const istLabels = [];
+      const estLabels = [];
+ 
+      for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+          const label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+          labels.push(label);
+ 
+          const baseDate = new Date(Date.UTC(2000, 0, 1, h, m));
+ 
+          // IST (+5:30)
+          const istDate = new Date(baseDate.getTime() + 330 * 60000);
+          istLabels.push(istDate.toISOString().substr(11, 5));
+ 
+          // EST (-5:00)
+          const estDate = new Date(baseDate.getTime() - 300 * 60000);
+          estLabels.push(estDate.toISOString().substr(11, 5));
+        }
+      }
+ 
+      const dataPoints = labels.map(label => hourDistribution[label] || 0);
+ 
       return new Chart(ctx, {
         type: type,
         data: {
@@ -146,11 +148,12 @@
           datasets: [{
             label: 'Engineers Schedule',
             data: dataPoints,
-            backgroundColor: type === 'bar' ? 'rgba(75, 192, 192, 0.7)' : 'transparent',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: type === 'bar' ? 'rgba(59, 10, 117,1)' : 'transparent',
+            borderColor: 'rgba(59, 10, 117,1)',
             borderWidth: 2,
             fill: type === 'bar',
-            tension: 0.3
+            tension: 0.3,
+            xAxisID: 'xUTC'
           }]
         },
         options: {
@@ -164,10 +167,6 @@
               color: '#333',
               font: { weight: 'bold', size: 10 },
               formatter: value => value > 0 ? value : ''
-            },
-            tooltip: {
-              mode: 'index',
-              intersect: false
             }
           },
           scales: {
@@ -183,17 +182,42 @@
                 text: 'Engineers'
               }
             },
-            x: {
+            xUTC: {
+              type: 'category',
+              labels: labels,
+              position: 'bottom',
+              title: { display: true, text: 'UTC' },
               ticks: {
-                autoSkip: true,
+                font: { size: 9 },
                 maxRotation: 90,
-                minRotation: 45,
-                font: { size: 9 }
-              },
-              title: {
-                display: true,
-                text: 'Time (UTC-30 min intervals)'
+                minRotation: 45
               }
+            },
+            xIST: {
+              type: 'category',
+              labels: istLabels,
+              position: 'bottom',
+              offset: true,
+              title: { display: true, text: 'IST (+5:30)' },
+              ticks: {
+                font: { size: 9 },
+                maxRotation: 90,
+                minRotation: 45
+              },
+              grid: { drawOnChartArea: false }
+            },
+            xEST: {
+              type: 'category',
+              labels: estLabels,
+              position: 'bottom',
+              offset: true,
+              title: { display: true, text: 'EST (-5:00)' },
+              ticks: {
+                font: { size: 9 },
+                maxRotation: 90,
+                minRotation: 45
+              },
+              grid: { drawOnChartArea: false }
             }
           }
         },
@@ -208,20 +232,5 @@
       shiftChart = createChart(chartType);
     }
   </script>
- 
-  <!-- Optional: Add styles for back button -->
-  <style>
-    .back-button {
-      display: inline-block;
-      margin: 10px;
-      padding: 6px 12px;
-      background-color: #3b0a75;
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-  </style>
 </body>
 </html>

@@ -77,28 +77,3 @@
 
 </body>
 </html>
-
-
-
-
-<script>
-  let idleTime = 0;
-
-  function resetIdleTimer() {
-    idleTime = 0;
-  }
-
-  // Increase idle time every minute
-  const idleInterval = setInterval(function() {
-    idleTime += 1;
-    if (idleTime >= 2) { // 2 minutes
-      location.reload(); // Reload the page
-    }
-  }, 60000); // 1 minute
-
-  // Reset the idle timer on user activity
-  window.onload = resetIdleTimer;
-  document.onkeypress = resetIdleTimer;
-  document.onscroll = resetIdleTimer;
-  document.onclick = resetIdleTimer;
-</script>

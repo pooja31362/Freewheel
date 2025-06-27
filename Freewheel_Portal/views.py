@@ -544,6 +544,7 @@ def upload_excel(request):
             'Ticket subject': 'subject',            
             'Requester organization name': 'requester_organization',
             'Requester name': 'requester',
+            'Assignee ID': 'assignee_id',
             'Product Category': 'product_category',
             'Ticket type': 'ticket_type',
             'JIRA Issue ID': 'jira_issue_id',

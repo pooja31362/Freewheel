@@ -15,7 +15,7 @@ class Ticket(models.Model):
     comment = models.TextField(null=True, blank=True)
     group = models.CharField(max_length=20, null=True, blank=True)
     form = models.CharField(max_length=50, null=True, blank=True)
- 
+    assignee_id = models.CharField(max_length=30, unique=True, blank=True, null=True)
     # 🕒 Timestamp fields
     created_timestamp = models.DateTimeField(null=True, blank=True)
     solved_timestamp = models.DateTimeField(null=True, blank=True)

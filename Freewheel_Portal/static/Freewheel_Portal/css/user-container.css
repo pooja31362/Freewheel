@@ -226,11 +226,7 @@ display: none;
     font-size: 23px;
     font-weight: bolder;
     cursor: pointer;
-    background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    padding: .1rem;
+
 }
 
 .assign-btn {
@@ -239,6 +235,18 @@ display: none;
     font-size: 23px;
     font-weight: bolder;
     cursor: pointer;
+
+}
+
+.comment-btn i {
+    background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: .1rem;
+}
+
+.assign-btn i {
     background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);
     background-clip: text;
     -webkit-background-clip: text;

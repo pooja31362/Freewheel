@@ -107,8 +107,7 @@
       margin:0 0 .2rem 0;
     text-align: center;
     color: white;
-    background: #3b0a75;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);    border-radius: 10px;
     padding: 0.5rem 0;
     font-size: 14px;
 }
@@ -117,14 +116,13 @@
       margin: 0;
     text-align: center;
     color: white;
-    background: #3b0a75;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);    border-radius: 10px;
     padding: 0.5rem 0;
     font-size: 14px;
 }
 
         .notice {
-      height: auto;
+      height: 36.5vh;
       overflow-y: auto;
       background: #f1f1f1;
       padding: 10px;

@@ -10,13 +10,26 @@ def login_view(request):
 
 from django.contrib.auth import logout
 from django.shortcuts import redirect
- 
+from .models import User
+
 def logout_view(request):
-    current_user = User.objects.get(emp_id=request.session['emp_id'])
-    current_user.status = "Offline"
-    current_user.save(update_fields=['status'])
-    request.session.flush()
+    emp_id = request.session.get('emp_id')
+    if emp_id:
+        try:
+            current_user = User.objects.get(emp_id=emp_id)
+            current_user.status = "Offline"
+            current_user.save(update_fields=['status'])
+        except User.DoesNotExist:
+            pass
+
+    # ✅ Only clear session data for this user
+    request.session.clear()
+
     return redirect('login')
+
+
+
+
 
 
 from django.shortcuts import render, redirect
@@ -31,9 +44,9 @@ from django.db.models import Count
 
 
 ALLOWED_USERS = ['anibro', 'Nisha','Harikishore T', 'keerthana', 'kavya_akka']
-SHIFT1_TIMINGS = ["7:00 AM", "9:00 AM", "11:00 AM", "1:00 PM", "3:00 PM"]
-SHIFT3_TIMINGS = ["5:00 PM", "7:00 PM", "9:00 PM", "11:00 PM"]
-SHIFT6_TIMINGS = ["1:00 AM", "3:00 AM", "5:00 AM"]  # ✅ Add your Shift 6 timings
+SHIFT1_TIMINGS = ["7:00 AM", "9:00 AM", "11:00 AM", "1:00 PM"]
+SHIFT3_TIMINGS = ["3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM"]
+SHIFT6_TIMINGS = ["11:00 AM", "1:00 AM", "3:00 AM","5:00 AM"]  # ✅ Add your Shift 6 timings
 
 def home(request):
 
@@ -267,6 +280,13 @@ def home(request):
     status_priority = {'Available': 0, 'In-Meeting': 1, 'Away': 2, 'Offline': 3, 'Out Of Office': 4}
     logged_in_user_id = current_user.emp_id  # or use current_user.emp_id or current_user.username as needed
 
+    ticket_priority = {'Urgent': 1, 'High': 2, 'Normal': 3, 'Low': 4}
+    tickets = Ticket.objects.all()
+    tickets = sorted(tickets, key=lambda t: ticket_priority.get(t.priority, 999))
+ 
+ 
+ 
+
 # Custom sort function
     def sort_key(user):
         if user.emp_id == logged_in_user_id:
@@ -302,8 +322,13 @@ def home(request):
         .order_by('-count')
     )
 
-    latest_notice = Notice.objects.order_by('-posted_at').first()
-    latest_priority = latest_notice.priority if latest_notice else None
+    urgent_notices = Notice.objects.filter(priority='Urgent').order_by('-posted_at')
+ 
+ 
+    # ✅ Priority-wise ticket queries
+    high_priority_tickets = Ticket.objects.filter(priority='High')
+    normal_priority_tickets = Ticket.objects.filter(priority='Normal')
+    low_priority_tickets = Ticket.objects.filter(priority='Low')
  
 
     context = {
@@ -315,6 +340,7 @@ def home(request):
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
         'unassigned_tickets': Ticket.objects.filter(assignee_name="",).exclude(status="New"),
+        'tickets': tickets,
 
         'shift1_times': SHIFT1_TIMINGS,
         'shift3_times': SHIFT3_TIMINGS,
@@ -328,8 +354,12 @@ def home(request):
         'shift3_end_email_id': shift3_end_email_id,
         'shift6_end_email_id': shift6_end_email_id,
 
-        'latest_notice': latest_notice,
-        'latest_priority': latest_priority,
+        'urgent_notices': urgent_notices,
+
+        'high_priority_tickets': Ticket.objects.filter(priority='High'),
+        'normal_priority_tickets': Ticket.objects.filter(priority='Normal'),
+        'low_priority_tickets': Ticket.objects.filter(priority='Low'),
+
         'is_allowed': is_allowed,
         'delegated_to_user': delegated_to_user,
         'schedule': schedule,
@@ -379,12 +409,11 @@ def reset_ticket_assignee(request):
 
 
 
-from .models import User
 from django.contrib import messages
 from django.shortcuts import redirect
-
 from datetime import date
-from Freewheel_Portal.utils import get_today_shift_for_user  # adjust if needed
+from Freewheel_Portal.utils import get_today_shift_for_user
+from .models import User
 
 def do_login(request):
     if request.method == 'POST':
@@ -393,23 +422,25 @@ def do_login(request):
 
         try:
             user = User.objects.get(user_name=username)
-            if user.password == password:
-                request.session.flush()  # Clear previous session
+            if user.password == password:  # 👈 If you're using plain text (not recommended)
+                request.session.flush()         # Clear any old session
+                request.session.cycle_key()     # ✅ Generate a new unique session ID
 
+                # Set session variables
                 access = [a.lower().strip() for a in user.access]
                 request.session['emp_id'] = user.emp_id
                 request.session['access'] = access
-                current_user = User.objects.get(emp_id=request.session['emp_id'])
-                current_user.status = 'Available'
-                current_user.save(update_fields=['status'])
-                # 🔁 Run shift updater once per day
-                if user.last_shift_update != date.today():
-                    get_today_shift_for_user(user.emp_id)
-                    user.last_shift_update = date.today()
-                    user.save(update_fields=['last_shift_update'])
 
-                
-                    
+                # Mark user as available
+                current_user = User.objects.get(emp_id=user.emp_id)
+                current_user.status = 'Available'
+
+                # Update shift only once per day
+                if current_user.last_shift_update != date.today():
+                    get_today_shift_for_user(current_user.emp_id)
+                    current_user.last_shift_update = date.today()
+
+                current_user.save(update_fields=['status', 'last_shift_update'])
 
                 return redirect('home')
             else:
@@ -418,7 +449,6 @@ def do_login(request):
             messages.error(request, "User not found.")
 
     return redirect('login')
-
 
 
 
@@ -1729,11 +1759,12 @@ def view_shift_day(request):
     except Exception as e:
         messages.error(request, f"Invalid date input: {str(e)}")
         selected_date_str = ''
- 
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
     return render(request, 'Freewheel_Portal/view_shift_range.html', {
         'shift_data': shift_data_today if hour_distribution else {},
         'hour_distribution': json.dumps(hour_distribution),
-        'selected_date': selected_date_str
+        'selected_date': selected_date_str,
+        'current_user': current_user,
     })
 
 
@@ -1749,12 +1780,14 @@ SHIFT_LABELS_ORDERED = OrderedDict([
     ("S1", "S1 (6:30am - 3:30pm)"),
     ("S2", "S2 (11am - 8pm)"),
     ("S3", "S3 (1:30pm - 10:30pm)"),
+    ("S5", "S5 (6pm - 3am)"),
     ("S4", "S4 (3pm - 12am)"),
     ("S6", "S6 (10pm - 7am)"),
     ("PL", "PL (Planned Leave)"),
     ("UL", "UL (Unplanned Leave)"),
     ("CL", "CL (Casual Leave)"),
     ("SL", "SL (Sick Leave)"),
+    ("WO", "WO (Week Off)"),
     ("CO", "CO (Comp Off)")
 ])
  
@@ -1826,6 +1859,8 @@ def upload_profile_image(request):
         return JsonResponse({"success": True, "image_url": current_user.profile_image.url})
  
     return JsonResponse({"success": False, "message": "Invalid request"}, status=400)
+
+
 
 
 
@@ -1928,10 +1963,9 @@ def delete_notice(request, notice_id):
     if notice.posted_by == current_user and request.method == 'POST':
         notice.delete()
     return redirect('notice_add')
- 
- 
- 
- 
+
+
+
 
 
  
@@ -1943,7 +1977,7 @@ def notice(request):
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
     dynamic_shift = None
-    latest_notice = Notice.objects.filter(message__icontains='urgent').order_by('-posted_at')[:4]
+    latest_notice = Notice.objects.filter(message__icontains='urgent').order_by('-posted_at')[:4]    
     users = list(User.objects.all())
  
     for u in users:
@@ -2211,8 +2245,6 @@ def notice(request):
 from django.db.models import Q, Case, When, IntegerField
 from datetime import datetime, date
 from django.db.models import Case, When, IntegerField
- 
- 
 from datetime import date
  
 def notice_board(request):
@@ -2227,6 +2259,7 @@ def notice_board(request):
     return render(request, 'Freewheel_Portal/notice.html', {
         'all_notices': notice,
     })
+
 
 
 from django.shortcuts import redirect

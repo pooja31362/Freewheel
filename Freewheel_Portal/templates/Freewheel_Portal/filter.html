@@ -1,4 +1,5 @@
 <div class="filters" id="filters">
+  
         <div class="section filter" id="user-filter">
           <h4>Agent Filter</h4>
  
@@ -80,35 +81,28 @@
           <div class="clear-filter"><p>Clear Filter</p></div>
         </div>
        
-        <div class="section notice">
-          <h4>Notice</h4><br>
-       
-       
-        <div class="notice-view">
-          {% if latest_notice and latest_notice.priority|lower == "urgent" %}
-              <div class="notice_latest">
-                <p><strong>🚨 {{ latest_notice.message }}</strong></p>
-              </div>
-            {% endif %}
-          </div>
-         
+<div class="section notice">
+          <h4>Notice </h4><br>
+ 
+          <div class="notice-view scrollable-notices">
+            {% for notice in urgent_notices %}
+            <div class="notice_latest" data-notice-id="{{ notice.id }}">
+              <button class="dismiss-btn" title="Dismiss">&times;</button>
+              <p><strong>🚨 {{ notice.message }}</strong></p>
+              <small>By: {{ notice.posted_by }} | {{ notice.posted_at|date:"d M Y, H:i" }}</small>
+            </div>
+           
+            {% empty %}
+              <p>No urgent notices</p>
+            {% endfor %}
+          </div>          
           <div id="notice-popup" style="display:none;" class="popup-banner">
             <span id="popup-message"></span>
+        </div>        
+        <div class="button-row">
+          <a href="{% url 'view_notice' %}" class="action-button">View</a>
+          <a href="{% url 'add_notice' %}" class="action-button">Add</a>
         </div>
-       
- 
-        <a href="{% url 'view_notice' %}" style="text-decoration: none;">
-          <div class="view-more" style="cursor: pointer; text-align: center;">
-            <div class="view-more-border"><p>Click To view your Notice</p></div>
-          </div>
-        </a> 
-
-
-        <a href="{% url 'add_notice' %}" style="text-decoration: none;">
-          <div class="view-more" style="cursor: pointer; text-align: center;">
-            <div class="view-more-border"><p>Click To Add your Notice</p></div>
-          </div>
-        </a>
        
  
         <!-- 🔲 Hidden Modal Container -->
@@ -266,6 +260,51 @@
     font-size: 20px;
     cursor: pointer;
   }
+  .notice_latest {
+    position: relative;
+  }
+ 
+  .notice_latest .dismiss-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    cursor: pointer;
+    color: #888;
+  }
+ 
+  .notice_latest .dismiss-btn:hover {
+    color: #e00;
+  }
+ 
+  .button-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+ 
+  .action-button {
+    display: inline-block;
+    padding: 6px 14px;
+    background-color: #3b0a75;
+    color: #fff;
+    border: 1px solid #3b0a75;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+ 
+  .action-button:hover {
+    background-color: #5b21b6;
+    color: #fff;
+  }
+ 
+ 
 </style>
  
  
@@ -286,6 +325,37 @@
     }
   }
 </script>
+ 
+ 
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Load dismissed IDs from sessionStorage
+    const dismissedNotices = JSON.parse(sessionStorage.getItem("dismissedNotices") || "[]");
+ 
+    document.querySelectorAll(".notice_latest").forEach(noticeEl => {
+      const id = noticeEl.dataset.noticeId;
+ 
+      // If already dismissed, hide it
+      if (dismissedNotices.includes(id)) {
+        noticeEl.style.display = "none";
+      }
+      // Handle click
+      const btn = noticeEl.querySelector(".dismiss-btn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          // Hide visually
+          noticeEl.style.display = "none";
+          // Save to sessionStorage
+          dismissedNotices.push(id);
+          sessionStorage.setItem("dismissedNotices", JSON.stringify(dismissedNotices));
+        });
+      }
+    });
+  });
+  </script>
+ 
+ 
+ 
  
 <script>
   function updateDropdowns() {
@@ -355,10 +425,7 @@
  
  
 <script src="../../static/Freewheel_Portal/js/filters.js" defer></script>
-
-
-
-
+ 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
       const priority = "{{ latest_notice_priority|lower }}";
@@ -404,4 +471,24 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       z-index: 1000;
   }
+ 
+ 
+  .scrollable-notices {
+    max-height: 154px; /* Adjust height as needed */
+    overflow-y: auto;
+    padding-right: 5px;
+  }
+ 
+.notice_latest {
+  background-color: #f4f6f9; /* light gray-blue */
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-left: 4px solid #5b21b6; /* professional purple */
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1f2937; /* dark gray text */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); /* subtle depth */
+}
+ 
+ 
   </style>

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
- 
     <title>Team Notice Board</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
@@ -16,7 +15,6 @@
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/home.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/shift-end-mail.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
- 
     <script src="../../static/Freewheel_Portal/js/deligation.js" defer></script>
     <script src="../../static/Freewheel_Portal/js/navbar.js" defer></script>
     <script src="../../static/Freewheel_Portal/js/user-container.js" defer></script>
@@ -33,8 +31,17 @@
         <div class="notice-list">
             {% for notice in all_notices %}
             <div class="notice-msg">
-                <h3>👨‍💼 {{ notice.posted_by.assignee_name }}</h3>
-                <p>{{ notice.message }}</p>
+                <div class="notice-text">
+                    {% if notice.message|wordcount > 15 %}
+                      <span class="short-text">{{ notice.message|truncatechars:80 }}</span>
+                      <span class="full-text" style="display:none;">{{ notice.message }}</span>
+                      <a href="javascript:void(0);" class="toggle-text">Click to show</a>
+                    {% else %}
+                      <span>{{ notice.message }}</span>
+                    {% endif %}
+                  </div>
+                 
+                 
                 <span>
                     🏷️ Priority:
                     {% if notice.priority|lower == "urgent" %}
@@ -46,11 +53,20 @@
                     {% endif %}
                 </span>
                 <br>
-                <span class="text-xs text-gray-500">
-                    {{ notice.posted_at|date:"d M Y, h:i A" }}
-                    {% if notice.end_date %} | 🗓 Ends: {{ notice.end_date|date:"d M Y" }}{% endif %}
-                </span>
+                <div class="notice-footer">
+                    <span class="text-xs text-gray-500">
+                      Posted by: {{ notice.posted_by.assignee_name }} |
+                      Posted at: {{ notice.posted_at|date:"d M Y, h:i A" }}
+                    </span>
+                    {% if notice.end_date %}
+                    <span class="due-date">
+                      🗓 Due Date: {{ notice.end_date|date:"d M Y" }}
+                    </span>
+                    {% endif %}
+                  </div>
+                 
             </div>
+           
             {% endfor %}
         </div>
     </div>
@@ -58,7 +74,24 @@
 </html>
  
 <style>
-/* Paste same CSS styles from your notice.html here */
+ 
+ 
+ 
+    .notice-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4px;
+      }
+     
+      .notice-footer .due-date {
+        font-size: 0.75rem;
+        color: #555;
+        text-align: right;
+      }
+     
+ 
+ 
 .notice-board {
     background: white;
     border: 2px solid #3b0a75;
@@ -102,5 +135,72 @@
 }
 .notice-msg p {
     margin-bottom: .5rem;
+    font-size: 20px;
 }
+ 
+ 
+<style>
+    .toggle-text {
+      color: #3b0a75;
+      cursor: pointer;
+      font-size: 13px;
+      margin-left: 8px;
+    }
+    .toggle-text:hover {
+      text-decoration: underline;
+    }
+ 
+ 
+ 
+ 
+    /* Increase the font size for the notice message */
+    .notice-text span,
+    .notice-text {
+      font-size: 1.1rem; /* Increase as desired (1.2rem, etc.) */
+      line-height: 1.5;
+    }
+   
+    /* Reduce spacing between notice cards */
+    .notice_latest {
+      margin-bottom: 6px;  /* Less gap between cards */
+      padding: 8px 12px;   /* Optional: slightly smaller padding inside the card */
+    }
+   
+    /* Optionally reduce padding even more if needed */
+    .notice_latest p {
+      margin: 0;
+    }
+   
+ 
+ 
+ 
+ 
+ 
+ 
+    </style>
+   
 </style>
+ 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const toggles = document.querySelectorAll(".toggle-text");
+   
+      toggles.forEach(function(toggle) {
+        toggle.addEventListener("click", function() {
+          const container = this.closest(".notice-text");
+          const shortText = container.querySelector(".short-text");
+          const fullText = container.querySelector(".full-text");
+   
+          if (fullText.style.display === "none") {
+            fullText.style.display = "inline";
+            shortText.style.display = "none";
+            this.textContent = "Hide";
+          } else {
+            fullText.style.display = "none";
+            shortText.style.display = "inline";
+            this.textContent = "Click to show";
+          }
+        });
+      });
+    });
+    </script>

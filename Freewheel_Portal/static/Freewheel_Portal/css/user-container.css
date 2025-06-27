@@ -99,9 +99,10 @@ display: none;
   font-weight: bold;
   border: none;
   color: white;
-  background: #3b0a75;
+  background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);
   cursor: pointer;
   margin: 0.2rem 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .user-actions img {
@@ -225,6 +226,11 @@ display: none;
     font-size: 23px;
     font-weight: bolder;
     cursor: pointer;
+    background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: .1rem;
 }
 
 .assign-btn {
@@ -233,4 +239,9 @@ display: none;
     font-size: 23px;
     font-weight: bolder;
     cursor: pointer;
+    background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: .1rem;
 }

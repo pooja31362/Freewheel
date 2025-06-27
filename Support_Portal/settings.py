@@ -157,6 +157,9 @@ CSRF_COOKIE_HTTPONLY = False
 # If using HTTPS in production
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_AGE = 39600  # e.g., 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
  
 # Cross-browser compatibility
 CSRF_COOKIE_SAMESITE = 'Lax'

@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <title>Bihourly Report</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
+   <meta name="csrf-token" content="{{ csrf_token }}" />
+
+
     <!-- Portal Styles -->
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/navbar.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/user-container.css">
@@ -26,7 +28,6 @@
             border: rgba(49, 32, 99, 1) solid 2px;
         }
  
- 
         .bi-hourly-form table {
             width: 100%;
             border-collapse: collapse;
@@ -44,13 +45,14 @@
         th {
             background-color: #f3f3f3;
         }
+ 
         td input[type="number"] {
-             width: 80px;
-             padding: 4px;
-             font-size: 14px;
-             text-align: center;
-             border: 1px solid #ccc;
-             border-radius: 4px;
+            width: 80px;
+            padding: 4px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
  
         .btn {
@@ -65,7 +67,7 @@
         }
  
         .btn:hover {
-            background-color:rgb(163, 163, 163);
+            background-color: rgb(163, 163, 163);
             color: black;
         }
  
@@ -93,16 +95,10 @@
             <div class="bi-hourly-form" id="bihourly-container">
                 <h2>Bihourly Report</h2>
  
-                <!-- Upload Form -->
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn">Upload & Process</button>
-                </form>
+                <!-- We removed the upload form -->
  
                 <hr style="margin: 20px 0;">
  
-                <!-- Summary Table -->
                 {% if report_data %}
                     <div style="margin: 10px 0;">
                         <button id="editBtn" class="btn" onclick="enableEdit()">✏️ Edit</button>
@@ -133,7 +129,7 @@
                             <tbody>
                                 {% for row in report_data %}
                                 <tr>
-                                    <td>{{ row.timestamp }}</td>
+                                    <td>{{ row.timestamp|date:"n/j/y g:i A" }}</td>
                                     <td>{{ row.product }}</td>
                                     <td>{{ row.open_count }}</td>
                                     <td>{{ row.new_count }}</td>
@@ -144,10 +140,10 @@
                                     <td>{{ row.being_worked }}</td>
                                     <td>{{ row.unattended }}</td>
                                     <td>
-                                        <input type="number" name="engineers_{{ row.id }}" value="{{ row.engineers|default:0 }}" disabled>
+                                        <input type="number" name="engineers_{{ row.id }}" value="{{ row.engineers|default:0 }}" min="0" disabled>
                                     </td>
                                     <td>
-                                        <input type="number" name="ho_followup_{{ row.id }}" value="{{ row.ho_followup|default:0 }}" disabled>
+                                        <input type="number" name="ho_followup_{{ row.id }}" value="{{ row.ho_followup|default:0 }}" min="0" disabled>
                                         <input type="hidden" name="ids" value="{{ row.id }}">
                                     </td>
                                 </tr>

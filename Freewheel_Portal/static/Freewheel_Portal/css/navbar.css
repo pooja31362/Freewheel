@@ -19,8 +19,8 @@
       flex-direction: column;
       align-items: center;
       gap: 20px;
-      margin-top: .5rem;
-      margin-left:.5rem;
+      margin-top: .5%;
+      margin-left: .5%;
 
     }
     .sidebar i {
@@ -35,10 +35,9 @@
     }
 
     .status {
-        margin-top: .5rem;
         display: flex;
         gap: .5rem;
-        padding: .2rem;
+        padding: 2%;
         background: linear-gradient(135deg, #3b0a75, #8035d0, #c3a6f2);        color: white;
         border-radius: 10px;
         width: 17.7rem;
@@ -115,7 +114,7 @@
 }
 
 .sidebar img {
-  height: 8%;
+  height: 4%;
     filter: invert(1);
 }
 

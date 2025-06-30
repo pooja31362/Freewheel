@@ -5,9 +5,13 @@
 
 <nav>
     <div class="sidebar">
+      <div style="display: flex;
+    flex-direction: column;
+    gap: 1%;
+    align-items: center;">
         <img src="/media/images/Freewheel_Logo.png" alt="Logo">
         <a href="{% url 'home' %}"><i class="fa-solid fa-house" title="Home"></i></a>
-        {% if current_user.user_type == 'tc' or current_user.user_type == 'manager' %}
+        {% if current_user.user_type == 'tc' or current_user.user_type == 'manager' or current_user.user_type == 'admin' %}
         <i class="fa-solid fa-people-group" id="delBtn" title="Delegation"></i>
         {% endif %}
         <a href="{% url 'upload_excel_report' %}"><i class="fa-solid fa-table" title="Upload Bihourly Report" style="cursor: pointer;"></i></a>
@@ -25,7 +29,7 @@
             <button type="submit">Upload Excel</button>
           </form>
           <hr>
-          <div><h2>Shift Roaster</h2></div>
+          <div><h2>Shift Roster</h2></div>
 
           <form method="POST" enctype="multipart/form-data" action="{% url 'upload_shift_excel' %}">
             {% csrf_token %}
@@ -38,152 +42,22 @@
         <a href="{% url 'logout' %}">
           <i class="fa-solid fa-right-from-bracket" title="Logout" style="cursor: pointer;"></i>
         </a>
-{% if current_user.user_type == 'tc' or current_user.user_type == 'manager' %}
+{% if current_user.user_type == 'tc' or current_user.user_type == 'manager' or current_user.user_type == 'admin' %}
         <a href="{% url 'create_emp' %}">
           <i class="fa-solid fa-user-plus" title="Create Employee" style="cursor: pointer;"></i>
         </a>
         {% endif %}
+        <div {% if current_user.user_type == 'staff' %}style=" height: 25.5%;  display: flex;flex-direction: column-reverse;" {% else %} style="height: 22.5%;display: flex;flex-direction: column-reverse;" {% endif %}>
+        <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer;" />
+        </div>
+        </div>
+
+
+        
+
+
     </div>
  
-    <div class="check">
-        <div class="topbar">
-            <input type="text" placeholder="Search">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fa-solid fa-bell" style="font-size: 20px;"></i>
-<!-- Wrapper to contain profile image and dropdown -->
-            <div class="profile-dropdown-wrapper" style="position: relative; display: inline-block;">
-              <!-- Profile image trigger -->
-              <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 30px; height: 30px; border-radius: 50%; cursor: pointer;" />
-           
-              <!-- Profile Details Dropdown -->
-              <div id="profileDetails" style="display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.3); border-radius: 10px; z-index: 999;">
-                <div style="text-align: center; position: relative;">
-                  <label for="imageUploadDropdown" style="cursor: pointer; display: inline-block; position: relative;">
-                    <img id="dropdownProfilePreview" src="{{ current_user.profile_image.url }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" alt="User Image" />
-                    <div style="position: absolute; bottom: 0; right: 0; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 5px;">
-                      <span style="color: white; font-size: 14px;">📷</span>
-                    </div>
-                  </label>
-                  <input type="file" id="imageUploadDropdown" accept="image/*" style="display: none;">
-                  <div id="uploadStatus" style="margin-top: 10px;"></div>
-                </div>
-                <h3 style="margin: 10px 0 5px;">{{ current_user.assignee_name }}</h3>
-                <div>
-                <div style="margin: 2px 0;"><strong>Role:</strong></div><div> {{ current_user.job_title }}</div>
-                <div style="margin: 2px 0;"><strong>Availability:</strong> </div><div>{{ current_user.status }}</div>
-                <p style="margin: 2px 0;"><strong>Email:</strong> {{ current_user.email }}</p>
-                <p style="margin: 2px 0;"><strong>Team:</strong> {{ current_user.BussinessUnit }}</p>
-                <p style="margin: 2px 0;">
-                  <strong>Work Region:</strong>
-                  {% if current_user.work_region == "CIEC" %}
-                    Comcast India Engineering Center
-                  {% else %}
-                    {{ current_user.work_region|default:"N/A" }}
-                  {% endif %}
-                </p>
-                </div>
-                <button id="resetPasswordBtn" style="margin-top: 15px; padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                  Reset Password
-              </button>
-               
-              </div>
-            </div>    
-            <div id="passwordResetModal" style="
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.5);
-    z-index: 10000;
-    justify-content: center;
-    align-items: center;
-">
-    <div style="
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        width: 300px;
-        position: relative;
-        text-align: center;
-    ">
-        <button style="position: absolute; top: 8px; right: 10px; background: transparent; border: none; font-size: 16px; cursor: pointer;" onclick="document.getElementById('passwordResetModal').style.display='none';">&times;</button>
-       
-        <h1 style="color: #3b0a75 ">Reset Password</h1>
-        <form method="POST" action="/reset-password/">
-         
-            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-           
-            <input type="password" name="current_password" placeholder="Current Password" required
-style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; border-radius: 4px;" >
- 
-<input type="password" name="new_password" placeholder="New Password" required
-style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; border-radius: 4px;" >
- 
-           
-            <button type="submit" style="padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Update Password
-            </button>
-        </form>
-              </div>
-            </div>               
-                <span>Hello, <br><b>{{ current_user.assignee_name }}</b></span>
-            </div>
-        </div>
- 
-        <div id="status-section" data-update-url="{% url 'status_update' %}" data-csrf="{{ csrf_token }}">
-            <div class="status">
-                <div class="status-box" title="Available" data-color="#4CAF50"><i class="fa-solid fa-circle-check" style="color: #000000;font-size: x-large;"></i></div>
-                <div class="status-box" title="Away" data-color="#FFC107"><i class="fa-solid fa-clock" style="color: #000000;font-size: x-large;"></i></div>
-                <div class="status-box" title="In-Meeting" data-color="#F44336"><i class="fa-solid fa-phone" style="color: #000000; font-size: x-large;"></i></div>
-                <div class="status-box" title="Offline" data-color="#9E9E9E"><i class="fa-solid fa-circle-xmark" style="color: #000000;font-size: x-large;"></i></div>
-               
-               
-               
-               
-                <!-- Flatpickr Dark Theme -->
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
- 
-                <form method="POST" action="/submit-leave/">
-                  <!-- Optional: include CSRF token if using Django -->
-                  {% csrf_token %}
- 
-                  <div>
-                    <div id="out-office" class="status-box" title="Out Of Office" data-color="#c235e0 ">
-                      <i class="fa-solid fa-circle-arrow-right" style="color: #000000; font-size: x-large;"></i>
-                    </div>
- 
-                    <div class="leave-period" id="leave-period" style="display: none;">
-                      <select id="quick-select" name="leave_period">
-                        <option value="">Select Period</option>
-                        <option value="today">Today</option>
-                        <option value="tomorrow">Tomorrow</option>
-                        <option value="this-week">This Week</option>
-                        <option value="custom">Custom Date</option>
-                      </select>
- 
-                      <input id="datetime-picker" type="text" placeholder="Pick a custom date and time" name="leave_until" class="leave-input" style="display: none;">
-                                      <button type="submit" class="leave-btn">Submit</button>
- 
-                    </div>
-                  </div>
- 
-                </form>
- 
- 
- 
-                <!-- Flatpickr JS -->
-                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
- 
- 
- 
- 
- 
-              </div>
-        </div>
- 
-    </div>
        
 </nav>
  
@@ -210,6 +84,20 @@ style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; bor
 </div>
  
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
  
  
@@ -306,15 +194,7 @@ style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; bor
     };
   })();
   </script>
- 
- 
- 
- 
- 
- 
- 
- 
- 
+
  <script>
   const profileImage = document.getElementById('profileImage');
   const profileDetails = document.getElementById('profileDetails');
@@ -374,8 +254,6 @@ style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; bor
   });
   console.log("{% url 'upload_profile_image' %}");
 </script>
- 
- 
  
 <script>
   const outOfficeBtn = document.getElementById('out-office');
@@ -439,11 +317,6 @@ style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; bor
     }
   });
 </script>
- 
- 
- 
- 
- 
  
 <script>
   document.addEventListener('DOMContentLoaded', function () {
@@ -520,8 +393,6 @@ style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; bor
   });
 </script>
  
- 
-
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const uploadIcon = document.getElementById("uploadTrigger");
@@ -538,8 +409,6 @@ style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; bor
     });
   });
 </script>
-
-
 
 <script>
   document.getElementById('resetPasswordBtn').addEventListener('click', function() {

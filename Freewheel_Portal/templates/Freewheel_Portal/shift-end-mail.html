@@ -73,7 +73,7 @@
                             <td>{{ ticket.reason_for_the_breach }}</td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="4">No SLA breaches</td></tr>
+                        <tr><td colspan="15">No SLA breaches</td></tr>
                     {% endfor %}
                 </table>
       
@@ -82,19 +82,41 @@
                 <table>
                     <tr>
                         <th class="small-col">Ticket ID</th>
-                        <th class="medium-col">Assignee</th>
-                        <th class="medium-col">Status</th>
-                        <th class="large-col">Comment</th>
+                        <th class="large-col">Start Date (IST)</th>
+                        <th class="large-col">Priority</th>
+                        <th class="large-col">Subject</th>
+                        <th class="large-col">Customer Org</th>
+                        <th class="large-col">Product</th>
+                        <th class="large-col">Ticket Type</th>
+                        <th class="large-col">Jira ID</th>
+                        <th class="large-col">Assignee</th>
+                        <th class="large-col">Status</th>
+                        <th class="large-col">SLA</th>
+                        <th class="large-col">Last Comms (IST)</th>
+                        <th class="large-col">Next Comms (IST)</th>
+                        <th class="medium-col">Time Left</th>
+                        <th class="medium-col">Comments</th>
                     </tr>
                     {% for entry in previous_shiftend_details %}
                         <tr>
-                            <td>{{ entry.ticket_id.ticket_id }}</td>
+                            <td>{{ entry.ticket_id }}</td>
+                            <td>{{ entry.start_date }}</td>
+                            <td>{{ entry.priority }}</td>
+                            <td>{{ entry.ticket_subject }}</td>
+                            <td>{{ entry.customer_organisation }}</td>
+                            <td>{{ entry.product }}</td>
+                            <td>{{ entry.ticket_type }}</td>
+                            <td>{{ entry.JIRA_id }}</td>
                             <td>{{ entry.asignee_name }}</td>
                             <td>{{ entry.ticket_status }}</td>
+                            <td>{{ entry.sla }}</td>
+                            <td>{{ entry.last_comment_time }}</td>
+                            <td>{{ entry.next_comms_time }}</td>
+                            <td>{{ entry.time_left }}</td>
                             <td>{{ entry.comment }}</td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="4">No comments</td></tr>
+                        <tr><td colspan="15">No comments</td></tr>
                     {% endfor %}
                 </table>
       
@@ -153,19 +175,41 @@
                 <table>
                     <tr>
                         <th class="small-col">Ticket ID</th>
-                        <th class="medium-col">Assignee</th>
-                        <th class="medium-col">Status</th>
-                        <th class="large-col">Comment</th>
+                        <th class="large-col">Start Date (IST)</th>
+                        <th class="large-col">Priority</th>
+                        <th class="large-col">Subject</th>
+                        <th class="large-col">Customer Org</th>
+                        <th class="large-col">Product</th>
+                        <th class="large-col">Ticket Type</th>
+                        <th class="large-col">Jira ID</th>
+                        <th class="large-col">Assignee</th>
+                        <th class="large-col">Status</th>
+                        <th class="large-col">SLA</th>
+                        <th class="large-col">Last Comms (IST)</th>
+                        <th class="large-col">Next Comms (IST)</th>
+                        <th class="medium-col">Time Left</th>
+                        <th class="medium-col">Comments</th>
                     </tr>
                     {% for entry in current_shiftend_details %}
                         <tr>
-                            <td>{{ entry.ticket_id.ticket_id }}</td>
+                            <td>{{ entry.ticket_id }}</td>
+                            <td>{{ entry.start_date }}</td>
+                            <td>{{ entry.priority }}</td>
+                            <td>{{ entry.ticket_subject }}</td>
+                            <td>{{ entry.customer_organisation }}</td>
+                            <td>{{ entry.product }}</td>
+                            <td>{{ entry.ticket_type }}</td>
+                            <td>{{ entry.JIRA_id }}</td>
                             <td>{{ entry.asignee_name }}</td>
                             <td>{{ entry.ticket_status }}</td>
+                            <td>{{ entry.sla }}</td>
+                            <td>{{ entry.last_comment_time }}</td>
+                            <td>{{ entry.next_comms_time }}</td>
+                            <td>{{ entry.time_left }}</td>
                             <td>{{ entry.comment }}</td>
                         </tr>
                     {% empty %}
-                        <tr><td colspan="4">No comments</td></tr>
+                        <tr><td colspan="15">No comments</td></tr>
                     {% endfor %}
                 </table>
       

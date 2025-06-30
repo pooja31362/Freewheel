@@ -25,19 +25,19 @@
         data-assignee-name="{{ticket.assignee_name}}"
         data-manager="{{ user.repor_manager }}">
           <div class="info">
-          <div style="flex: .7;"><a href="https://freewheel.zendesk.com/agent/tickets/{{ ticket.ticket_id }}" target="_blank">{{ ticket.ticket_id }}</a></div>
-          <div style="flex: 5;">{{ ticket.subject|default:"N/A" }}</div>
-          <div style="flex: 1;">{{ ticket.priority|default:"Normal" }}</div>
-          <div style="flex: 1;" class="status-field">{{ ticket.status }}</div>
-          <div style="flex: 2;">{{ ticket.requester }}</div>
-          <div style="flex: 2;" class="assignee-field">{{ ticket.assignee_name }}</div>
-          <div style="flex: 1;">{{ ticket.ticket_type }}</div>
-          <div style="flex: 1;">{{ ticket.group }}</div>
+          <div><a href="https://freewheel.zendesk.com/agent/tickets/{{ ticket.ticket_id }}" target="_blank">{{ ticket.ticket_id }}</a></div>
+          <div>{{ ticket.subject|default:"N/A" }}</div>
+          <div>{{ ticket.priority|default:"Normal" }}</div>
+          <div class="status-field">{{ ticket.status }}</div>
+          <div>{{ ticket.requester }}</div>
+          <div class="assignee-field">{{ ticket.assignee_name }}</div>
+          <div>{{ ticket.ticket_type }}</div>
+          <div>{{ ticket.group }}</div>
 
-          <div style="flex: .5;"><button class="comment-btn2"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
+          <div><button class="comment-btn2"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
 
           {% if current_user.user_type == 'tc' %}
-          <div style="flex: .5;"><button class="assign-btn2"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
+          <div><button class="assign-btn2"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
           {% endif %}
         </div>
 

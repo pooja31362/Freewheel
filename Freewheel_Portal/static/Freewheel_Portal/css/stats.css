@@ -1,8 +1,9 @@
     .stats {
       display: flex;
       justify-content: space-between;
-      padding: .4rem 0 .4rem 0;
+      padding: .5% 0 .5% 0;
       max-width: 71rem;
+      width: 100%;
       background: transparent;
       margin: 0 0 0 4.8rem;
 

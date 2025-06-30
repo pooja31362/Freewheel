@@ -389,8 +389,8 @@ import json
 
 @csrf_exempt
 def reset_ticket_assignee(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     if request.method == "POST":
         data = json.loads(request.body)
         ticket_id = data.get("ticket_id")
@@ -455,8 +455,8 @@ def do_login(request):
 from django.http import JsonResponse
  
 def update_status(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     print("Request method:", request.method)
     print("Request POST data:", request.POST)
@@ -655,14 +655,14 @@ from django.shortcuts import render
 from .models import Ticket
  
 def ticket_list(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     tickets = Ticket.objects.all().order_by('ticket_id')  # ascending order
     return render(request, 'Freewheel_Portal/ticket_list.html', {'tickets': tickets})
 
 def test(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
 
     return render(request,'Freewheel_Portal/test.html')
  
@@ -674,8 +674,8 @@ from .models import GroupAccess, Access
  
 def create_user(request):
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     initial_data = {}
  
     if request.method == 'GET':
@@ -712,8 +712,8 @@ from .models import Ticket, ShiftEndTable, User
 def submit_comment(request):
 
 
-    if 'emp_id' not in request.session:
-        return redirect('login') 
+    # if 'emp_id' not in request.session:
+    #     return redirect('login') 
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -772,8 +772,8 @@ from .models import Ticket, User
 
 @csrf_exempt
 def assign_ticket(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -807,8 +807,8 @@ from .models import ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket
  
 def shift_end_summary(request):
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
@@ -1068,8 +1068,8 @@ from django.utils import timezone
 from dateutil import parser
 
 def submit_leave(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
 
     if request.method == "POST":
         leave_until_str = request.POST.get('leave_until')
@@ -1094,8 +1094,8 @@ def submit_leave(request):
 
 def new_tickets_view(request):
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     if request.method == 'POST':
         ticket_id = request.POST.get('ticket_id')
         assignee_emp_id = request.POST.get('assignee_emp_id')
@@ -1129,8 +1129,8 @@ SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
  
  
 def filter_by_shift(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     employees = []
     selected_shift = request.GET.get('shift', '').strip()
@@ -1222,8 +1222,8 @@ from .utils import truncate_shift_end
 def manual_freeze_view(request):
 
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     if request.method == "POST":
         success = truncate_shift_end()
         return JsonResponse({'success': success})
@@ -1231,23 +1231,17 @@ def manual_freeze_view(request):
 
 
 
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import User  # or your Employee model
 
 
-#bi-hourly report
+
 import pandas as pd
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UploadExcelForm
-from .models import TicketReport, User
+from .models import Ticket, TicketReport, User
 from django.utils.timezone import now
 from collections import defaultdict
  
-def classify_product(row):
-
-
-    tg = row.get('ticket group', '')
+def classify_product(ticket):
+    tg = ticket.group
     if tg == "Support Eng":
         return "SH"
     elif tg in ["BW CIEC Onboarding", "BW Support"]:
@@ -1258,79 +1252,89 @@ def classify_product(row):
         return "Strata"
     return None
  
+
 def upload_excel_report(request):
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
+ 
+    # 🔥 Store existing engineer/followup values
+    existing_reports = TicketReport.objects.all()
+    engineers_map = {}
+    for report in existing_reports:
+        key = f"{report.product}|{report.timestamp.date()}"  # Or just product if timestamp changes every time
+        engineers_map[key] = {
+            "engineers": report.engineers,
+            "ho_followup": report.ho_followup
+        }
+ 
+    # Get tickets from DB
+    tickets = Ticket.objects.all()
+ 
+    for t in tickets:
+        t.Product = classify_product(t)
+ 
+    grouped = defaultdict(list)
+    for t in tickets:
+        if t.Product:
+            grouped[t.Product].append(t)
+ 
+    active_users = User.objects.exclude(status__in=['Out Of Office', 'Offline'])
+    user_status_map = {user.assignee_name.strip().lower(): user for user in active_users}
+ 
+    product_being_worked = defaultdict(int)
+ 
+    for t in tickets:
+        if t.status in ['Open', 'New']:
+            assignee = (t.assignee_name or '').strip().lower()
+            if assignee in user_status_map and t.Product:
+                product_being_worked[t.Product] += 1
+ 
+    # Delete old reports
+    TicketReport.objects.all().delete()
+ 
+    # Recreate
+    report_data = []
+ 
+    for product, group in grouped.items():
+        open_count = sum(1 for t in group if t.status == 'Open')
+        new_count = sum(1 for t in group if t.status == 'New')
+        open_new = [t for t in group if t.status in ['Open', 'New']]
+ 
+        urgent_count = sum(1 for t in open_new if t.priority == 'Urgent')
+        high_count = sum(1 for t in open_new if t.priority == 'High')
+        normal_count = sum(1 for t in open_new if t.priority == 'Normal')
+        low_count = sum(1 for t in open_new if t.priority == 'Low')
+ 
+        being_worked = product_being_worked.get(product, 0)
+        unattended = (open_count + new_count) - being_worked
+ 
+        # 🔥 Retrieve old engineers/followup values
+        key = f"{product}|{now().date()}"  # If using today's date
+        engineers = engineers_map.get(key, {}).get("engineers", 0)
+        ho_followup = engineers_map.get(key, {}).get("ho_followup", 0)
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
-    form = UploadExcelForm()
-    report_data = TicketReport.objects.all().order_by('timestamp')  # default load
-    current_user = User.objects.get(emp_id=request.session['emp_id'])
-
- 
-    if request.method == 'POST':
-        form = UploadExcelForm(request.POST, request.FILES)
-        if form.is_valid():
-            excel_file = request.FILES['excel_file']
-            df = pd.read_excel(excel_file)
-            df.columns = df.columns.str.strip().str.replace('\xa0', ' ').str.lower()
- 
-            df['Product'] = df.apply(classify_product, axis=1)
-            grouped = df.groupby('Product')
- 
-            # Get active users from the DB
-            active_users = User.objects.exclude(status__in=['Out Of Office', 'Offline'])
-            user_status_map = {user.assignee_name.strip().lower(): user for user in active_users}
- 
-            product_being_worked = defaultdict(int)
- 
-            # Count open/new tickets per user per product if the user is active
-            for _, row in df.iterrows():
-                if row['ticket status'] in ['Open', 'New']:
-                    assignee = row.get('assignee name', '').strip().lower()
-                    product = row.get('Product')
-                    if assignee in user_status_map and product:
-                        product_being_worked[product] += 1
- 
-            # Clear current table to load new results
-            TicketReport.objects.all().delete()
-            report_data = []
- 
-            for product, group in grouped:
-                open_new_tickets = group[group['ticket status'].isin(['Open', 'New'])]
- 
-                open_count = (group['ticket status'] == 'Open').sum()
-                new_count = (group['ticket status'] == 'New').sum()
-                urgent_count = (open_new_tickets['ticket priority'] == 'Urgent').sum()
-                high_count = (open_new_tickets['ticket priority'] == 'High').sum()
-                normal_count = (open_new_tickets['ticket priority'] == 'Normal').sum()
-                low_count = (open_new_tickets['ticket priority'] == 'Low').sum()
- 
-                being_worked = product_being_worked.get(product, 0)
-                unattended = (open_count + new_count) - being_worked
- 
-                report = TicketReport.objects.create(
-                    timestamp=now(),
-                    product=product,
-                    open_count=open_count,
-                    new_count=new_count,
-                    urgent_count=urgent_count,
-                    high_count=high_count,
-                    normal_count=normal_count,
-                    low_count=low_count,
-                    being_worked=being_worked,
-                    unattended=unattended,
-                    engineers=0,
-                    ho_followup=0
-                )  
-                report_data.append(report)
+        current_user = User.objects.get(emp_id=request.session['emp_id'])
+        report = TicketReport.objects.create(
+            timestamp=now(),
+            product=product,
+            open_count=open_count,
+            new_count=new_count,
+            urgent_count=urgent_count,
+            high_count=high_count,
+            normal_count=normal_count,
+            low_count=low_count,
+            being_worked=being_worked,
+            unattended=unattended,
+            engineers=engineers,
+            ho_followup=ho_followup
+        )
+        report_data.append(report)
  
     return render(request, 'Freewheel_Portal/report_upload.html', {
-        'form': form,
         'report_data': report_data,
-        
-
     })
- 
+
+
 def update_report_row(request, pk):
     report = get_object_or_404(TicketReport, pk=pk)
     if request.method == 'POST':
@@ -1345,8 +1349,8 @@ from django.http import HttpResponseRedirect
  
 @csrf_exempt
 def save_bulk_report_updates(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     if request.method == 'POST':
         ids = request.POST.getlist('ids')
         for id in ids:
@@ -1364,8 +1368,8 @@ def save_bulk_report_updates(request):
  
 def create_emp(request):
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
@@ -1588,7 +1592,7 @@ def create_emp(request):
     )
 
  
-
+    
     context = {
         'users': users,
         'current_user': current_user,
@@ -1642,8 +1646,8 @@ from django.contrib import messages
 
 def create_employee(request):
 
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     users = User.objects.all()
 
     if request.method == 'POST':
@@ -1729,6 +1733,8 @@ def health_check(request):              # edited
 
 
  
+
+
 from django.shortcuts import render
 from django.contrib import messages
 from datetime import datetime, timedelta
@@ -1761,11 +1767,13 @@ def view_shift_day(request):
         messages.error(request, f"Invalid date input: {str(e)}")
         selected_date_str = ''
     current_user = User.objects.get(emp_id=request.session['emp_id'])
+
     return render(request, 'Freewheel_Portal/view_shift_range.html', {
         'shift_data': shift_data_today if hour_distribution else {},
         'hour_distribution': json.dumps(hour_distribution),
         'selected_date': selected_date_str,
         'current_user': current_user,
+
     })
 
 
@@ -1833,9 +1841,12 @@ def view_shift(request):
         except Exception as e:
             messages.error(request, f"Invalid date input: {str(e)}")
  
+    current_user = User.objects.get(emp_id=request.session['emp_id'])
+
     return render(request, 'Freewheel_Portal/view_shift.html', {
         'from_date': from_date_str,
         'to_date': to_date_str,
+        'current_user': current_user,
     })
 
 
@@ -1845,8 +1856,8 @@ def view_shift(request):
 from django.http import JsonResponse
  
 def upload_profile_image(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     print("Request method:", request.method)
     print("Is authenticated:", request.user.is_authenticated)
     print("Files:", request.FILES)
@@ -1888,8 +1899,8 @@ def notice_view(request):
     })
  
 def notice_add(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     all_notices = Notice.objects.filter(posted_by=current_user).order_by(
@@ -1909,8 +1920,8 @@ def notice_add(request):
     })
  
 def notice_sub(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     current_user = User.objects.get(emp_id=request.session['emp_id'])
  
@@ -1940,8 +1951,8 @@ def notice_sub(request):
 from django.shortcuts import get_object_or_404
  
 def edit_notice(request, notice_id):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     current_user = User.objects.get(emp_id=request.session['emp_id'])
  
@@ -1955,8 +1966,8 @@ def edit_notice(request, notice_id):
     return redirect('notice_add')
  
 def delete_notice(request, notice_id):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     notice = get_object_or_404(Notice, id=notice_id)
     current_user = User.objects.get(emp_id=request.session['emp_id'])
@@ -1972,8 +1983,8 @@ def delete_notice(request, notice_id):
  
 def notice(request):
  
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
    
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
@@ -2249,8 +2260,8 @@ from django.db.models import Case, When, IntegerField
 from datetime import date
  
 def notice_board(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
  
     notice = Notice.objects.all().order_by('-posted_at')
  
@@ -2306,8 +2317,8 @@ from django.shortcuts import redirect
 
 
 def working_ticket(request):
-    if 'emp_id' not in request.session:
-        return redirect('login')
+    # if 'emp_id' not in request.session:
+    #     return redirect('login')
     
     if request.method == 'POST':
         print("[DEBUG] POST request received at /working-ticket")

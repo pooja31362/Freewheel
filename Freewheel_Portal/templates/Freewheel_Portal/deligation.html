@@ -1,241 +1,184 @@
 {% load custom_filters %}
-
+ 
 <div class="del" id="del">
-  <a href="{% url 'home' %}" style="
-display: inline-block;
-    margin: 10px;
-    padding: 6px 12px;
-    background-color: white;
-    color: black;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-">
-    &#8592; Back to Home
-</a>
   <div class="deligation">
  
-    <!-- Shift 1 -->
+    <!-- ✅ Shift 1 -->
     <div class="card">
-      <h3>Shift 1</h3>
+     
       {% for time in shift1_times %}
-      <div class="time-row">
-        <span class="time-label">{{ time }}</span>
-        <select class="shift1-select" data-time="{{ time }}">
-          <option>Assignee</option>
-          {% for user in users %}
-            {% if user.shift == 'S1' %}
+        <div class="time-row">
+          <span class="time-label">{{ time }}</span>
+          <select class="shift1-select" data-time="{{ time }}">
+            <option value="">Assignee</option>
+            {% for user in users %}
               <option value="{{ user.emp_id }}"
                 {% if shift1_status|get_item:time == user.emp_id %}selected{% endif %}>
                 {{ user.assignee_name }}
               </option>
-            {% endif %}
-          {% endfor %}
-        </select>
-      </div>
+            {% endfor %}
+          </select>
+        </div>
       {% endfor %}
       <div style="margin-top: 1rem;">
-        <strong>Dump Update & Shift-end Email</strong>
+        <strong>Shift-end Email - shift 1</strong>
         <select id="shift1_end_email">
-          <option>Assignee</option>
+          <option value="">Assignee</option>
           {% for user in users %}
-            {% if user.shift == 'S1' %}
-              <option value="{{ user.emp_id }}"
-                {% if shift1_end_email_id == user.emp_id %}selected{% endif %}>
-                {{ user.assignee_name }}
-              </option>
-            {% endif %}
+            <option value="{{ user.emp_id }}"
+              {% if shift1_end_email_id == user.emp_id %}selected{% endif %}>
+              {{ user.assignee_name }}
+            </option>
           {% endfor %}
         </select>
       </div>
     </div>
  
-    <!-- Shift 3 -->
+    <!-- ✅ Shift 3 -->
     <div class="card">
-      <h3>Shift 3</h3>
+     
       {% for time in shift3_times %}
-      <div class="time-row">
-        <span class="time-label">{{ time }}</span>
-        <select class="shift3-select" data-time="{{ time }}">
-          <option>Assignee</option>
-          {% for user in users %}
-            {% if user.shift == 'S3' %}
+        <div class="time-row">
+          <span class="time-label">{{ time }}</span>
+          <select class="shift3-select" data-time="{{ time }}">
+            <option value="">Assignee</option>
+            {% for user in users %}
               <option value="{{ user.emp_id }}"
                 {% if shift3_status|get_item:time == user.emp_id %}selected{% endif %}>
                 {{ user.assignee_name }}
               </option>
-            {% endif %}
-          {% endfor %}
-        </select>
-      </div>
+            {% endfor %}
+          </select>
+        </div>
       {% endfor %}
       <div style="margin-top: 1rem;">
-        <strong>Dump Update & Shift-end Email</strong>
+        <strong>Shift-end Email - shift 2</strong>
         <select id="shift3_end_email">
-          <option>Assignee</option>
+          <option value="">Assignee</option>
           {% for user in users %}
-            {% if user.shift == 'S3' %}
-              <option value="{{ user.emp_id }}"
-                {% if shift3_end_email_id == user.emp_id %}selected{% endif %}>
-                {{ user.assignee_name }}
-              </option>
-            {% endif %}
+            <option value="{{ user.emp_id }}"
+              {% if shift3_end_email_id == user.emp_id %}selected{% endif %}>
+              {{ user.assignee_name }}
+            </option>
           {% endfor %}
         </select>
       </div>
     </div>
  
-    <!-- Shift 6 -->
+    <!-- ✅ Shift 6 -->
     <div class="card">
-      <h3>Shift 6</h3>
+     
       {% for time in shift6_times %}
-      <div class="time-row">
-        <span class="time-label">{{ time }}</span>
-        <select class="shift6-select" data-time="{{ time }}">
-          <option>Assignee</option>
-          {% for user in users %}
-            {% if user.shift == 'S6' %}
+        <div class="time-row">
+          <span class="time-label">{{ time }}</span>
+          <select class="shift6-select" data-time="{{ time }}">
+            <option value="">Assignee</option>
+            {% for user in users %}
               <option value="{{ user.emp_id }}"
                 {% if shift6_status|get_item:time == user.emp_id %}selected{% endif %}>
                 {{ user.assignee_name }}
               </option>
-            {% endif %}
-          {% endfor %}
-        </select>
-      </div>
+            {% endfor %}
+          </select>
+        </div>
       {% endfor %}
       <div style="margin-top: 1rem;">
-        <strong>Dump Update & Shift-end Email</strong>
+        <strong> Shift-end Email - shift 3</strong>
         <select id="shift6_end_email">
-          <option>Assignee</option>
+          <option value="">Assignee</option>
           {% for user in users %}
-            {% if user.shift == 'S6' %}
-              <option value="{{ user.emp_id }}"
-                {% if shift6_end_email_id == user.emp_id %}selected{% endif %}>
-                {{ user.assignee_name }}
-              </option>
-            {% endif %}
+            <option value="{{ user.emp_id }}"
+              {% if shift6_end_email_id == user.emp_id %}selected{% endif %}>
+              {{ user.assignee_name }}
+            </option>
           {% endfor %}
         </select>
       </div>
     </div>
+ 
   </div>
- <div class="delegation-button">
-  <!-- Save Buttons -->
-  <button type="button" id="submitShift1">Save Shift 1</button>
-  <button type="button" id="submitShift3">Save Shift 3</button>
-  <button type="button" id="submitShift6">Save Shift 6</button>
+ 
+  <!-- ✅ Buttons -->
+  <div class="delegation-button" style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+    <button id="saveDelegation" type="button">Save</button>
+    <button id="clearDelegation" type="button">Clear</button>
   </div>
 </div>
  
- 
+<!-- ✅ SCRIPT SECTION -->
 <script>
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
+  document.addEventListener("DOMContentLoaded", function () {
+    // CSRF helper
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
         }
       }
+      return cookieValue;
     }
-    return cookieValue;
-  }
  
-  function updateDisabledOptions(shiftClass) {
-    const selectedValues = Array.from(document.querySelectorAll(`.${shiftClass}`))
-      .map(select => select.value)
-      .filter(val => val !== "Assignee");
- 
-    document.querySelectorAll(`.${shiftClass}`).forEach(select => {
-      const currentValue = select.value;
-      Array.from(select.options).forEach(option => {
-        if (option.value !== "Assignee") {
-          option.disabled = selectedValues.includes(option.value) && option.value !== currentValue;
-        }
-      });
-    });
-  }
- 
-  document.querySelectorAll(".shift1-select, .shift3-select, .shift6-select").forEach(select => {
-    select.addEventListener("change", () => {
-      updateDisabledOptions("shift1-select");
-      updateDisabledOptions("shift3-select");
-      updateDisabledOptions("shift6-select");
-    });
-  });
- 
- 
- 
- 
-  function submitShift(shift) {
     const csrftoken = getCookie("csrftoken");
-    const payload = {};
  
-    if (shift === 'S1') {
-      const shift1_status = {};
-      document.querySelectorAll(".shift1-select").forEach(select => {
-        const time = select.getAttribute("data-time");
-        shift1_status[time] = select.value;
-      });
-      const shift1_end_email = document.getElementById("shift1_end_email").value;
-      payload.shift1_status = shift1_status;
-      payload.shift1_end_email = shift1_end_email;
-    }
+    // ✅ Save button
+    document.getElementById("saveDelegation").addEventListener("click", function () {
+      const getShiftStatus = (selector) => {
+        const data = {};
+        document.querySelectorAll(selector).forEach((select) => {
+          const time = select.getAttribute("data-time");
+          const empId = select.value;
+          if (empId && empId !== "") {
+            data[time] = empId;
+          }
+        });
+        return data;
+      };
  
-    if (shift === 'S3') {
-      const shift3_status = {};
-      document.querySelectorAll(".shift3-select").forEach(select => {
-        const time = select.getAttribute("data-time");
-        shift3_status[time] = select.value;
-      });
-      const shift3_end_email = document.getElementById("shift3_end_email").value;
-      payload.shift3_status = shift3_status;
-      payload.shift3_end_email = shift3_end_email;
-    }
+      const payload = {
+        shift1_status: getShiftStatus(".shift1-select"),
+        shift3_status: getShiftStatus(".shift3-select"),
+        shift6_status: getShiftStatus(".shift6-select"),
+        shift1_end_email: document.getElementById("shift1_end_email").value,
+        shift3_end_email: document.getElementById("shift3_end_email").value,
+        shift6_end_email: document.getElementById("shift6_end_email").value,
+      };
  
-    if (shift === 'S6') {
-      const shift6_status = {};
-      document.querySelectorAll(".shift6-select").forEach(select => {
-        const time = select.getAttribute("data-time");
-        shift6_status[time] = select.value;
-      });
-      const shift6_end_email = document.getElementById("shift6_end_email").value;
-      payload.shift6_status = shift6_status;
-      payload.shift6_end_email = shift6_end_email;
-    }
- 
-    fetch("", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken
-      },
-      body: JSON.stringify(payload)
-    }).then(response => {
-      if (response.ok) {
-        alert(`Shift ${shift} delegation saved!`);
+      fetch(window.location.pathname, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to save");
+        return response.json();
+      })
+      .then(data => {
+        alert("✅ Delegation saved successfully!");
         location.reload();
-      } else {
-        alert(`Error saving shift ${shift}.`);
+      })
+      .catch(error => {
+        alert("❌ Error saving delegation");
+        console.error(error);
+      });
+    });
+ 
+    // ✅ Clear button
+    document.getElementById("clearDelegation").addEventListener("click", function () {
+      if (confirm("🛑 Are you sure you want to clear all delegation data?\nThis will remove all selected assignees from the dropdowns.")) {
+        document.querySelectorAll("select").forEach(select => {
+          select.value = "";
+        });
+        alert("✅ All selections cleared. Click 'Save' to update the system.");
       }
     });
-  }
- 
-  // Hook the buttons
-  document.getElementById("submitShift1").addEventListener("click", () => submitShift("S1"));
-  document.getElementById("submitShift3").addEventListener("click", () => submitShift("S3"));
-  document.getElementById("submitShift6").addEventListener("click", () => submitShift("S6"));
- 
- 
-  // ✅ Initial disabling on page load
-  window.addEventListener("DOMContentLoaded", () => {
-    updateDisabledOptions("shift1-select");
-    updateDisabledOptions("shift3-select");
-    updateDisabledOptions("shift6-select");
   });
-  </script>
+</script>

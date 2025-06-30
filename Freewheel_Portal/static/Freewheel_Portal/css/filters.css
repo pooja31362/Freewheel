@@ -14,7 +14,7 @@
     .filters select{
     width: 100%;
     padding: 0.5rem 2.5rem 0.5rem 1rem;
-    font-size: .8rem;
+    font-size: 10px;
     border: 0.125rem solid #4a90e2;
     border-radius: 0.5rem;
     background-color: #fff;
@@ -88,6 +88,7 @@
       padding: .5rem;
       border-radius: 5px;
       cursor: pointer;
+      font-size: 10px;
     }
     .button-group button.active {
       background-color: #007BFF;

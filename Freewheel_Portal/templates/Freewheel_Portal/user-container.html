@@ -1,6 +1,16 @@
-
-    <div class="user-container" id="user-container" style="display: block;">
-
+<div class="main-container" id="user-container">
+  <div class="header-section">
+    <div class="user-info"></div>
+    <div class="shift">Open Tickets</div>
+    <div class="shift">Pending TIckets</div>
+    <div class="shift">Today's Shiftx</div>
+    <div class="shift">Job Title</div>
+    <div class="shift">Reporting To</div>
+    <div class="user-actions"></div>
+  </div>
+    
+    <div class="user-container"  style="display: block;">
+    
       <div id="toast" class="toast hidden"></div>
 
       <div class="user"> <!-- add user -->
@@ -32,15 +42,18 @@
                              data-workregion="{{ user.work_region }}"
                              style="cursor: pointer;" />
                         </div>
-                        <div style="width: 40vh;">
-                            <div style="font-size: 14px; font-weight: bold;">
+                        <div class = "user-details"style="width: 40vh;">
+                            <div style="font-size: 11px; font-weight: 900;">
                               {% if user.assignee_name == current_user.assignee_name %}
                               You
                               {% else %}
                               {{ user.assignee_name }}
                               {% endif %}
                             </div>
-                            <div {% if user.emp_id|stringformat:"s" == current_user.emp_id|stringformat:"s" %}id="user-status-display"{% endif %} style="font-size: 12px;">
+                            <div id="user-status-{{ user.emp_id }}"
+                                {% if user.emp_id == current_user.emp_id %} data-is-current-user="true" {% endif %}
+                                style="font-size: 10px;">
+                                
                                 {% if user.status == 'Available' %}
                                 <i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>
                                 {% elif user.status == 'Away' %}
@@ -66,34 +79,29 @@
 
                     </div>
                     {% else %}
-                                        <div class="shift">
-                        <div style="font-size: 14px; font-weight: bold;">Open :</div>
-                        <div style="font-size: 12px;">{{ user.open_ticket_count }}</div>
+                    <div class="shift">
+                        <div style="font-size: 11px; font-weight: 500;">{{ user.open_ticket_count }}</div>
                     </div>
                     <div class="shift">
-                        <div style="font-size: 14px; font-weight: bold;">Pending :</div>
-                        <div style="font-size: 12px;">{{ user.pending_ticket_count }}</div>
+                        <div style="font-size: 11px; font-weight: 500;">{{ user.pending_ticket_count }}</div>
                     </div>
                     <div class="shift">
-                        <div style="font-size: 14px; font-weight: bold;">Shift:</div>
-                        <div style="font-size: 12px;">{{ user.shift }}</div>
+                        <div style="font-size: 11px; font-weight: 500;">{{ user.shift }}</div>
                     </div>
                     {% endif %}
-                    <div class="title">
-                        <div style="font-size: 14px; font-weight: bold;">Job Title:</div>
-                        <div style="font-size: 12px;">{{ user.job_title }}</div>
+                    <div class="shift">
+                        <div style="font-size: 11px; font-weight: 500;">{{ user.job_title }}</div>
                     </div>
 
-                    <div class="manager">
-                        <div style="font-size: 14px; font-weight: bold;">Reports To:</div>
-                        <div style="font-size: 12px;">{{ user.repor_manager }}</div>
+                    <div class="shift">
+                        <div style="font-size: 11px; font-weight: 500;">{{ user.repor_manager }}</div>
                     </div>
 
 
                     <div class="user-actions">
                         <button class="ticketsList">Tickets</button>
-                        <a href="https://teams.microsoft.com/l/chat/0/0?users={{user.email}}"><img src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams"></a>
-                        <a href="https://slack.com/app_redirect?channel={{user.slack_id}}"><img src="https://img.icons8.com/color/48/slack-new.png" alt="slack"></a>
+                        <a href="https://teams.microsoft.com/l/chat/0/0?users={{user.email}}"><img class="teams" src="../../static/Freewheel_Portal/images/5e8cdf0a664eae000408545b.png" alt="teams"></a>
+                        <a href="https://slack.com/app_redirect?channel={{user.slack_id}}"><img class="slack" src="https://img.icons8.com/color/48/slack-new.png" alt="slack"></a>
                     </div>
                 </div>
                 <div class="ticket" >
@@ -110,13 +118,24 @@
                         {% for ticket in tickets %}
                           {% if ticket.assignee_name == user.assignee_name%}
                             <div class="ticket-row" data-ticket-id="{{ ticket.ticket_id }}" data-status="{{ ticket.status|lower }}">
-                              <div class="ticket-info">
+                              <div 
+                          class="ticket-info 
+                            {% if ticket.assignee_name == current_user.assignee_name %} current-user{% endif %}
+                            {% if ticket.ticket_id == user.working_ticket %} active {% endif %}">
+                          
+                          {% if ticket.assignee_name == current_user.assignee_name %}
+                            <div class="view-ticket"><i class="fa-regular fa-eye"></i></div>
+                          {% endif %}
+
                                 <a href="https://freewheel.zendesk.com/agent/tickets/{{ ticket.ticket_id }}" target="_blank">
-                            {{ ticket.ticket_id }}
-                        </a>
+                                  {{ ticket.ticket_id }}
+                                </a>
                                 <div>{{ ticket.subject|default:"N/A" }}</div>
+                                <div>{{ ticket.status }}</div>
                                 <div>{{ ticket.priority|default:"Normal" }}</div>
                                 <div>{{ ticket.requester_organization|default:"Unknown" }}</div>
+                                <div>{{ ticket.group }}</div>
+
                                 <div><button class="comment-btn"><i class="fa-solid fa-comments" style="color: black;"></i></button></div>
                                 <div><button class="assign-btn"><i class="fa-solid fa-id-badge" style="color: black;"></i></button></div>
                               </div>
@@ -140,7 +159,6 @@
                                     {% for usr in users %}
                                         {% if usr.assignee_name != ticket.assignee_name %}
                                             <option value="{{ usr.emp_id }}">{{ usr.assignee_name }}</option>
-
                                         {% endif %}
                                     {% endfor %}
                                     {% else %}
@@ -635,19 +653,7 @@ document.querySelectorAll(".collapse").forEach(header => {
 </style>
 
 <script>
-  const ws = new WebSocket('ws://' + window.location.host + '/ws/status/');
- 
-ws.onmessage = function(event) {
-  const data = JSON.parse(event.data);
-  const userCards = document.querySelectorAll('.user-card');
- 
-  userCards.forEach(card => {
-    if (card.dataset.agent === data.assignee_name) {
-      const statusDiv = card.querySelector("div[style*='font-size: 12px;']");
-      if (statusDiv) statusDiv.innerHTML = `<i class="${getStatusIcon(data.new_status)}"></i> ${data.new_status}`;
-    }
-  });
-};
+
  
 function getStatusIcon(status) {
   switch (status) {
@@ -718,3 +724,96 @@ function getStatusIcon(status) {
     });
   });
   </script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".user-card").forEach(userCard => {
+    userCard.addEventListener("click", async function (e) {
+      const clickedIcon = e.target.closest(".ticket-info.current-user .view-ticket i");
+      if (!clickedIcon) return;
+
+      const ticketInfo = clickedIcon.closest(".ticket-info.current-user");
+      const ticketRow = clickedIcon.closest(".ticket-row");
+      const ticketId = ticketRow?.dataset?.ticketId;
+
+      if (!ticketInfo || !ticketId) {
+        console.warn("[working_ticket] Missing ticket-info or ticket ID.");
+        return;
+      }
+
+      const isActive = ticketInfo.classList.contains("active");
+      const newTicketId = isActive ? null : ticketId;
+
+      console.log(`[working_ticket] Clicked ticket ID: ${ticketId}`);
+      console.log(`[working_ticket] Already active? ${isActive}`);
+      console.log(`[working_ticket] Will send to backend: ${newTicketId}`);
+
+      // Unmark all current-user ticket-info in this card
+      userCard.querySelectorAll(".ticket-info.current-user").forEach(info => info.classList.remove("active"));
+
+      // If not already active, mark it
+      if (!isActive) {
+        ticketInfo.classList.add("active");
+        console.log(`[working_ticket] Marked ticket-info ${ticketId} as active`);
+      } else {
+        console.log(`[working_ticket] Unmarked ticket-info ${ticketId}`);
+      }
+
+      // Send update to backend
+      try {
+        const res = await fetch("{% url 'working_ticket' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+          },
+          body: JSON.stringify({ ticket_id: newTicketId })
+        });
+
+        const data = await res.json();
+        console.log("[working_ticket] Server responded:", data);
+
+        if (!data.success) {
+          console.error("[working_ticket] Server error:", data.error || "Unknown");
+          ticketInfo.classList.remove("active"); // Revert on error
+        }
+      } catch (err) {
+        console.error("[working_ticket] Network error:", err);
+        ticketInfo.classList.remove("active"); // Revert on error
+      }
+    });
+  });
+});
+
+</script>
+
+
+
+<script>
+function refreshAllUserStatuses() {
+  console.log("[JS DEBUG] Polling statuses...");
+
+  fetch("{% url 'get-user-statuses' %}")
+    .then(response => response.json())
+    .then(data => {
+      for (const empId in data) {
+        const statusDiv = document.getElementById(`user-status-${empId}`);
+        if (statusDiv) {
+          statusDiv.innerHTML = data[empId];
+        } else {
+          console.warn(`[WARN] user-status-${empId} not found`);
+        }
+      }
+    })
+    .catch(error => console.error("[ERROR] Failed to refresh user statuses:", error));
+}
+
+// Call once immediately and then every 5 seconds
+refreshAllUserStatuses();
+setInterval(refreshAllUserStatuses, 5000);
+</script>
+
+
+</div>

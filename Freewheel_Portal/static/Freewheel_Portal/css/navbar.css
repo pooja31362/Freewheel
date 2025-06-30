@@ -18,13 +18,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 0;
       gap: 20px;
       margin-top: .5rem;
       margin-left:.5rem;
 
     }
-    .sidebar i, .sidebar img {
+    .sidebar i {
       color: white;
       font-size: 24px;
       cursor: pointer;
@@ -113,6 +112,11 @@
     border-radius: 15px;
     right: 0.3rem;
     flex-direction: column;
+}
+
+.sidebar img {
+  height: 8%;
+    filter: invert(1);
 }
 
 .leave-period button.leave-btn {

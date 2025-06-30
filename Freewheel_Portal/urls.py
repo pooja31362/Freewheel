@@ -42,6 +42,12 @@ urlpatterns = [
     path('notice/edit/<int:notice_id>/', views.edit_notice, name='edit_notice'),
     path('notice/delete/<int:notice_id>/', views.delete_notice, name='delete_notice'),
     path('reset-password/', views.reset_password, name='reset_password'),
+    path('working-ticket/', views.working_ticket, name='working_ticket'),
+    path('get-user-statuses/', views.get_all_user_statuses, name='get-user-statuses'),
+    path('get-ticket-updates/', views.get_ticket_updates, name='get-ticket-updates'),
+
+
+
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # edited

@@ -94,7 +94,10 @@ class User(models.Model):
     leave_until = models.DateTimeField(null=True, blank=True)
     last_shift_update = models.DateField(null=True, blank=True)
 
- 
+    working_ticket = models.CharField(max_length=100, null=True, blank=True)
+
+
+
     def save(self, *args, **kwargs):
     # Auto-generate username from email if not provided
         if not self.user_name and self.email:

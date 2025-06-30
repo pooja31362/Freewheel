@@ -39,24 +39,24 @@
         title="
         SH: {{ open_product_counts.SH|default:'0' }}&#10;FW DSP: {{ open_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ open_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ open_product_counts.Strata|default:'0' }}
         ">
-          Open Ticket<br><b>{{ open_tickets.count }}</b>
+          <div>Open</div><div>{{ open_tickets.count }}</div>
         </div>
        
         <div class="stat-box" id="pending-ticket-btn" title="SH: {{ pending_product_counts.SH|default:'0' }}&#10;FW DSP: {{ pending_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ pending_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ pending_product_counts.Strata|default:'0' }}
         ">
-          Pending Tickets<br><b>{{ pending_tickets.count }}</b>
+          <div>Pending</div><div>{{ pending_tickets.count }}</div>
         </div>
         <div class="stat-box" id="onhold-ticket-btn" title="&#10;SH: {{ hold_product_counts.SH|default:'0' }}&#10;FW DSP: {{ hold_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ hold_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ hold_product_counts.Strata|default:'0' }}
         ">
-          On-hold Tickets<br><b>{{ hold_tickets.count }}</b>
+          <div>On-hold</div><div>{{ hold_tickets.count }}</div>
         </div>
         <div class="stat-box" id="new-ticket-btn" title="SH: {{ new_product_counts.SH|default:'0' }}&#10;FW DSP: {{ new_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ new_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ new_product_counts.Strata|default:'0' }}
         ">
-          New Tickets<br><b>{{ new_tickets.count }}</b>
+          <div>New</div><div>{{ new_tickets.count }}</div>
         </div>
         <div class="stat-box" id="unassigned-ticket-btn" title="SH: {{ new_product_counts.SH|default:'0' }}&#10;FW DSP: {{ new_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ new_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ new_product_counts.Strata|default:'0' }}
         ">
-          Un-assigned Tickets<br><b>{{ unassigned_tickets.count }}</b>
+          <div>Un-assigned Tickets</div><div>{{ unassigned_tickets.count }}</div>
         </div>
 
       </div>

@@ -5,7 +5,7 @@
 
 <nav>
     <div class="sidebar">
-        <i class="fa-solid fa-bars"></i>
+        <img src="/media/images/Freewheel_Logo.png" alt="Logo">
         <a href="{% url 'home' %}"><i class="fa-solid fa-house" title="Home"></i></a>
         {% if current_user.user_type == 'tc' or current_user.user_type == 'manager' %}
         <i class="fa-solid fa-people-group" id="delBtn" title="Delegation"></i>

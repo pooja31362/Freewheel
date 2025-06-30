@@ -2295,3 +2295,92 @@ def reset_password(request):
         return redirect("home")  # Or return HttpResponse("Password updated successfully")
    
     return HttpResponse("Invalid Request", status=400)
+
+
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.shortcuts import redirect
+
+
+def working_ticket(request):
+    if 'emp_id' not in request.session:
+        return redirect('login')
+    
+    if request.method == 'POST':
+        print("[DEBUG] POST request received at /working-ticket")
+
+        data = json.loads(request.body)
+        ticket_id = data.get("ticket_id")
+
+        print(f"[DEBUG] Raw payload: {data}")
+        print(f"[INFO] User {request.user.username} selected working_ticket: {ticket_id}")
+
+        current_user = User.objects.get(emp_id=request.session['emp_id'])
+
+        # Save to user model
+        current_user.working_ticket = ticket_id  # can be None
+        current_user.save(update_fields=['working_ticket'])
+
+        print(f"[DEBUG] Saved to user.working_ticket = {current_user.working_ticket}")
+
+        return JsonResponse({"success": True})
+        
+
+    print("[WARN] Non-POST request received")
+    return JsonResponse({"success": False, "error": "Invalid request method"})
+
+
+
+from django.http import JsonResponse
+from .models import User
+
+def get_all_user_statuses(request):
+    users = User.objects.all().values('emp_id', 'status')
+    status_data = {}
+
+    for user in users:
+        icon = ""
+        status = user['status']
+
+        if status == 'Available':
+            icon = '<i class="fa-solid fa-circle-check" style="color: #4CAF50;"></i>'
+        elif status == 'Away':
+            icon = '<i class="fa-solid fa-clock" style="color: #FFC107;"></i>'
+        elif status == 'In-Meeting':
+            icon = '<i class="fa-solid fa-phone" style="color: #F44336;"></i>'
+        elif status == 'Offline':
+            icon = '<i class="fa-solid fa-circle-xmark" style="color: #7f7f7f;"></i>'
+        elif status == 'Out Of Office':
+            icon = '<i class="fa-solid fa-circle-arrow-right" style="color: #c235e0;"></i>'
+
+        status_data[str(user['emp_id'])] = f"{icon} {status}"
+
+    return JsonResponse(status_data)
+
+
+from django.http import JsonResponse
+from .models import Ticket
+
+def get_ticket_updates(request):
+    tickets = Ticket.objects.all().values('ticket_id', 'subject', 'status', 'priority', 'requester_organization', 'group')
+
+    data = {}
+    for ticket in tickets:
+        html = f"""
+          <a href='https://freewheel.zendesk.com/agent/tickets/{ticket['ticket_id']}' target='_blank'>
+            {ticket['ticket_id']}
+          </a>
+          <div>{ticket['subject'] or 'N/A'}</div>
+          <div>{ticket['status']}</div>
+          <div>{ticket['priority'] or 'Normal'}</div>
+          <div>{ticket['requester_organization'] or 'Unknown'}</div>
+          <div>{ticket['group']}</div>
+          <div><button class='comment-btn'><i class='fa-solid fa-comments' style='color: black;'></i></button></div>
+          <div><button class='assign-btn'><i class='fa-solid fa-id-badge' style='color: black;'></i></button></div>
+        """
+        data[str(ticket['ticket_id'])] = html
+
+    return JsonResponse(data)

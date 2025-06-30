@@ -16,15 +16,13 @@ def logout_view(request):
     emp_id = request.session.get('emp_id')
     if emp_id:
         try:
-            current_user = User.objects.get(emp_id=emp_id)
-            current_user.status = "Offline"
-            current_user.save(update_fields=['status'])
+            user = User.objects.get(emp_id=emp_id)
+            user.status = "Offline"
+            user.save(update_fields=['status'])
         except User.DoesNotExist:
             pass
 
-    # ✅ Only clear session data for this user
-    request.session.clear()
-
+    request.session.flush()  # ✅ Safer: clears all session data
     return redirect('login')
 
 
@@ -41,6 +39,7 @@ from django.http import JsonResponse
 import datetime
 from .utils import get_today_shift_for_user
 from django.db.models import Count
+from collections import defaultdict
 
 
 ALLOWED_USERS = ['anibro', 'Nisha','Harikishore T', 'keerthana', 'kavya_akka']
@@ -296,31 +295,33 @@ def home(request):
 # Sort users
     users.sort(key=sort_key)
 
-    hold_product_counts = (
-        Ticket.objects.filter(status='Hold')
-        .values('product_category')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-    )
-    new_product_counts = (
-        Ticket.objects.filter(status='New')
-        .values('product_category')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-    )
-    pending_product_counts = (
-        Ticket.objects.filter(status='Pending')
-        .values('product_category')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-    )
+
+    open_product_counts_qs = Ticket.objects.filter(status='Open')\
+    .values('group')\
+    .annotate(count=Count('id'))
  
-    open_product_counts = (
-        Ticket.objects.filter(status='Open')
-        .values('product_category')
-        .annotate(count=Count('id'))
-        .order_by('-count')
-    )
+ 
+    new_product_counts_qs = Ticket.objects.filter(status='New')\
+    .values('group')\
+    .annotate(count=Count('id'))
+ 
+ 
+    pending_product_counts_qs = Ticket.objects.filter(status='Pending')\
+    .values('group')\
+    .annotate(count=Count('id'))
+ 
+    hold_product_counts_qs = Ticket.objects.filter(status='Hold')\
+    .values('group')\
+    .annotate(count=Count('id'))
+ 
+   
+ 
+ 
+    open_product_counts = {entry['group']: entry['count'] for entry in open_product_counts_qs}
+    pending_product_counts = {entry['group']: entry['count'] for entry in pending_product_counts_qs}
+    hold_product_counts = {entry['group']: entry['count'] for entry in hold_product_counts_qs}
+    new_product_counts = {entry['group']: entry['count'] for entry in new_product_counts_qs}
+
 
     urgent_notices = Notice.objects.filter(priority='Urgent').order_by('-posted_at')
  
@@ -340,7 +341,6 @@ def home(request):
         'hold_tickets': Ticket.objects.filter(status='Hold'),
         'new_tickets': Ticket.objects.filter(status='New'),
         'unassigned_tickets': Ticket.objects.filter(assignee_name="",).exclude(status="New"),
-        'tickets': tickets,
 
         'shift1_times': SHIFT1_TIMINGS,
         'shift3_times': SHIFT3_TIMINGS,
@@ -374,7 +374,7 @@ def home(request):
         'pending_product_counts': pending_product_counts,
         'hold_product_counts': hold_product_counts,
         'new_product_counts': new_product_counts,
-        'open_product_counts ': open_product_counts,
+        'open_product_counts': open_product_counts,
     }
 
     return render(request, 'Freewheel_Portal/home.html', context)
@@ -389,8 +389,8 @@ import json
 
 @csrf_exempt
 def reset_ticket_assignee(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == "POST":
         data = json.loads(request.body)
         ticket_id = data.get("ticket_id")
@@ -406,6 +406,14 @@ def reset_ticket_assignee(request):
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
+def get_logged_in_user(request):
+    emp_id = request.session.get('emp_id')
+    if not emp_id:
+        return None
+    try:
+        return User.objects.get(emp_id=emp_id)
+    except User.DoesNotExist:
+        return None
 
 
 
@@ -419,28 +427,33 @@ def do_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+        set_available = request.POST.get('set_available')  # From checkbox
 
         try:
             user = User.objects.get(user_name=username)
-            if user.password == password:  # 👈 If you're using plain text (not recommended)
-                request.session.flush()         # Clear any old session
-                request.session.cycle_key()     # ✅ Generate a new unique session ID
 
-                # Set session variables
-                access = [a.lower().strip() for a in user.access]
+            if user.password == password:  # ❗ Replace with hash check later
+
+                # Flush session only if another user was logged in
+                if request.session.get('emp_id') and request.session['emp_id'] != user.emp_id:
+                    request.session.flush()
+
+                request.session.cycle_key()
+
                 request.session['emp_id'] = user.emp_id
-                request.session['access'] = access
+                request.session['access'] = [a.lower().strip() for a in user.access]
 
-                # Mark user as available
-                current_user = User.objects.get(emp_id=user.emp_id)
-                current_user.status = 'Available'
+                # Conditionally update status
+                if set_available:
+                    user.status = 'Available'
 
-                # Update shift only once per day
-                if current_user.last_shift_update != date.today():
-                    get_today_shift_for_user(current_user.emp_id)
-                    current_user.last_shift_update = date.today()
+                # Update shift once per day
+                if user.last_shift_update != date.today():
+                    get_today_shift_for_user(user.emp_id)
+                    user.last_shift_update = date.today()
 
-                current_user.save(update_fields=['status', 'last_shift_update'])
+                # Save any updates
+                user.save(update_fields=['status', 'last_shift_update'])
 
                 return redirect('home')
             else:
@@ -452,11 +465,12 @@ def do_login(request):
 
 
 
+
 from django.http import JsonResponse
  
 def update_status(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     print("Request method:", request.method)
     print("Request POST data:", request.POST)
@@ -655,14 +669,14 @@ from django.shortcuts import render
 from .models import Ticket
  
 def ticket_list(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     tickets = Ticket.objects.all().order_by('ticket_id')  # ascending order
     return render(request, 'Freewheel_Portal/ticket_list.html', {'tickets': tickets})
 
 def test(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
 
     return render(request,'Freewheel_Portal/test.html')
  
@@ -674,8 +688,8 @@ from .models import GroupAccess, Access
  
 def create_user(request):
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     initial_data = {}
  
     if request.method == 'GET':
@@ -712,8 +726,8 @@ from .models import Ticket, ShiftEndTable, User
 def submit_comment(request):
 
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login') 
+    if 'emp_id' not in request.session:
+        return redirect('login') 
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -772,8 +786,8 @@ from .models import Ticket, User
 
 @csrf_exempt
 def assign_ticket(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -807,8 +821,8 @@ from .models import ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket
  
 def shift_end_summary(request):
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
@@ -1068,8 +1082,8 @@ from django.utils import timezone
 from dateutil import parser
 
 def submit_leave(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
 
     if request.method == "POST":
         leave_until_str = request.POST.get('leave_until')
@@ -1094,8 +1108,8 @@ def submit_leave(request):
 
 def new_tickets_view(request):
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST':
         ticket_id = request.POST.get('ticket_id')
         assignee_emp_id = request.POST.get('assignee_emp_id')
@@ -1129,8 +1143,8 @@ SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
  
  
 def filter_by_shift(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     employees = []
     selected_shift = request.GET.get('shift', '').strip()
@@ -1211,8 +1225,8 @@ def upload_shift_excel(request):
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
-        return JsonResponse({'status': 'success', 'filename': new_filename})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+        return redirect('home')
+    return redirect('home')
 
 
 
@@ -1222,8 +1236,8 @@ from .utils import truncate_shift_end
 def manual_freeze_view(request):
 
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == "POST":
         success = truncate_shift_end()
         return JsonResponse({'success': success})
@@ -1254,8 +1268,8 @@ def classify_product(ticket):
  
 
 def upload_excel_report(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     # 🔥 Store existing engineer/followup values
     existing_reports = TicketReport.objects.all()
@@ -1349,8 +1363,8 @@ from django.http import HttpResponseRedirect
  
 @csrf_exempt
 def save_bulk_report_updates(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     if request.method == 'POST':
         ids = request.POST.getlist('ids')
         for id in ids:
@@ -1368,8 +1382,8 @@ def save_bulk_report_updates(request):
  
 def create_emp(request):
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
@@ -1646,8 +1660,8 @@ from django.contrib import messages
 
 def create_employee(request):
 
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     users = User.objects.all()
 
     if request.method == 'POST':
@@ -1856,8 +1870,8 @@ def view_shift(request):
 from django.http import JsonResponse
  
 def upload_profile_image(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     print("Request method:", request.method)
     print("Is authenticated:", request.user.is_authenticated)
     print("Files:", request.FILES)
@@ -1899,8 +1913,8 @@ def notice_view(request):
     })
  
 def notice_add(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     all_notices = Notice.objects.filter(posted_by=current_user).order_by(
@@ -1920,8 +1934,8 @@ def notice_add(request):
     })
  
 def notice_sub(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     current_user = User.objects.get(emp_id=request.session['emp_id'])
  
@@ -1951,8 +1965,8 @@ def notice_sub(request):
 from django.shortcuts import get_object_or_404
  
 def edit_notice(request, notice_id):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     current_user = User.objects.get(emp_id=request.session['emp_id'])
  
@@ -1966,8 +1980,8 @@ def edit_notice(request, notice_id):
     return redirect('notice_add')
  
 def delete_notice(request, notice_id):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     notice = get_object_or_404(Notice, id=notice_id)
     current_user = User.objects.get(emp_id=request.session['emp_id'])
@@ -1983,8 +1997,8 @@ def delete_notice(request, notice_id):
  
 def notice(request):
  
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
    
     current_user = User.objects.get(emp_id=request.session['emp_id'])
     current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
@@ -2260,8 +2274,8 @@ from django.db.models import Case, When, IntegerField
 from datetime import date
  
 def notice_board(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
  
     notice = Notice.objects.all().order_by('-posted_at')
  
@@ -2317,8 +2331,8 @@ from django.shortcuts import redirect
 
 
 def working_ticket(request):
-    # if 'emp_id' not in request.session:
-    #     return redirect('login')
+    if 'emp_id' not in request.session:
+        return redirect('login')
     
     if request.method == 'POST':
         print("[DEBUG] POST request received at /working-ticket")

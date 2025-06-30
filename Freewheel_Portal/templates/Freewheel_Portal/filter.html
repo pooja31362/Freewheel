@@ -1,5 +1,5 @@
 <div class="filters" id="filters">
-  
+ 
         <div class="section filter" id="user-filter">
           <h4>Agent Filter</h4>
  
@@ -51,23 +51,23 @@
         <div class="section filter" id="ticket-filter" style="display: none;">
           <h4>Ticket Filter</h4>
           <input type="number" name="ticket-id" id="ticket-id">
-
+ 
           <select id = "ticket-assignee">
             <option value="" disabled selected>Agent Name Dropdown</option>
-
+ 
             {% for user in users %}
               <option>{{ user.assignee_name }}</option>
             {% endfor %}
           </select>
-
+ 
           <select id = "ticket-group">
             <option value="" disabled selected>----Product Filter----</option>
-
+ 
               <option value="Support Eng">Streaming Hub</option>
               <option value="BW CIEC Onboarding">Freewheel DSP</option>
               <option value = "SFX Support">Freewheel SSP</option>
               <option value = "STRATA CIEC Onboarding">Strata</option>
-
+ 
           </select>
           <select>
             <option value="" selected disabled>----Ticket Priority----</option>
@@ -75,9 +75,9 @@
             <option value="High">High</option>
             <option value="Normal">Normal</option>
             <option value="Low">Low</option>
-
+ 
           </select>
-
+ 
           <div class="clear-filter"><p>Clear Filter</p></div>
         </div>
        

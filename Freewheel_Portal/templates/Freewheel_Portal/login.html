@@ -6,73 +6,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
   <title>Login Page</title>
-  <link rel="stylesheet" href="../../static/Freewheel_Portal/css/login.css">
-  <script src="../../static/Freewheel_Portal/js/login.js"></script>
+ 
+  <link rel="stylesheet" href="{% static 'Freewheel_Portal/css/login.css' %}">
+  <script src="{% static 'Freewheel_Portal/js/login.js' %}"></script>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-
 </head>
+ 
 <body>
-  {% csrf_token %}
   <div class="container">
     <!-- Login Form -->
     <div class="form-box login">
       <form action="{% url 'do_login' %}" method="POST">
         {% csrf_token %}
         <h1>Login</h1>
-
+ 
         <div class="input-box">
           <input type="text" name="username" placeholder="Username" required/>
           <i class='bx bxs-user' style='color:#3b0a75'></i>
         </div>
-
+ 
         <div class="input-box">
           <input type="password" name="password" placeholder="Password" required/>
           <i class="bx bxs-lock bx-beat" style='color:#3b0a75'></i>
         </div>
-
+ 
+        <!-- ✅ New Checkbox -->
+       <div class="input-box" style="margin-top: 10px; display: flex; justify-content: center; align-items: center;">
+  <label style="display: flex; align-items: center; font-size: 14px; gap: 6px; white-space: nowrap; margin: 0;">
+    <input type="checkbox" name="set_available">
+    <span>Set me as <strong>Available</strong></span>
+  </label>
+</div>
+ 
+ 
         <div class="forgot-link">
           <a href="#" id="forgot-btn">Having Problem Logging In?</a>
         </div>
-
+ 
         <button type="submit" class="btn">I AM READY TO WORK</button>
       </form>
     </div>
-
+ 
     <!-- Forgot Password Form -->
     <div class="form-box forgot-password">
-      <form id="forget-form"action="{% url 'forgot_password' %}" method="POST">
-            {% csrf_token %}
-
+      <form id="forget-form" action="{% url 'forgot_password' %}" method="POST">
+        {% csrf_token %}
         <h1>Lost it? Let's get you back in!</h1>
-
+ 
         <div class="input-box">
           <input type="text" name="username" id="username" placeholder="Username" required/>
           <i class='bx bxs-user' style='color:#3b0a75'></i>
         </div>
-
+ 
         <div class="forgot-link">
           <a href="#" id="login-btn">Get Back To Login!</a>
         </div>
-
+ 
         <button type="submit" class="btn">GET EMAIL</button>
-
         <div id="forgot-msg" style="font-weight:bold; margin-top:10px;"></div>
       </form>
     </div>
-
+ 
     <!-- Side Panels -->
     <div class="toggle-box">
       <div class="toggle-panel toggle-left">
         <h1>HI! WELCOME TO <br> FREEWHEEL'S <br>PLATFORM</h1>
       </div>
-
       <div class="toggle-panel toggle-right">
         <h1>LET'S GET<br>WHAT IS <br>YOURS!</h1>
       </div>
     </div>
   </div>
-
 </body>
 </html>
+ 

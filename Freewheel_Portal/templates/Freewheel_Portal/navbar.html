@@ -39,7 +39,7 @@
  
         </div>
  
-        <a href="{% url 'logout' %}">
+        <a href="#" onclick="confirmLogout(event)">
           <i class="fa-solid fa-right-from-bracket" title="Logout" style="cursor: pointer;"></i>
         </a>
 {% if current_user.user_type == 'tc' or current_user.user_type == 'manager' or current_user.user_type == 'admin' %}
@@ -48,8 +48,80 @@
         </a>
         {% endif %}
         <div {% if current_user.user_type == 'staff' %}style=" height: 25.5%;  display: flex;flex-direction: column-reverse;" {% else %} style="height: 22.5%;display: flex;flex-direction: column-reverse;" {% endif %}>
-        <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer;" />
-        </div>
+  <img src="{{ current_user.profile_image.url }}" id="profileImage" style="width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer;filter:invert(0)" />
+                      <!-- Profile Details Dropdown -->
+                      <div id="profileDetails" style="display: none; position: absolute; top: 50%; left: 397%; transform: translateX(-50%); background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.3); border-radius: 10px; z-index: 999;">
+                        <div style="text-align: center; position: relative;">
+                          <label for="imageUploadDropdown" style="cursor: pointer; display: inline-block; position: relative;">
+                            <img id="dropdownProfilePreview" src="{{ current_user.profile_image.url }}" style="width: 80px; height: 80px;filter:invert(0); border-radius: 50%; object-fit: cover;" alt="User Image" />
+                            <div style="position: absolute; bottom: 0; right: 0; background: rgba(0,0,0,0.6); border-radius: 50%; padding: 5px;">
+                              <span style="color: white; font-size: 14px;">📷</span>
+                            </div>
+                          </label>
+                          <input type="file" id="imageUploadDropdown" accept="image/*" style="display: none;">
+                          <div id="uploadStatus" style="margin-top: 10px;"></div>
+                        </div>
+                        <h3 style="margin: 10px 0 5px;">{{ current_user.assignee_name }}</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2,1fr); align-items: center;">
+                        <div style="margin: 2px 0;"><strong>Role:</strong></div><div> {{ current_user.job_title }}</div>
+                        <div style="margin: 2px 0;"><strong>Availability:</strong> </div><div>{{ current_user.status }}</div>
+                        <div style="margin: 2px 0;"><strong>Email:</strong></div><div> {{ current_user.email }}</div>
+                        <div style="margin: 2px 0;"><strong>Team:</strong></div><div> {{ current_user.BussinessUnit }}</div>
+                        <div style="margin: 2px 0;">
+                          <strong>Work Region:</strong></div>
+                          <div>
+                          {% if current_user.work_region == "CIEC" %}
+                            Comcast India Engineering Center
+                          {% else %}
+                            {{ current_user.work_region|default:"N/A" }}
+                          {% endif %}
+                          </div>
+                      
+                      </div>
+
+                      <button id="resetPasswordBtn" style="width: 100%;margin-top: 15px; padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                          Reset Password
+                      </button>
+                      <div id="passwordResetModal" style="
+                      display: none;
+                      position: fixed;
+                      top: 0;
+                      left: 0;
+                      width: 100vw;
+                      height: 100vh;
+                      background: rgba(0,0,0,0.5);
+                      z-index: 10000;
+                      justify-content: center;
+                      align-items: center;
+                  ">
+                      <div style="
+                          background: white;
+                          padding: 20px;
+                          border-radius: 10px;
+                          width: 300px;
+                          position: relative;
+                          text-align: center;
+                      ">
+                          <button style="position: absolute; top: 8px; right: 10px; background: transparent; border: none; font-size: 16px; cursor: pointer;" onclick="document.getElementById('passwordResetModal').style.display='none';">&times;</button>
+                         
+                          <h1 style="color: #3b0a75 ">Reset Password</h1>
+                          <form method="POST" action="/reset-password/">
+                           
+                              <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                             
+                              <input type="password" name="current_password" placeholder="Current Password" required
+                  style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; border-radius: 4px;" >
+                   
+                  <input type="password" name="new_password" placeholder="New Password" required
+                  style="width: 100%; margin: 10px 0; padding: 6px; border: 1px solid #3b0a75; border-radius: 4px;" >
+                   
+                             
+                              <button type="submit" style="padding: 6px 12px; background-color: #3b0a75; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                  Update Password
+                              </button>
+                          </form>
+                                </div>
+                              </div>            </div>
         </div>
 
 
@@ -414,4 +486,16 @@
   document.getElementById('resetPasswordBtn').addEventListener('click', function() {
       document.getElementById('passwordResetModal').style.display = 'flex';
   });
+</script>
+
+<script>
+  function confirmLogout(event) {
+    event.preventDefault();  // Prevent default link behavior
+ 
+    // Use native confirmation dialog
+    if (confirm("Are you sure you want to logout?")) {
+      window.location.href = "{% url 'logout' %}";
+    }
+    // If "Cancel", do nothing
+  }
 </script>

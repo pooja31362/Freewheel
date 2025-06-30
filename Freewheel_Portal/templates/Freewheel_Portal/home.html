@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +20,8 @@
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/ticket-tabs.css">
     <link rel="stylesheet" href="../../static/Freewheel_Portal/css/current-user.css">
 
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script src="../../static/Freewheel_Portal/js/current-profile.js" defer></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
@@ -35,30 +38,64 @@
   <div id="click" class="click">
     <div class="whole-page" id="wholePage">
       <div style="    display: flex; gap: 1%;">
-      <div class="stats">
-        <div class="stat-box" id="open-ticket-btn"title="
-        SH: {{ open_product_counts.SH|default:'0' }}&#10;FW DSP: {{ open_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ open_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ open_product_counts.Strata|default:'0' }}">
-          <div>Open</div><div>{{ open_tickets.count }}</div>
-        </div>
-       
-        <div class="stat-box" id="pending-ticket-btn" title="SH: {{ pending_product_counts.SH|default:'0' }}&#10;FW DSP: {{ pending_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ pending_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ pending_product_counts.Strata|default:'0' }}
-        ">
-          <div>Pending</div><div>{{ pending_tickets.count }}</div>
-        </div>
-        <div class="stat-box" id="onhold-ticket-btn" title="&#10;SH: {{ hold_product_counts.SH|default:'0' }}&#10;FW DSP: {{ hold_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ hold_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ hold_product_counts.Strata|default:'0' }}
-        ">
-          <div>On-hold</div><div>{{ hold_tickets.count }}</div>
-        </div>
-        <div class="stat-box" id="new-ticket-btn" title="SH: {{ new_product_counts.SH|default:'0' }}&#10;FW DSP: {{ new_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ new_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ new_product_counts.Strata|default:'0' }}
-        ">
-          <div>New</div><div>{{ new_tickets.count }}</div>
-        </div>
-        <div class="stat-box" id="unassigned-ticket-btn" title="SH: {{ new_product_counts.SH|default:'0' }}&#10;FW DSP: {{ new_product_counts.FW_DSP|default:'0' }}&#10;FW SSP: {{ new_product_counts.FW_SSP|default:'0' }}&#10;Strata: {{ new_product_counts.Strata|default:'0' }}
-        ">
-          <div>Un-assigned Tickets</div><div>{{ unassigned_tickets.count }}</div>
-        </div>
-
-      </div>
+<div class="stats">
+                <div class="stat-box" id="open-ticket-btn"
+                title="
+Support Eng: {{ open_product_counts|get_item:'Support Eng' }}&#10;
+SFX Support: {{ open_product_counts|get_item:'FW_DSP' }}&#10;
+BW CIEC Onboarding: {{ open_product_counts|get_item:'BW CIEC Onboarding' }}&#10;
+STRATA CIEC Onboarding: {{ open_product_counts|get_item:'STRATA CIEC Onboarding' }}&#10;
+BW CIEC Onboarding: {{ open_product_counts|get_item:'BW CIEC Onboarding' }}">
+               
+ 
+                    <div>Open</div>
+                    <div>{{ open_tickets.count }}</div>
+                </div>
+ 
+                <div class="stat-box" id="pending-ticket-btn"
+                     title="
+Support Eng: {{ pending_product_counts|get_item:'Support Eng' }}&#10;
+SFX Support: {{ pending_product_counts|get_item:'SFX Support' }}&#10;
+BW CIEC Onboarding: {{ pending_product_counts|get_item:'BW CIEC Onboarding' }}&#10;
+STRATA CIEC Onboarding: {{ pending_product_counts|get_item:'STRATA CIEC Onboarding' }}&#10;
+BW Support: {{ pending_product_counts|get_item:'BW Support' }}">
+                    <div>Pending</div>
+                    <div>{{ pending_tickets.count }}</div>
+                </div>
+ 
+                <div class="stat-box" id="onhold-ticket-btn"
+                     title="
+Support Eng: {{ hold_product_counts|get_item:'Support Eng' }}&#10;
+SFX Support: {{ hold_product_counts|get_item:'SFX Support' }}&#10;
+BW CIEC Onboarding: {{ hold_product_counts|get_item:'BW CIEC Onboarding' }}&#10;
+STRATA CIEC Onboarding: {{ hold_product_counts|get_item:'STRATA CIEC Onboarding' }}&#10;
+BW Support: {{ hold_product_counts|get_item:'BW Support' }}">
+                    <div>On-hold</div>
+                    <div>{{ hold_tickets.count }}</div>
+                </div>
+ 
+                <div class="stat-box" id="new-ticket-btn"
+                     title="
+Support Eng: {{ new_product_counts|get_item:'Support Eng' }}&#10;
+SFX Support: {{ new_product_counts|get_item:'SFX Support' }}&#10;
+BW CIEC Onboarding: {{ new_product_counts|get_item:'BW CIEC Onboarding' }}&#10;
+STRATA CIEC Onboarding: {{ new_product_counts|get_item:'STRATA CIEC Onboarding' }}&#10;
+BW Support: {{ new_product_counts|get_item:'BW Support' }}">
+                    <div>New</div>
+                    <div>{{ new_tickets.count }}</div>
+                </div>
+ 
+                <div class="stat-box" id="unassigned-ticket-btn"
+                     title="
+Support Eng: {{ new_product_counts|get_item:'Support Eng' }}&#10;
+SFX Support: {{ new_product_counts|get_item:'SFX Support' }}&#10;
+BW CIEC Onboarding: {{ new_product_counts|get_item:'BW CIEC Onboarding' }}&#10;
+STRATA CIEC Onboarding: {{ new_product_counts|get_item:'STRATA CIEC Onboarding' }}&#10;
+BW Support: {{ hold_product_counts|get_item:'BW Support' }}">
+                    <div>Un-assigned Tickets</div>
+                    <div>{{ unassigned_tickets.count }}</div>
+                </div>
+            </div>
               <div id="status-section" data-update-url="{% url 'status_update' %}" data-csrf="{{ csrf_token }}" style="padding: .5% 0 0 0;">
             <div class="status">
                 <div class="status-box" title="Available" data-color="#4CAF50"><i class="fa-solid fa-circle-check" style="color: #000000;font-size: x-large;"></i></div>

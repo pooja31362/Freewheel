@@ -6,7 +6,7 @@
   max-width: 73rem;
   overflow-y: auto;
   scroll-behavior: smooth;
-  height: 79vh;
+  height: 89vh;
   width: 100%;
 }
 .ticket-container::-webkit-scrollbar {

@@ -1343,9 +1343,11 @@ def upload_excel_report(request):
             ho_followup=ho_followup
         )
         report_data.append(report)
- 
+        current_user = User.objects.get(emp_id=request.session['emp_id'])
     return render(request, 'Freewheel_Portal/report_upload.html', {
         'report_data': report_data,
+        'current_user':current_user,
+        
     })
 
 

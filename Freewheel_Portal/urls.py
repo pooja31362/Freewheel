@@ -2,36 +2,65 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import LoginTemplateView, LogoutAPIView, HomeAPIView, ResetTicketAssigneeAPIView, DoLoginAPIView, UpdateStatusAPIView, UploadExcelView,CreateUserView, SubmitCommentView, CreateEmployeeView
 
-
+from .views import AssignTicketView,ForgotPasswordAPIView, ShiftEndSummaryView, NewTicketsView, FilterByShiftView, UploadShiftExcelView,UploadExcelReportView, UpdateReportRowView,SaveBulkReportUpdatesView,CreateEmpView
  
 urlpatterns = [
-    path('logout/', views.logout_view, name='logout'),
-    path('home/', views.home, name='home'),
-    path('upload/', views.upload_excel, name='upload_excel'),
+    path('api/login-template/', LoginTemplateView.as_view(), name='login-template'),
+    path('api/logout/', LogoutAPIView.as_view(), name='logout-api'),
+    path('home/', HomeAPIView.as_view(), name='home'),
+    path('reset-ticket/', ResetTicketAssigneeAPIView.as_view(), name='reset_ticket_assignee'),
+    path('login/', DoLoginAPIView.as_view(), name='api_login'),
+    path('update-status/', UpdateStatusAPIView.as_view(), name='update_status_api'),
+    path('forgot-password/', ForgotPasswordAPIView.as_view(), name='forgot_password_api'),
+
+
+    
+    # path('login/', LoginView.as_view(), name='login'),
+    # path('do-login/', DoLoginView.as_view(), name='do_login'),
+    # path('update-status/', UpdateStatusView.as_view(), name='status_update'),
+    path('upload/', UploadExcelView.as_view(), name='upload_excel'),
+    path('create-user/', CreateUserView.as_view(), name='create_user'),
+    path('submit-comment/', SubmitCommentView.as_view(), name='submit_comment'),
+    path('assign-ticket/', AssignTicketView.as_view(), name='assign_ticket'),
+    path('shift-end-summary/', ShiftEndSummaryView.as_view(), name='shift_end_summary'),
+    path('new-tickets/', NewTicketsView.as_view(), name='new_tickets'),
+    path('filter-shift/', FilterByShiftView.as_view(), name='filter_by_shift'),
+    path('upload-shift-excel/', UploadShiftExcelView.as_view(), name='upload_shift_excel'),
+    path('upload_bihourly/', UploadExcelReportView.as_view(), name='upload_excel_report'),
+    path('update/<int:pk>/', UpdateReportRowView.as_view(), name='update_report_row'),
+    path('save-updates/', SaveBulkReportUpdatesView.as_view(), name='save_bulk_report_updates'),
+    path('create-emp/', CreateEmpView.as_view(), name='create_emp'),
+    path('create-employee/', CreateEmployeeView.as_view(), name='create_emp'),
+
+
+    
+
+
     path('tickets/', views.ticket_list, name='ticket_list'),
-    path('create-user/', views.create_user, name='create_user'),
-    path('', views.login_view, name='login'),
-    path('do-login/', views.do_login, name='do_login'),
-    path('forgot-password/', views.forgot_password, name='forgot_password'),
-    path('update-status/', views.update_status, name='status_update'),
-    path('submit-comment/', views.submit_comment, name='submit_comment'),
-    path('shift-end-summary/', views.shift_end_summary, name='shift_end_summary'),
-    path('assign-ticket/', views.assign_ticket, name='assign_ticket'),
-    path('new-tickets/', views.new_tickets_view, name='new_tickets'),
+    
+    
+    
+    # path('forgot-password/', views.forgot_password, name='forgot_password'),
+    
+    
+    
+    
+    
     path('test/', views.test, name='test'),
-    path('filter-shift/', views.filter_by_shift, name='filter_by_shift'),
-    path('upload-shift-excel/', views.upload_shift_excel, name='upload_shift_excel'),
+    
+    
     path('submit-leave/', views.submit_leave, name='submit_leave'),
     path('manual-freeze/', views.manual_freeze_view, name='manual-freeze'),
-    path("reset-ticket-assignee/", views.reset_ticket_assignee, name="reset_ticket_assignee"),
-    path('upload_bihourly/', views.upload_excel_report, name='upload_excel_report'),
-    path('update/<int:pk>/', views.update_report_row, name='update_report_row'),
-    path('save-updates/', views.save_bulk_report_updates, name='save_bulk_report_updates'),
+    
+    
+    
+    
     # path('notice/', views.notice, name='notice'),
     path('notice/submit/', views.notice_sub, name='notice_sub'),  # 👈 this name must match
-    path('create-emp/', views.create_emp, name='create_emp'),
-    path('create-employee/', views.create_employee, name='create_employee'),
+    
+    
     path('health/', views.health_check),          # edited  
     path('view_shift_range/', views.view_shift_day, name='view_shift_range'),
     path('view_shift/', views.view_shift, name='view_shift'),  

@@ -9,9 +9,9 @@ from .views import AssignTicketView,ForgotPasswordAPIView, ShiftEndSummaryView, 
 urlpatterns = [
     path('api/login-template/', LoginTemplateView.as_view(), name='login-template'),
     path('api/logout/', LogoutAPIView.as_view(), name='logout-api'),
-    path('home/', HomeAPIView.as_view(), name='home'),
+    path('api/home/', HomeAPIView.as_view(), name='home'),
     path('reset-ticket/', ResetTicketAssigneeAPIView.as_view(), name='reset_ticket_assignee'),
-    path('login/', DoLoginAPIView.as_view(), name='api_login'),
+    path('api/login/', DoLoginAPIView.as_view(), name='api_login'),
     path('update-status/', UpdateStatusAPIView.as_view(), name='update_status_api'),
     path('forgot-password/', ForgotPasswordAPIView.as_view(), name='forgot_password_api'),
 

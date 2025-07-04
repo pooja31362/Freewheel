@@ -3,19 +3,26 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import LoginTemplateView, LogoutAPIView, HomeAPIView, ResetTicketAssigneeAPIView, DoLoginAPIView, UpdateStatusAPIView, UploadExcelView,CreateUserView, SubmitCommentView, CreateEmployeeView
-
 from .views import AssignTicketView,ForgotPasswordAPIView, ShiftEndSummaryView, NewTicketsView, FilterByShiftView, UploadShiftExcelView,UploadExcelReportView, UpdateReportRowView,SaveBulkReportUpdatesView,CreateEmpView
- 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+
+
+
 urlpatterns = [
     path('api/login-template/', LoginTemplateView.as_view(), name='login-template'),
     path('api/logout/', LogoutAPIView.as_view(), name='logout-api'),
-    path('api/home/', HomeAPIView.as_view(), name='home'),
+    path('api/home/<int:emp_id>/', HomeAPIView.as_view(), name='home'),
     path('reset-ticket/', ResetTicketAssigneeAPIView.as_view(), name='reset_ticket_assignee'),
     path('api/login/', DoLoginAPIView.as_view(), name='api_login'),
-    path('update-status/', UpdateStatusAPIView.as_view(), name='update_status_api'),
+    path('api/update-status/', UpdateStatusAPIView.as_view(), name='update_status_api'),
     path('forgot-password/', ForgotPasswordAPIView.as_view(), name='forgot_password_api'),
 
-
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # login
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # refresh token
     
     # path('login/', LoginView.as_view(), name='login'),
     # path('do-login/', DoLoginView.as_view(), name='do_login'),

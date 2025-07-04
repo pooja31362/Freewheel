@@ -93,6 +93,7 @@ class User(models.Model):
     access = models.JSONField(default=list)
     leave_until = models.DateTimeField(null=True, blank=True)
     last_shift_update = models.DateField(null=True, blank=True)
+    last_login = models.DateTimeField(default=now)  # <-- Add this line
 
     working_ticket = models.CharField(max_length=100, null=True, blank=True)
 

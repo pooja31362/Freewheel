@@ -1,9 +1,70 @@
+# Django core imports
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.contrib import messages
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.utils import timezone
+from django.utils.timezone import now, localdate, localtime, make_aware
+from django.utils.crypto import get_random_string
+from django.contrib.auth import logout
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.db.models import Count, Q, Case, When, Value, IntegerField
+from django.conf import settings
+
+
+# DRF imports
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import logout
-from .models import User
-from django.shortcuts import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
+
+# Python stdlib & third-party
+import json
+import datetime
+from datetime import date, datetime, timedelta
+import pandas as pd
+import os
+from collections import defaultdict, OrderedDict
+from dateutil import parser
+
+# Local app imports
+from .models import (
+    Ticket, User, Schedule, Notice,
+    TicketReport, GroupAccess, Access,
+    ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket,
+    PreviousShiftEndTable, PreviousShiftEndTicketDetails, PreviousSLABreachedTicket
+)
+from .forms import UserForm
+from .constants import SHIFT1_TIMINGS, SHIFT3_TIMINGS, SHIFT6_TIMINGS, ALLOWED_USERS
+from .utils import (
+    get_today_shift_for_user, populate_summary_data, truncate_shift_end
+)
+
+# Cross-app imports
+from Freewheel_Portal.models import User as FWUser
+from Freewheel_Portal.utils import (
+    get_today_shift_for_user as FW_get_today_shift_for_user,
+    get_utc_half_hour_distribution,
+    get_shifts_for_date,
+    get_shifts_for_date_range
+)
+
+
+class ProtectedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"message": f"Hello {request.user.username}, you're authenticated via JWT."})
+
+
+
+
+
+
 
 class LoginTemplateView(APIView):
     """
@@ -30,17 +91,8 @@ class LogoutAPIView(APIView):
 
         request.session.flush()  # Clears session data securely
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from django.utils.timezone import now, localdate, localtime
-from django.shortcuts import redirect
-from .models import Ticket, User, Schedule, Notice
-from .utils import get_today_shift_for_user
-from django.db.models import Count
-import json
-import datetime
+    
+
 
 ALLOWED_USERS = ['anibro', 'Nisha', 'Harikishore T', 'keerthana', 'kavya_akka']
 SHIFT1_TIMINGS = ["7:00 AM", "9:00 AM", "11:00 AM", "1:00 PM"]
@@ -93,9 +145,16 @@ class HomeAPIView(APIView):
             return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, *args, **kwargs):
-        if 'emp_id' not in request.session:
-            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        emp_id = request.session.get('emp_id')
+        print('SESSION KEY:', request.session.session_key)
+        print('emp_id in session:', request.session.get('emp_id'))
 
+        
+
+        if 'emp_id' not in request.session:
+
+            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        print('got in to it')
         current_user = self.get_current_user(request)
         current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
         users = list(User.objects.all())
@@ -127,6 +186,7 @@ class HomeAPIView(APIView):
         shift3_users = [u.emp_id for u in users if u.shift in ['S2', 'S3']]
         shift6_users = [u.emp_id for u in users if u.shift in ['S5', 'S6']]
 
+        
         assigned_tasks = []
         if schedule:
             for shift, label in [(schedule.shift1_status, "Shift 1"), (schedule.shift3_status, "Shift 3"), (schedule.shift6_status, "Shift 6")]:
@@ -151,6 +211,7 @@ class HomeAPIView(APIView):
                 'open_ticket_count': current_user.open_ticket_count,
                 'pending_ticket_count': current_user.pending_ticket_count,
                 'is_allowed': current_user.assignee_name in ALLOWED_USERS,
+                'status': current_user.status,
             },
             'users': [
                 {
@@ -160,6 +221,8 @@ class HomeAPIView(APIView):
                     'shift': u.shift,
                     'open_ticket_count': u.open_ticket_count,
                     'pending_ticket_count': u.pending_ticket_count,
+                    'job_title': u.job_title,
+                    'repor_manager': u.repor_manager,
                 } for u in users
             ],
             'shift1_status': shift1_status,
@@ -178,11 +241,7 @@ class HomeAPIView(APIView):
         })
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Ticket
-from django.shortcuts import redirect
+
 
 class ResetTicketAssigneeAPIView(APIView):
     def post(self, request, *args, **kwargs):
@@ -218,12 +277,7 @@ def get_logged_in_user(request):
         return None
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from datetime import date
-from Freewheel_Portal.utils import get_today_shift_for_user
-from .models import User
+
 
 
 class DoLoginAPIView(APIView):
@@ -244,6 +298,7 @@ class DoLoginAPIView(APIView):
 
                 request.session.cycle_key()
                 request.session['emp_id'] = user.emp_id
+                # print('------------------------------------------------------',request.session.get('emp_id'))
                 request.session['access'] = [a.lower().strip() for a in user.access]
 
                 if set_available:
@@ -255,45 +310,40 @@ class DoLoginAPIView(APIView):
 
                 user.save(update_fields=['status', 'last_shift_update'])
 
-                return Response({"success": True, "message": "Login successful"}, status=status.HTTP_200_OK)
+                return Response({"success": True, "message": "Login successful","emp_id": user.emp_id,}, status=status.HTTP_200_OK)
             else:
                 return Response({"error": "Invalid password."}, status=status.HTTP_401_UNAUTHORIZED)
 
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status as drf_status
-from .models import User
+
+
 
 class UpdateStatusAPIView(APIView):
     def post(self, request):
+        emp_id = request.session.get('emp_id')
+        print('i am in status update',emp_id)
+
         if 'emp_id' not in request.session:
-            return Response({'success': False, 'error': 'Not authenticated'}, status=drf_status.HTTP_401_UNAUTHORIZED)
+            return Response({'success': False, 'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        emp_id = request.session['emp_id']
         user = User.objects.get(emp_id=emp_id)
-
+        print('checking')
         status_value = request.data.get('status')
         if status_value in dict(User.STATUS_CHOICES):
             user.status = status_value
             user.save()
             return Response({'success': True, 'status': status_value})
         else:
-            return Response({'success': False, 'error': 'Invalid status'}, status=drf_status.HTTP_400_BAD_REQUEST)
+            return Response({'success': False, 'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        return Response({'success': False, 'error': 'GET method not allowed'}, status=drf_status.HTTP_405_METHOD_NOT_ALLOWED)
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.crypto import get_random_string
-from django.utils import timezone
-from django.core.mail import send_mail
-from django.urls import reverse
-from django.contrib.sites.shortcuts import get_current_site
-from .models import User
+        return Response({'success': False, 'error': 'GET method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+
+
 
 
 class ForgotPasswordAPIView(APIView):
@@ -327,12 +377,7 @@ class ForgotPasswordAPIView(APIView):
 
 
 
-import pandas as pd
-from django.views import View
-from django.shortcuts import redirect
-from django.http import HttpResponse
-from .models import Ticket
-from django.utils.timezone import make_aware
+
 
 class UploadExcelView(View):
     def post(self, request):
@@ -466,8 +511,7 @@ class UploadExcelView(View):
 
 
 
-from django.shortcuts import render
-from .models import Ticket
+
  
 def ticket_list(request):
     if 'emp_id' not in request.session:
@@ -481,11 +525,7 @@ def test(request):
 
     return render(request,'Freewheel_Portal/test.html')
  
-from django.views import View
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from .forms import UserForm
-from .models import GroupAccess, Access
+
 
 class CreateUserView(View):
     def get(self, request):
@@ -520,15 +560,7 @@ class CreateUserView(View):
         return render(request, 'Freewheel_Portal/create_user.html', {'form': form})
 
 
-from django.views import View
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.utils import timezone
-from django.shortcuts import redirect
-import json
 
-from .models import Ticket, ShiftEndTable
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SubmitCommentView(View):
@@ -591,15 +623,7 @@ class SubmitCommentView(View):
 
 
 
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import redirect
-from django.http import JsonResponse
-from django.utils import timezone
-import json
 
-from .models import Ticket, User
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AssignTicketView(View):
@@ -635,25 +659,7 @@ class AssignTicketView(View):
 
 
 
-from django.views import View
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.utils.timezone import now, localtime
-from django.utils.timezone import localdate
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-import json
-from datetime import datetime
 
-from .utils import populate_summary_data
-from .models import (
-    PreviousShiftEndTable, PreviousShiftEndTicketDetails, PreviousSLABreachedTicket,
-    ShiftEndTable, ShiftEndTicketDetails, SLABreachedTicket,
-    Schedule, Ticket, User, Notice
-)
-from .constants import SHIFT1_TIMINGS, SHIFT3_TIMINGS, SHIFT6_TIMINGS, ALLOWED_USERS
-
-from .utils import get_today_shift_for_user  # if this is from a helper file
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -871,9 +877,7 @@ class ShiftEndSummaryView(View):
         return render(request, 'Freewheel_Portal/shift-end-mail.html', context)
 
 
-from django.shortcuts import redirect, render
-from django.utils import timezone
-from dateutil import parser
+
 
 def submit_leave(request):
     if 'emp_id' not in request.session:
@@ -900,10 +904,7 @@ def submit_leave(request):
 
 
 
-from django.views import View
-from django.shortcuts import render, redirect
-from django.utils import timezone
-from .models import Ticket, User
+
 
 class NewTicketsView(View):
     template_name = 'portal_app/new_tickets.html'
@@ -936,13 +937,7 @@ class NewTicketsView(View):
 
         return redirect('new_tickets')
 
-from django.views import View
-from django.shortcuts import render, redirect
-import pandas as pd
-import datetime
-import os
-from django.conf import settings
-from Freewheel_Portal.models import User
+
 
 SHIFT_EXCEL_PATH = os.path.join(settings.MEDIA_ROOT, 'shifts.xlsx')
 
@@ -999,13 +994,7 @@ class FilterByShiftView(View):
 
 
  
-import os
-import pandas as pd
-from django.conf import settings
-from django.views import View
-from django.shortcuts import redirect
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1040,8 +1029,6 @@ class UploadShiftExcelView(View):
         return redirect('home')
 
 
-from django.http import JsonResponse
-from .utils import truncate_shift_end
 
 def manual_freeze_view(request):
 
@@ -1057,11 +1044,7 @@ def manual_freeze_view(request):
 
 
 
-from django.views import View
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils.timezone import now
-from collections import defaultdict
-from .models import Ticket, TicketReport, User
+
 
 
 def classify_product(ticket):
@@ -1176,13 +1159,7 @@ class UpdateReportRowView(View):
 
 
  
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.shortcuts import redirect
-from .models import TicketReport
+
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -1208,13 +1185,7 @@ class SaveBulkReportUpdatesView(View):
 
         return HttpResponseRedirect(reverse('upload_excel_report'))
 
-from django.views import View
-from django.shortcuts import render, redirect
-from django.utils.timezone import now, localtime, localdate
-from django.http import JsonResponse
-from django.db.models import Count
-import json
-from datetime import datetime
+
 
 class CreateEmpView(View):
     template_name = 'Freewheel_Portal/create_user.html'
@@ -1390,10 +1361,7 @@ class CreateEmpView(View):
             'open_product_counts ': Ticket.objects.filter(status='Open').values('product_category').annotate(count=Count('id')).order_by('-count'),
         }
 
-from django.views import View
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from .models import User
+
 
 class CreateEmployeeView(View):
     def get(self, request):
@@ -1460,7 +1428,6 @@ class CreateEmployeeView(View):
 
 
 
-from django.http import HttpResponse    # edited
  
 def health_check(request):              # edited
     return HttpResponse("OK")
@@ -1475,12 +1442,7 @@ def health_check(request):              # edited
  
 
 
-from django.shortcuts import render
-from django.contrib import messages
-from datetime import datetime, timedelta
-import json
- 
-from Freewheel_Portal.utils import get_utc_half_hour_distribution, get_shifts_for_date
+
 def view_shift_day(request):
     hour_distribution = {}
     try:
@@ -1519,11 +1481,7 @@ def view_shift_day(request):
 
 
 
-from collections import defaultdict, OrderedDict
-from django.shortcuts import render
-from django.contrib import messages
-from datetime import datetime
-from Freewheel_Portal.utils import get_shifts_for_date_range
+
  
 SHIFT_LABELS_ORDERED = OrderedDict([
     ("S1", "S1 (6:30am - 3:30pm)"),
@@ -1593,7 +1551,6 @@ def view_shift(request):
 
 
 
-from django.http import JsonResponse
  
 def upload_profile_image(request):
     if 'emp_id' not in request.session:
@@ -1616,11 +1573,7 @@ def upload_profile_image(request):
 
 
 
-from django.db.models import Case, When, Value, IntegerField
-from datetime import datetime
-from django.utils import timezone
-from django.shortcuts import render, redirect
-from .models import Notice, User  # Ensure you're importing Notice and User
+
  
 def notice_view(request):
     # All notices sorted by priority and time
@@ -1688,7 +1641,6 @@ def notice_sub(request):
                 )
             return redirect('notice_add')
        
-from django.shortcuts import get_object_or_404
  
 def edit_notice(request, notice_id):
     if 'emp_id' not in request.session:
@@ -1994,10 +1946,7 @@ def notice(request):
  
     return render(request, 'Freewheel_Portal/notice.html', context)
  
-from django.db.models import Q, Case, When, IntegerField
-from datetime import datetime, date
-from django.db.models import Case, When, IntegerField
-from datetime import date
+
  
 def notice_board(request):
     if 'emp_id' not in request.session:
@@ -2014,14 +1963,7 @@ def notice_board(request):
 
 
 
-from django.shortcuts import redirect
-from django.contrib import messages
-from .models import User
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import redirect, get_object_or_404
-from Freewheel_Portal.models import User
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
+
  
 @csrf_exempt
 def reset_password(request):
@@ -2050,10 +1992,7 @@ def reset_password(request):
 
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-from django.shortcuts import redirect
+
 
 
 def working_ticket(request):
@@ -2085,8 +2024,6 @@ def working_ticket(request):
 
 
 
-from django.http import JsonResponse
-from .models import User
 
 def get_all_user_statuses(request):
     users = User.objects.all().values('emp_id', 'status')
@@ -2112,8 +2049,7 @@ def get_all_user_statuses(request):
     return JsonResponse(status_data)
 
 
-from django.http import JsonResponse
-from .models import Ticket
+
 
 def get_ticket_updates(request):
     tickets = Ticket.objects.all().values('ticket_id', 'subject', 'status', 'priority', 'requester_organization', 'group')

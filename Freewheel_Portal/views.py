@@ -203,7 +203,7 @@ class HomeAPIView(APIView):
             entry['group']: entry['count']
             for entry in Ticket.objects.filter(status='Open').values('group').annotate(count=Count('id'))
         }
-
+        print(users)
         return Response({
             'current_user': {
                 'emp_id': current_user.emp_id,

@@ -62,7 +62,13 @@ class ProtectedView(APIView):
 
 
 
-
+class UserStatusAPIView(APIView):
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(pk=pk)
+            return Response({'status': user.status}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 

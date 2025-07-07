@@ -3,7 +3,7 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import LoginTemplateView, LogoutAPIView, HomeAPIView, ResetTicketAssigneeAPIView, DoLoginAPIView, UpdateStatusAPIView, UploadExcelView,CreateUserView, SubmitCommentView, CreateEmployeeView
-from .views import AssignTicketView,ForgotPasswordAPIView, ShiftEndSummaryView, NewTicketsView, FilterByShiftView, UploadShiftExcelView,UploadExcelReportView, UpdateReportRowView,SaveBulkReportUpdatesView,CreateEmpView
+from .views import AssignTicketView,ForgotPasswordAPIView,UserStatusAPIView, ShiftEndSummaryView, NewTicketsView, FilterByShiftView, UploadShiftExcelView,UploadExcelReportView, UpdateReportRowView,SaveBulkReportUpdatesView,CreateEmpView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/login/', DoLoginAPIView.as_view(), name='api_login'),
     path('api/update-status/', UpdateStatusAPIView.as_view(), name='update_status_api'),
     path('forgot-password/', ForgotPasswordAPIView.as_view(), name='forgot_password_api'),
+    path('api/user-status/<int:pk>/', UserStatusAPIView.as_view(), name='user-status'),
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # login
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # refresh token

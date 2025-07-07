@@ -12,7 +12,7 @@ class LeaveStatusMiddleware(MiddlewareMixin):
 
         emp_id = request.session.get('emp_id')
         if not emp_id:
-            print("⚠️ No emp_id found in session. Skipping LeaveStatusMiddleware.")
+            # print("⚠️ No emp_id found in session. Skipping LeaveStatusMiddleware.")
             return
 
         try:

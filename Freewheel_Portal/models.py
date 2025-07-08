@@ -77,6 +77,7 @@ class User(models.Model):
     assignee_name = models.CharField(max_length=100)
     user_name = models.CharField(max_length=100, unique=True, blank=True)  # Allow blank initially
     password = models.CharField(max_length=128, blank=True)  # Allow blank initially
+    assignee_id = models.CharField(max_length=100, blank=True, null=True)
     department = models.CharField(max_length=100)
     work_region = models.CharField(max_length=100, blank=True, null=True)
 

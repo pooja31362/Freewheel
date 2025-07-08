@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.timezone import now, localdate, localtime, make_aware
 from django.utils.crypto import get_random_string
 from django.contrib.auth import logout
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.core.mail import send_mail
@@ -326,6 +327,54 @@ class DoLoginAPIView(APIView):
 
 
 
+# class DoLoginAPIView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         username = request.data.get('username')
+#         password = request.data.get('password')
+#         set_available = request.data.get('set_available')
+
+#         if not username or not password:
+#             return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             user = User.objects.get(user_name=username)
+
+#             if check_password(password, user.password):  # ✅ Secure password check
+#                 session = request.session
+
+#                 # Reset session if user changed
+#                 if session.get('emp_id') and session['emp_id'] != user.emp_id:
+#                     session.flush()
+
+#                 session.cycle_key()
+#                 session['emp_id'] = user.emp_id
+#                 session['access'] = [a.lower().strip() for a in user.access]
+
+#                 # Optional availability update
+#                 if set_available:
+#                     user.status = 'Available'
+
+#                 # Shift update logic
+#                 if user.last_shift_update != date.today():
+#                     get_today_shift_for_user(user.emp_id)
+#                     user.last_shift_update = date.today()
+
+#                 user.save(update_fields=['status', 'last_shift_update'])
+
+#                 return Response({
+#                     "success": True,
+#                     "message": "Login successful",
+#                     "emp_id": user.emp_id
+#                 }, status=status.HTTP_200_OK)
+
+#             else:
+#                 return Response({"error": "Invalid password."}, status=status.HTTP_401_UNAUTHORIZED)
+
+#         except User.DoesNotExist:
+#             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
 class UpdateStatusAPIView(APIView):
     def post(self, request):
         emp_id = request.session.get('emp_id')
@@ -410,7 +459,7 @@ class UploadExcelView(View):
                 'Ticket subject': 'subject',
                 'Requester organization name': 'requester_organization',
                 'Requester name': 'requester',
-                'Assignee ID': 'assignee_id',
+                # 'Assignee ID': 'assignee_id',
                 'Product Category': 'product_category',
                 'Ticket type': 'ticket_type',
                 'JIRA Issue ID': 'jira_issue_id',

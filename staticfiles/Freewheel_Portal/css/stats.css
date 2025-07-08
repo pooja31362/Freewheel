@@ -1,0 +1,30 @@
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      padding: .5% 0 .5% 0;
+      max-width: 71rem;
+      width: 100%;
+      background: transparent;
+      margin: 0 0 0 4.8rem;
+
+  }
+ 
+  .stat-box {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    min-width: .1rem;
+    width: 13rem;
+    max-width: 14rem;
+  }
+ 
+  .stat-box:hover {
+    background-color:#a774e8;
+    box-shadow:  6px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-4px);
+
+  }

@@ -15,7 +15,7 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('api/login-template/', LoginTemplateView.as_view(), name='login-template'),
     path('api/logout/', LogoutAPIView.as_view(), name='logout-api'),
-    path('api/home/<int:emp_id>/', HomeAPIView.as_view(), name='home'),
+    path('api/home/', HomeAPIView.as_view(), name='home'),
     path('reset-ticket/', ResetTicketAssigneeAPIView.as_view(), name='reset_ticket_assignee'),
     path('api/login/', DoLoginAPIView.as_view(), name='api_login'),
     path('api/update-status/', UpdateStatusAPIView.as_view(), name='update_status_api'),

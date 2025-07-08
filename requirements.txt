@@ -5,3 +5,8 @@ Pillow
 gunicorn
 openpyxl
 channels
+django-cors-headers
+djangorestframework
+djangorestframework-simplejwt
+psycopg2-binary
+python-dateutil

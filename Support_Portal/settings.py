@@ -34,8 +34,11 @@ SECRET_KEY = 'django-insecure-0gmol1e&po1@9%pgo8t5!(pkb19vf&4w@8-2x($&)j#ivvp-mf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*","freewheelportal.dev.cnap.comcast.net"]
-
+ALLOWED_HOSTS = [
+    "*",
+    "fwgod.dev.cnap.comcast.net",
+    "fwgodbackend.dev.cnap.comcast.net",
+    ]
 
 # Application definition
 
@@ -86,7 +89,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # your React frontend
     "http://192.168.56.1:3000",
     "http://127.0.0.1:5050",
-
+    "https://fwgod.dev.cnap.comcast.net",
+    "https://fwgodbackend.dev.cnap.comcast.net",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -118,10 +122,10 @@ WSGI_APPLICATION = 'Support_Portal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'FW',          # ✅ Change to your DB name
-        'USER': 'postgres',          # ✅ Your PostgreSQL username
-        'PASSWORD': 'root',  # ✅ Your PostgreSQL password
-        'HOST': 'localhost',             # or your DB host
+        'NAME': 'dba',          # ✅ Change to your DB name
+        'USER': 'admin',          # ✅ Your PostgreSQL username
+        'PASSWORD': 'Freewheel@2025',  # ✅ Your PostgreSQL password
+        'HOST': 'FWportaldb-ch2-a1s.dbaas.comcast.net',             # or your DB host
         'PORT': '5432',                  # default PostgreSQL port
     }
 }
@@ -197,7 +201,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://192.168.56.1:3000",
     "http://127.0.0.1:5050",
+    "https://fwgod.dev.cnap.comcast.net",
+    "https://fwgodbackend.dev.cnap.comcast.net",
 ]
+
 CSRF_COOKIE_HTTPONLY = False
  
 # If using HTTPS in production

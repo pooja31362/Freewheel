@@ -208,7 +208,7 @@ class HomeAPIView(APIView):
 
         open_product_counts = {
             entry['group']: entry['count']
-            for entry in Ticket.objects.filter(status='Open').values('group').annotate(count=Count('id'))
+            for entry in Ticket.objects.filter(status='Open').values('group').annotate(count=Count('ticket_id'))
         }
         print(users)
         return Response({

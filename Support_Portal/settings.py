@@ -86,9 +86,9 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'Support_Portal.urls'
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # your React frontend
-    "http://192.168.56.1:3000",
-    "http://127.0.0.1:5050",
+    # "http://localhost:3000",  # your React frontend
+    # "http://192.168.56.1:3000",
+    # "http://127.0.0.1:5050",
     "https://fwgod.dev.cnap.comcast.net",
     "https://fwgodbackend.dev.cnap.comcast.net",
 ]
@@ -119,6 +119,18 @@ WSGI_APPLICATION = 'Support_Portal.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'dba',          # ✅ Change to your DB name
+#         'USER': 'admin',          # ✅ Your PostgreSQL username
+#         'PASSWORD': 'Freewheel@2025',  # ✅ Your PostgreSQL password
+#         'HOST': 'FWportaldb-ch2-a1s.dbaas.comcast.net',             # or your DB host
+#         'PORT': '5432',                  # default PostgreSQL port
+#     }
+# }
+ 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -129,7 +141,6 @@ DATABASES = {
         'PORT': '5432',                  # default PostgreSQL port
     }
 }
- 
 
 
 # Password validation
@@ -197,10 +208,10 @@ MIDDLEWARE = [
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://freewheelportal.dev.cnap.comcast.net",
-    "http://localhost:3000",
-    "http://192.168.56.1:3000",
-    "http://127.0.0.1:5050",
+    # "https://freewheelportal.dev.cnap.comcast.net",
+    # "http://localhost:3000",
+    # "http://192.168.56.1:3000",
+    # "http://127.0.0.1:5050",
     "https://fwgod.dev.cnap.comcast.net",
     "https://fwgodbackend.dev.cnap.comcast.net",
 ]

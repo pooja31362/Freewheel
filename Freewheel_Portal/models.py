@@ -2,26 +2,25 @@ from django.db import models
 from django.utils.timezone import now
  
 class Ticket(models.Model):
-    ticket_id = models.CharField(max_length=100, unique=True)
-    priority = models.CharField(max_length=100, null=True, blank=True)
-    subject = models.TextField(null=True, blank=True)
-    requester_organization = models.CharField(max_length=255, null=True, blank=True)
-    requester = models.CharField(max_length=50, null=True, blank=True)
-    product_category = models.CharField(max_length=255, null=True, blank=True)
-    ticket_type = models.CharField(max_length=100, null=True, blank=True)
-    jira_issue_id = models.CharField(max_length=100, null=True, blank=True)
-    assignee_name = models.CharField(max_length=100, null=True, blank=True)
-    status = models.CharField(max_length=100, null=True, blank=True)
-    comment = models.TextField(null=True, blank=True)
-    group = models.CharField(max_length=20, null=True, blank=True)
-    form = models.CharField(max_length=50, null=True, blank=True)
-    assignee_id = models.CharField(max_length=30, blank=True, null=True)
-    # 🕒 Timestamp fields
+    ticket_id = models.BigIntegerField(primary_key=True)
     created_timestamp = models.DateTimeField(null=True, blank=True)
-    solved_timestamp = models.DateTimeField(null=True, blank=True)
-    assigned_timestamp = models.DateTimeField(null=True, blank=True)
     updated_timestamp = models.DateTimeField(null=True, blank=True)
     due_timestamp = models.DateTimeField(null=True, blank=True)
+    solved_timestamp = models.DateTimeField(null=True, blank=True)
+    assigned_timestamp = models.DateTimeField(null=True, blank=True)
+    assignee_id = models.BigIntegerField(null=True, blank=True)
+    assignee_name = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=50, null=True, blank=True)
+    group = models.CharField(max_length=255, null=True, blank=True)
+    form = models.CharField(max_length=255, null=True, blank=True)
+    requester_organization = models.CharField(max_length=255, null=True, blank=True)
+    comment = models.CharField(max_length=255, null=True, blank=True)
+    priority = models.CharField(max_length=20, null=True, blank=True)
+    subject = models.TextField(null=True, blank=True)
+    requester = models.CharField(max_length=255, null=True, blank=True)
+    product_category = models.CharField(max_length=255, null=True, blank=True)
+    ticket_type = models.CharField(max_length=50, null=True, blank=True)
+    jira_issue_id = models.CharField(max_length=255, null=True, blank=True)
  
     def __str__(self):
         return self.ticket_id
@@ -73,11 +72,11 @@ class User(models.Model):
         ('Out Of Office', 'Out Of Office'),
     ]
  
-    emp_id = models.CharField(max_length=20, primary_key=True)
+    emp_id = models.BigIntegerField(primary_key=True)
     assignee_name = models.CharField(max_length=100)
     user_name = models.CharField(max_length=100, unique=True, blank=True)  # Allow blank initially
     password = models.CharField(max_length=128, blank=True)  # Allow blank initially
-    assignee_id = models.CharField(max_length=100, blank=True, null=True)
+    assignee_id = models.BigIntegerField( blank=True, null=True)
     department = models.CharField(max_length=100)
     work_region = models.CharField(max_length=100, blank=True, null=True)
 
@@ -96,7 +95,7 @@ class User(models.Model):
     last_shift_update = models.DateField(null=True, blank=True)
     last_login = models.DateTimeField(default=now)  # <-- Add this line
 
-    working_ticket = models.CharField(max_length=100, null=True, blank=True)
+    working_ticket = models.BigIntegerField(null=True, blank=True)
 
 
 

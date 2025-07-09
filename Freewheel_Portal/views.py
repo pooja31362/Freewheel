@@ -2126,3 +2126,258 @@ def get_ticket_updates(request):
         data[str(ticket['ticket_id'])] = html
 
     return JsonResponse(data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.http import JsonResponse
+import os
+import httpx
+from dotenv import load_dotenv
+from datetime import datetime, timezone, timedelta
+from django.utils.dateparse import parse_datetime
+from asgiref.sync import sync_to_async
+import time
+ 
+from .models import Ticket, synctracker
+ 
+# Load env vars
+load_dotenv()
+ 
+ZENDESK_SUBDOMAIN = os.getenv("ZENDESK_SUBDOMAIN")
+ZENDESK_EMAIL = os.getenv("ZENDESK_EMAIL")
+ZENDESK_API_TOKEN = os.getenv("ZENDESK_API_TOKEN")
+auth = (f"{ZENDESK_EMAIL}/token", ZENDESK_API_TOKEN)
+ 
+TICKET_GROUP_NAMES = [
+    "Adazzle and OneStrata Support",
+    "BW CIEC Onboarding",
+    "BW Support",
+    "SFX Support",
+    "STRATA CIEC Onboarding",
+    "Support Eng"
+]
+USER_GROUP_NAME = "CIEC - Service Assurance"
+ 
+user_cache = {}
+form_cache = {}
+ 
+def safe_parse_datetime(dt):
+    if dt and isinstance(dt, str):
+        return parse_datetime(dt)
+    return None
+ 
+@sync_to_async
+def save_ticket_to_db(ticket_id, defaults):
+    Ticket.objects.update_or_create(
+        ticket_id=ticket_id,
+        defaults=defaults
+    )
+ 
+@sync_to_async
+def get_or_create_sync_tracker():
+    tracker, _ = synctracker.objects.get_or_create(name="zendesk_sync", defaults={"last_synced_at": None})
+    return tracker
+ 
+@sync_to_async
+def update_sync_tracker(tracker, new_time):
+    tracker.last_synced_at = new_time
+    tracker.save()
+ 
+async def get_group_id_by_name(group_name):
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/groups.json"
+    async with httpx.AsyncClient(auth=auth) as client:
+        res = await client.get(url)
+        if res.status_code == 200:
+            for group in res.json().get("groups", []):
+                if group.get("name") == group_name:
+                    return group.get("id")
+    return None
+ 
+async def get_users_in_group(group_id):
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/groups/{group_id}/users.json"
+    async with httpx.AsyncClient(auth=auth) as client:
+        res = await client.get(url)
+        if res.status_code == 200:
+            return [
+                {"assignee_id": user.get("id"), "assignee_name": user.get("name")}
+                for user in res.json().get("users", [])
+            ]
+    return []
+ 
+async def get_user_name_and_id_cached(client, user_id):
+    if not user_id:
+        return None, None
+    if user_id in user_cache:
+        return user_cache[user_id], user_id
+ 
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/users/{user_id}.json"
+    res = await client.get(url)
+    if res.status_code == 200:
+        name = res.json().get("user", {}).get("name")
+        user_cache[user_id] = name
+        return name, user_id
+    return None, None
+ 
+async def get_ticket_form_cached(client, form_id):
+    if not form_id:
+        return None
+    if form_id in form_cache:
+        return form_cache[form_id]
+ 
+    url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/ticket_forms/{form_id}.json"
+    res = await client.get(url)
+    if res.status_code == 200:
+        form_name = res.json().get("ticket_form", {}).get("name")
+        form_cache[form_id] = form_name
+        return form_name
+    return None
+ 
+def get_custom_field(ticket, field_key):
+    field_ids = {
+        "product_category": 22847416,  # ✅ Replace with your actual field ID
+        "jira_issue_id": 23903346,
+    }
+    for field in ticket.get("custom_fields", []):
+        if field["id"] == field_ids.get(field_key):
+            return field.get("value")
+    return None
+ 
+async def fetch_all_tickets_for_group(client, group_name, date_filter_str):
+    tickets = []
+    query = f'type:ticket group:"{group_name}" updated>{date_filter_str}'
+    base_url = f"https://{ZENDESK_SUBDOMAIN}.zendesk.com/api/v2/search.json?query={query}&per_page=100"
+ 
+    url = base_url
+ 
+    while url:
+        res = await client.get(url)
+        res.raise_for_status()
+        data = res.json()
+        batch = data.get("results", [])
+        tickets.extend(batch)
+ 
+        print(f"Fetched batch: {len(batch)}, total so far: {len(tickets)}")
+ 
+        next_page = data.get("next_page")
+        if not next_page or not next_page.startswith("https://") or "page=" in next_page:
+            print(f"Stopping pagination: next_page invalid or contains 'page=': {next_page}")
+            break
+ 
+        url = next_page
+ 
+    return tickets
+ 
+async def get_zendesk_tickets(request):
+    start_time = time.time()
+    tracker = None
+ 
+    try:
+        tracker = await get_or_create_sync_tracker()
+ 
+        last_synced_at = tracker.last_synced_at or datetime(2025, 1, 1, tzinfo=timezone.utc)
+ 
+        ciec_group_id = await get_group_id_by_name(USER_GROUP_NAME)
+        if not ciec_group_id:
+            return JsonResponse({"error": f"User group '{USER_GROUP_NAME}' not found"}, status=404)
+ 
+        ciec_users = await get_users_in_group(ciec_group_id)
+        ciec_user_names = [user["assignee_name"] for user in ciec_users]
+ 
+        results = []
+ 
+        async with httpx.AsyncClient(auth=auth) as client:
+            for group in TICKET_GROUP_NAMES:
+                print(f"\nFetching tickets for group: {group}")
+ 
+                date_filter_str = last_synced_at.strftime("%Y-%m-%dT%H:%M:%SZ")
+                tickets = await fetch_all_tickets_for_group(client, group, date_filter_str)
+ 
+                for ticket in tickets:
+                    try:
+                        assignee_name, assignee_id = await get_user_name_and_id_cached(client, ticket.get("assignee_id"))
+                        if assignee_name not in ciec_user_names:
+                            continue
+ 
+                        requester_name, _ = await get_user_name_and_id_cached(client, ticket.get("requester_id"))
+                        form_name = await get_ticket_form_cached(client, ticket.get("ticket_form_id"))
+ 
+                        defaults = {
+                            "created_timestamp": safe_parse_datetime(ticket.get("created_at")),
+                            "priority": ticket.get("priority"),
+                            "subject": ticket.get("subject"),
+                            "requester": requester_name,
+                            "product_category": get_custom_field(ticket, "product_category"),
+                            "ticket_type": ticket.get("type"),
+                            "jira_issue_id": get_custom_field(ticket, "jira_issue_id"),
+                            "assignee_name": assignee_name,
+                            "assignee_id": assignee_id,
+                            "status": ticket.get("status"),
+                            "solved_timestamp": safe_parse_datetime(ticket.get("solved_at")),
+                            "assigned_timestamp": safe_parse_datetime(ticket.get("assignee_updated_at")),
+                            "updated_timestamp": safe_parse_datetime(ticket.get("updated_at")),
+                            "due_timestamp": safe_parse_datetime(ticket.get("due_at")),
+                            "group": group,
+                            "form": form_name,
+                            "requester_organization": ticket.get("organization_id"),
+                            "comment": None,
+                        }
+                        await save_ticket_to_db(ticket.get("id"), defaults)
+                        print(f"✅ Ticket {ticket.get('id')} saved (assignee: {assignee_name}, ID: {assignee_id})")
+ 
+                        results.append({"ticket_id": ticket.get("id"), "assignee_name": assignee_name, "assignee_id": assignee_id})
+ 
+                    except Exception as e:
+                        print(f"❌ Error processing ticket ID {ticket.get('id')}: {e}")
+ 
+        # 💡 Add buffer of minus 1 minute
+        now = datetime.now(timezone.utc)
+        buffered_time = now - timedelta(minutes=1)
+        await update_sync_tracker(tracker, buffered_time)
+ 
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"\n✅ Finished! Total tickets collected: {len(results)} (Execution time: {duration:.2f}s)")
+        return JsonResponse({"message": "Sync completed", "tickets_collected": len(results), "execution_time_seconds": round(duration, 2)})
+ 
+    except Exception as e:
+        print(f"💥 Global error: {e}")
+        return JsonResponse({"error": "Failed to fetch tickets", "details": str(e)}, status=500)
+ 
+ 

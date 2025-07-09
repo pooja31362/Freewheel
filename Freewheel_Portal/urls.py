@@ -24,7 +24,8 @@ urlpatterns = [
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # login
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # refresh token
-    
+    path("sync-tickets/", views.get_zendesk_tickets, name="sync_tickets"),
+
     # path('login/', LoginView.as_view(), name='login'),
     # path('do-login/', DoLoginView.as_view(), name='do_login'),
     # path('update-status/', UpdateStatusView.as_view(), name='status_update'),

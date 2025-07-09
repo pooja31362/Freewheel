@@ -259,3 +259,14 @@ class TicketReport(models.Model):
     def save(self, *args, **kwargs):
         self.unattended = max((self.new_count + self.open_count) - self.being_worked, 0)
         super().save(*args, **kwargs)  
+
+
+from django.db import models
+
+class synctracker(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    is_running = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name

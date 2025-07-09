@@ -131,14 +131,25 @@ WSGI_APPLICATION = 'Support_Portal.wsgi.application'
 # }
  
 
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Security best practice: move secret keys and credentials to .env
+ZENDESK_SUBDOMAIN = os.getenv("ZENDESK_SUBDOMAIN")
+ZENDESK_EMAIL = os.getenv("ZENDESK_EMAIL")
+ZENDESK_API_TOKEN = os.getenv("ZENDESK_API_TOKEN")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dba',          # ✅ Change to your DB name
-        'USER': 'admin',          # ✅ Your PostgreSQL username
-        'PASSWORD': 'Freewheel@2025',  # ✅ Your PostgreSQL password
-        'HOST': 'FWportaldb-ch2-a1s.dbaas.comcast.net',             # or your DB host
-        'PORT': '5432',                  # default PostgreSQL port
+        'NAME': 'ultra_db',         # fallback to 'db'
+        'USER': 'admin',
+        'PASSWORD': '58Gs600zZojFWPROD',
+        'HOST': 'FWprddb-ch2-a1p.dbaas.comcast.net',
+        'PORT': '5432',
     }
 }
 

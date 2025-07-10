@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',  
     'rest_framework',  
+    'rest_framework_simplejwt',
     'corsheaders',
 
 ]
@@ -58,8 +59,13 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
+
+
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
@@ -68,7 +74,12 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+
+    # 🔧 FIX starts here:
+    "USER_ID_FIELD": "emp_id",           # this tells JWT to use 'emp_id' instead of 'id'
+    "USER_ID_CLAIM": "user_id",          # default claim in token; do not change unless needed
 }
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -86,17 +97,19 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'Support_Portal.urls'
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:3000",  # your React frontend
-    # "http://192.168.56.1:3000",
-    # "http://127.0.0.1:5050",
+     "http://localhost:3000",  # your React frontend
+     "http://192.168.56.1:3000",
+     "http://127.0.0.1:5050",
     "https://fwgod.dev.cnap.comcast.net",
     "https://fwgodbackend.dev.cnap.comcast.net",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'Content-Type',
+    'Authorization',  # ✅ THIS IS MANDATORY
 ]
 
+AUTH_USER_MODEL = 'Freewheel_Portal.User'
 
 TEMPLATES = [
     {
@@ -219,10 +232,10 @@ MIDDLEWARE = [
 
 
 CSRF_TRUSTED_ORIGINS = [
-    # "https://freewheelportal.dev.cnap.comcast.net",
-    # "http://localhost:3000",
-    # "http://192.168.56.1:3000",
-    # "http://127.0.0.1:5050",
+    "https://freewheelportal.dev.cnap.comcast.net",
+    "http://localhost:3000",
+    "http://192.168.56.1:3000",
+    "http://127.0.0.1:5050",
     "https://fwgod.dev.cnap.comcast.net",
     "https://fwgodbackend.dev.cnap.comcast.net",
 ]

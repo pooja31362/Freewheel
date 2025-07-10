@@ -13,6 +13,8 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/login-template/', LoginTemplateView.as_view(), name='login-template'),
     path('api/logout/', LogoutAPIView.as_view(), name='logout-api'),
     path('api/home/', HomeAPIView.as_view(), name='home'),

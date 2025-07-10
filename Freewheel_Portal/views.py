@@ -16,12 +16,16 @@ from django.core.mail import send_mail
 from django.db.models import Count, Q, Case, When, Value, IntegerField
 from django.conf import settings
 
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # DRF imports
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # Python stdlib & third-party
 import json
@@ -63,109 +67,72 @@ class ProtectedView(APIView):
 
 
 
+
 class UserStatusAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
         try:
-            user = User.objects.get(pk=pk)
+            user = User.objects.get(emp_id=pk)  # ✅ Corrected here
             return Response({'status': user.status}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-
-
 class LoginTemplateView(APIView):
-    """
-    Only serves the login template view — useful for frontend-rendered pages.
-    """
     def get(self, request):
         return Response({"template": "Freewheel_Portal/login.html"}, status=status.HTTP_200_OK)
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class LogoutAPIView(APIView):
     """
-    Clears session and sets user status to 'Offline'
+    Sets user status to 'Offline'. JWT-based, no session.
     """
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        emp_id = request.session.get('emp_id')
-        if emp_id:
-            try:
-                user = User.objects.get(emp_id=emp_id)
-                user.status = "Offline"
-                user.save(update_fields=['status'])
-            except User.DoesNotExist:
-                pass
+    def post(self, request):
+        user = request.user  # Authenticated user via JWT
 
-        request.session.flush()  # Clears session data securely
+        user.status = "Offline"
+        user.save(update_fields=['status'])
+
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-    
 
 
 ALLOWED_USERS = ['anibro', 'Nisha', 'Harikishore T', 'keerthana', 'kavya_akka']
 SHIFT1_TIMINGS = ["7:00 AM", "9:00 AM", "11:00 AM", "1:00 PM"]
 SHIFT3_TIMINGS = ["3:00 PM", "5:00 PM", "7:00 PM", "9:00 PM"]
 SHIFT6_TIMINGS = ["11:00 AM", "1:00 AM", "3:00 AM", "5:00 AM"]
+ 
 
 class HomeAPIView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get_current_user(self, request):
-        emp_id = request.session.get('emp_id')
-        if not emp_id:
-            return None
-        return User.objects.get(emp_id=emp_id)
-
-    def post(self, request, *args, **kwargs):
-        if 'emp_id' not in request.session:
-            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        current_user = self.get_current_user(request)
-
-        try:
-            data = request.data
-            shift1_status = data.get('shift1_status', {})
-            shift3_status = data.get('shift3_status', {})
-            shift6_status = data.get('shift6_status', {})
-
-            shift1_end_user = User.objects.filter(emp_id=data.get('shift1_end_email')).first()
-            shift3_end_user = User.objects.filter(emp_id=data.get('shift3_end_email')).first()
-            shift6_end_user = User.objects.filter(emp_id=data.get('shift6_end_email')).first()
-
-            Schedule.objects.update_or_create(
-                date=now().date(),
-                defaults={
-                    'shift1_status': shift1_status,
-                    'shift3_status': shift3_status,
-                    'shift6_status': shift6_status,
-                    'shift1_end_email': shift1_end_user,
-                    'shift3_end_email': shift3_end_user,
-                    'shift6_end_email': shift6_end_user,
-                }
-            )
-
-            Notice.objects.create(
-                message=f"📌 Bihourly assigned for {localdate().strftime('%d-%b-%Y')}",
-                posted_by=current_user,
-                posted_at=now()
-            )
-
-            return Response({'success': True})
-        except Exception as e:
-            return Response({'success': False, 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        print("➡️ [DEBUG] Inside get_current_user")
+        print("➡️ request.user:", request.user)
+        print("➡️ request.auth (token):", request.auth)
+        return request.user
 
     def get(self, request, *args, **kwargs):
-        emp_id = request.session.get('emp_id')
-        print('SESSION KEY:', request.session.session_key)
-        print('emp_id in session:', request.session.get('emp_id'))
+        print("📩 [DEBUG] GET /api/home/ called")
+        print("📩 [DEBUG] Headers received:", dict(request.headers))
 
-        
-
-        if 'emp_id' not in request.session:
-
-            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
-        print('got in to it')
         current_user = self.get_current_user(request)
+        if not current_user or current_user.is_anonymous:
+            print("❌ [ERROR] User is Anonymous or None — Unauthorized access.")
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        print(f"✅ [DEBUG] Authenticated user: {current_user.emp_id} - {current_user.assignee_name}")
+
+        # Update dynamic shift for current user
         current_user.dynamic_shift = get_today_shift_for_user(current_user.emp_id) or current_user.shift
         users = list(User.objects.all())
 
+        # Assign dynamic shift and status to users
         for u in users:
             dynamic_shift = get_today_shift_for_user(u.emp_id) or u.shift
             u.shift = dynamic_shift
@@ -173,6 +140,7 @@ class HomeAPIView(APIView):
                 u.status = 'Out Of Office'
             u.save(update_fields=['shift', 'status'])
 
+        # Count open and pending tickets
         for user in users:
             user.open_ticket_count = Ticket.objects.filter(assignee_name=user.assignee_name, status__iexact='Open').count()
             user.pending_ticket_count = Ticket.objects.filter(assignee_name=user.assignee_name, status__iexact='Pending').count()
@@ -193,24 +161,37 @@ class HomeAPIView(APIView):
         shift3_users = [u.emp_id for u in users if u.shift in ['S2', 'S3']]
         shift6_users = [u.emp_id for u in users if u.shift in ['S5', 'S6']]
 
-        
         assigned_tasks = []
         if schedule:
-            for shift, label in [(schedule.shift1_status, "Shift 1"), (schedule.shift3_status, "Shift 3"), (schedule.shift6_status, "Shift 6")]:
+            for shift, label in [
+                (schedule.shift1_status, "Shift 1"),
+                (schedule.shift3_status, "Shift 3"),
+                (schedule.shift6_status, "Shift 6")
+            ]:
                 for time, emp_id in shift.items():
                     if emp_id == current_user.emp_id:
                         assigned_tasks.append(f"{label} – {time}")
-            for attr, label in [("shift1_end_email_id", "Shift 1"), ("shift3_end_email_id", "Shift 3"), ("shift6_end_email_id", "Shift 6")]:
+            for attr, label in [
+                ("shift1_end_email_id", "Shift 1"),
+                ("shift3_end_email_id", "Shift 3"),
+                ("shift6_end_email_id", "Shift 6")
+            ]:
                 if getattr(schedule, attr) == current_user.emp_id:
                     assigned_tasks.append(f"{label} – End Mail")
 
-        combined_notices = list(Notice.objects.order_by('-posted_at').values('id', 'message', 'posted_by__assignee_name', 'posted_at'))
+        combined_notices = list(
+            Notice.objects.order_by('-posted_at').values(
+                'id', 'message', 'posted_by__assignee_name', 'posted_at'
+            )
+        )
 
         open_product_counts = {
             entry['group']: entry['count']
             for entry in Ticket.objects.filter(status='Open').values('group').annotate(count=Count('ticket_id'))
         }
-        print(users)
+
+        print("✅ [DEBUG] Home data prepared successfully")
+
         return Response({
             'current_user': {
                 'emp_id': current_user.emp_id,
@@ -250,6 +231,7 @@ class HomeAPIView(APIView):
 
 
 
+
 class ResetTicketAssigneeAPIView(APIView):
     def post(self, request, *args, **kwargs):
         if 'emp_id' not in request.session:
@@ -273,122 +255,78 @@ class ResetTicketAssigneeAPIView(APIView):
         return Response({"success": False, "error": "GET method not allowed"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-
 def get_logged_in_user(request):
-    emp_id = request.session.get('emp_id')
-    if not emp_id:
-        return None
-    try:
-        return User.objects.get(emp_id=emp_id)
-    except User.DoesNotExist:
-        return None
-
-
-
+    if request.user and request.user.is_authenticated:
+        return request.user
+    return None
 
 
 class DoLoginAPIView(APIView):
+    permission_classes = [AllowAny]  # Allow access without authentication for login
+
     def post(self, request, *args, **kwargs):
         username = request.data.get('username')
         password = request.data.get('password')
-        set_available = request.data.get('set_available')  # Optional field
+        set_available = request.data.get('set_available')
 
         if not username or not password:
-            return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Username and password are required."}, status=400)
 
         try:
             user = User.objects.get(user_name=username)
 
-            if user.password == password:  # ❗ Replace with secure hash check later
-                if request.session.get('emp_id') and request.session['emp_id'] != user.emp_id:
-                    request.session.flush()
+            # ✅ Proper password check using Django's hash system
+            if not check_password(password, user.password):
+                return Response({"error": "Invalid password."}, status=401)
 
-                request.session.cycle_key()
-                request.session['emp_id'] = user.emp_id
-                # print('------------------------------------------------------',request.session.get('emp_id'))
-                request.session['access'] = [a.lower().strip() for a in user.access]
+            # ✅ Optional: Set user as Available after login
+            if set_available:
+                user.status = 'Available'
 
-                if set_available:
-                    user.status = 'Available'
+            # ✅ Update shift only once per day
+            if user.last_shift_update != date.today():
+                get_today_shift_for_user(user.emp_id)
+                user.last_shift_update = date.today()
 
-                if user.last_shift_update != date.today():
-                    get_today_shift_for_user(user.emp_id)
-                    user.last_shift_update = date.today()
+            user.save(update_fields=['status', 'last_shift_update'])
 
-                user.save(update_fields=['status', 'last_shift_update'])
+            # ✅ Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
 
-                return Response({"success": True, "message": "Login successful","emp_id": user.emp_id,}, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Invalid password."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                "success": True,
+                "message": "Login successful",
+                "emp_id": user.emp_id,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "assignee_name": user.assignee_name,
+                "status": user.status,
+            }, status=200)
 
         except User.DoesNotExist:
-            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "User not found."}, status=404)
 
 
 
-
-# class DoLoginAPIView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-#         set_available = request.data.get('set_available')
-
-#         if not username or not password:
-#             return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             user = User.objects.get(user_name=username)
-
-#             if check_password(password, user.password):  # ✅ Secure password check
-#                 session = request.session
-
-#                 # Reset session if user changed
-#                 if session.get('emp_id') and session['emp_id'] != user.emp_id:
-#                     session.flush()
-
-#                 session.cycle_key()
-#                 session['emp_id'] = user.emp_id
-#                 session['access'] = [a.lower().strip() for a in user.access]
-
-#                 # Optional availability update
-#                 if set_available:
-#                     user.status = 'Available'
-
-#                 # Shift update logic
-#                 if user.last_shift_update != date.today():
-#                     get_today_shift_for_user(user.emp_id)
-#                     user.last_shift_update = date.today()
-
-#                 user.save(update_fields=['status', 'last_shift_update'])
-
-#                 return Response({
-#                     "success": True,
-#                     "message": "Login successful",
-#                     "emp_id": user.emp_id
-#                 }, status=status.HTTP_200_OK)
-
-#             else:
-#                 return Response({"error": "Invalid password."}, status=status.HTTP_401_UNAUTHORIZED)
-
-#         except User.DoesNotExist:
-#             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import User  # Or your custom User model
 
 class UpdateStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        emp_id = request.session.get('emp_id')
-        print('i am in status update',emp_id)
+        user = request.user  # Comes from the validated JWT token
 
-        if 'emp_id' not in request.session:
-            return Response({'success': False, 'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        print('Updating status for:', user.emp_id)
 
-        user = User.objects.get(emp_id=emp_id)
-        print('checking')
         status_value = request.data.get('status')
+
         if status_value in dict(User.STATUS_CHOICES):
             user.status = status_value
-            user.save()
+            user.save(update_fields=["status"])
             return Response({'success': True, 'status': status_value})
         else:
             return Response({'success': False, 'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
@@ -398,7 +336,7 @@ class UpdateStatusAPIView(APIView):
 
 
 
-
+############################################################
 
 
 class ForgotPasswordAPIView(APIView):
@@ -2175,7 +2113,7 @@ from django.utils.dateparse import parse_datetime
 from asgiref.sync import sync_to_async
 import time
  
-from .models import Ticket, synctracker
+from .models import Ticket, SyncTracker
  
 # Load env vars
 load_dotenv()
@@ -2212,7 +2150,7 @@ def save_ticket_to_db(ticket_id, defaults):
  
 @sync_to_async
 def get_or_create_sync_tracker():
-    tracker, _ = synctracker.objects.get_or_create(name="zendesk_sync", defaults={"last_synced_at": None})
+    tracker, _ = SyncTracker.objects.get_or_create(name="zendesk_sync", defaults={"last_synced_at": None})
     return tracker
  
 @sync_to_async
